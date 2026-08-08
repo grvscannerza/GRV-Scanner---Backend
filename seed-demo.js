@@ -7,9 +7,7 @@
 // accounts, two suppliers, and one item master entry - useful for trying out
 // the app locally or running the test suite, which expects these accounts
 // to exist. Safe to run multiple times - does nothing if this demo business
-// already exists.
-
-require('dotenv').config();
+// already exists.require('./load-env-local')();
 const bcrypt = require('bcryptjs');
 const { pool, ready } = require('./db');
 
