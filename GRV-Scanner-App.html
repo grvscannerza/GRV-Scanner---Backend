@@ -647,29 +647,29 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
 
     <div class="home-greeting">
       <div class="home-greeting-title" id="homeGreetingTitle">Good morning, John <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M8 13V6a1.5 1.5 0 013 0v5M11 6a1.5 1.5 0 013 0v5M14 7a1.5 1.5 0 013 0v6M17 12a1.5 1.5 0 013 0v3a6 6 0 01-6 6h-2a6 6 0 01-5-2.7L4 14"/></svg></div>
-      <div class="home-greeting-sub">John's Restaurant &nbsp;·&nbsp; Professional Plan &nbsp;·&nbsp; <span id="homeGreetingDate">Monday, 21 July 2025</span></div>
+      <div class="home-greeting-sub"><span id="homeGreetingBizPlan">Loading...</span> &nbsp;·&nbsp; <span id="homeGreetingDate">Monday, 21 July 2025</span></div>
     </div>
 
     <!-- Quick stats strip -->
     <div class="home-stat-strip">
       <div class="home-stat">
-        <div class="home-stat-val warn">4</div>
+        <div class="home-stat-val warn" id="home-stat-pending">-</div>
         <div class="home-stat-lbl">Pending Review</div>
       </div>
       <div class="home-stat">
-        <div class="home-stat-val">18</div>
+        <div class="home-stat-val" id="home-stat-scanned-today">-</div>
         <div class="home-stat-lbl">Scanned Today</div>
       </div>
       <div class="home-stat">
-        <div class="home-stat-val blue">R26,480</div>
+        <div class="home-stat-val blue" id="home-stat-value-today">-</div>
         <div class="home-stat-lbl">Value Today</div>
       </div>
       <div class="home-stat">
-        <div class="home-stat-val danger">5</div>
+        <div class="home-stat-val danger" id="home-stat-price-alerts">-</div>
         <div class="home-stat-lbl">Price Alerts</div>
       </div>
       <div class="home-stat">
-        <div class="home-stat-val" style="font-size:16px;color:var(--muted-light);">312 / 600</div>
+        <div class="home-stat-val" id="home-stat-scans-month" style="font-size:16px;color:var(--muted-light);">-</div>
         <div class="home-stat-lbl">Scans This Month</div>
       </div>
     </div>
@@ -678,7 +678,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     <div class="dash-grid">
 
       <div class="dash-btn db-pending" data-roles="admin,processor" onclick="showPage('pending', null)">
-        <div class="dash-badge pulse" id="home-pending-badge">4 WAITING</div>
+        <div class="dash-badge pulse" id="home-pending-badge" style="display:none;">0 WAITING</div>
         <div class="dash-btn-inner">
           <div class="dash-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
           <div class="dash-btn-text">
@@ -1267,7 +1267,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <div class="page-sub-txt">Invoices scanned by dispatch staff waiting for your approval. Review each one carefully before approving - once approved the record is locked permanently.</div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;">
-        <div style="padding:6px 14px;background:var(--warn-dim);border:1px solid rgba(245,158,11,0.3);border-radius:20px;font-size:12px;color:var(--warn);font-weight:700;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 4 awaiting approval</div>
+        <div id="pendingPageBadge" style="padding:6px 14px;background:var(--warn-dim);border:1px solid rgba(245,158,11,0.3);border-radius:20px;font-size:12px;color:var(--warn);font-weight:700;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <span id="pendingPageBadgeCount">0</span> awaiting approval</div>
       </div>
     </div>
 
@@ -2351,6 +2351,7 @@ async function establishSession(u, isRestoring) {
     await loadSuppliersFromServer();
     await loadItemMasterFromServer();
     await loadPendingScans();
+    await loadHomeSummary();
     showPage('home', null);
   } else {
     currentUser = { id: u.id, fname: u.firstName, lname: u.lastName, uname: u.username, role: u.role, perms: u.permissions };
@@ -2361,6 +2362,7 @@ async function establishSession(u, isRestoring) {
       await loadSuppliersFromServer();
       await loadItemMasterFromServer();
       await loadPendingScans();
+      await loadHomeSummary();
       if (u.permissions?.users) await loadUsersFromServer();
     }
     else if (u.role === 'dispatch') { await loadSuppliersFromServer(); }
@@ -2375,7 +2377,10 @@ async function establishSession(u, isRestoring) {
 // account got deactivated since, falls through to a normal login screen.
 async function restoreSession() {
   const savedToken = safeStorageGet('grv_auth_token');
-  if (!savedToken) return false;
+  if (!savedToken) {
+    resetHeaderToLoggedOutState();
+    return false;
+  }
 
   authToken = savedToken;
   try {
@@ -2385,6 +2390,7 @@ async function restoreSession() {
   } catch (err) {
     authToken = null;
     safeStorageRemove('grv_auth_token');
+    resetHeaderToLoggedOutState();
     return false;
   }
 }
@@ -4151,6 +4157,41 @@ function pendingCardHTML(scan) {
   </div>`;
 }
 
+async function loadHomeSummary() {
+  try {
+    const [summary, profile, planInfo] = await Promise.all([
+      apiFetch('/reports/home-summary'),
+      apiFetch('/business/profile'),
+      apiFetch('/business/plan'),
+    ]);
+
+    const pendingEl = document.getElementById('home-stat-pending');
+    if (pendingEl) pendingEl.textContent = summary.pendingCount;
+    const scannedEl = document.getElementById('home-stat-scanned-today');
+    if (scannedEl) scannedEl.textContent = summary.scannedToday;
+    const valueEl = document.getElementById('home-stat-value-today');
+    if (valueEl) valueEl.textContent = fmtRand(summary.valueToday);
+    const alertsEl = document.getElementById('home-stat-price-alerts');
+    if (alertsEl) alertsEl.textContent = summary.priceAlertsToday;
+    const monthEl = document.getElementById('home-stat-scans-month');
+    if (monthEl) monthEl.textContent = `${planInfo.scansThisMonth} / ${planInfo.scanLimit}`;
+
+    const pendingBadge = document.getElementById('home-pending-badge');
+    if (pendingBadge) {
+      pendingBadge.style.display = summary.pendingCount > 0 ? 'block' : 'none';
+      pendingBadge.textContent = `${summary.pendingCount} WAITING`;
+    }
+
+    const bizPlanEl = document.getElementById('homeGreetingBizPlan');
+    if (bizPlanEl) {
+      const planLabel = PLAN_INFO[planInfo.plan]?.label || planInfo.plan;
+      bizPlanEl.textContent = `${profile.name} \u00b7 ${planLabel} Plan`;
+    }
+  } catch (err) {
+    console.error('Failed to load home summary:', err.message);
+  }
+}
+
 async function loadPendingScans() {
   try {
     const scans = await apiFetch('/scans');
@@ -4313,6 +4354,10 @@ function updatePendingCount() {
   const remaining = document.querySelectorAll('.pending-card').length;
   const badge = document.getElementById('pendingCount');
   if (badge) badge.textContent = remaining;
+  const pageBadgeCount = document.getElementById('pendingPageBadgeCount');
+  if (pageBadgeCount) pageBadgeCount.textContent = remaining;
+  const pageBadge = document.getElementById('pendingPageBadge');
+  if (pageBadge) pageBadge.style.display = remaining === 0 ? 'none' : '';
   const allDone = document.getElementById('allDoneMsg');
   if (remaining === 0) {
     if (allDone) allDone.style.display = 'block';
