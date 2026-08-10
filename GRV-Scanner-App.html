@@ -948,6 +948,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div id="unlockedHdr">
         <div class="results-header">
           <div><div class="results-title">Extracted Items</div><div class="results-meta" id="resMeta">Select a supplier and upload an invoice to begin</div></div>
+          <div id="extractedActionsPanel" style="opacity:0.35;pointer-events:none;">
           <div style="padding:0 0 10px;">
             <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Invoice Number</label>
             <input id="scanInvoiceNumberInput" placeholder="e.g. INV-4421 (as printed on the invoice)" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);color:var(--text-body);font-family:'DM Mono',monospace;font-size:13px;padding:8px 10px;" oninput="onInvoiceNumberInput()"/>
@@ -956,7 +957,8 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
             <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Note (optional)</label>
             <textarea id="scanNoteInput" placeholder="e.g. 2 boxes short, driver said rest coming tomorrow" style="width:100%;min-height:50px;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);color:var(--text-body);font-family:'Inter',sans-serif;font-size:12px;padding:8px 10px;resize:vertical;"></textarea>
           </div>
-          <div class="action-row"><div class="action-btn" onclick="addScanRow()">+ Add Row</div><div class="action-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg> Clear</div><div class="action-btn primary" onclick="showWarnModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="12" y1="4" x2="12" y2="18"/><polyline points="6 12 12 18 18 12"/></svg> Download & Lock</div></div>
+          <div class="action-row"><div class="action-btn" onclick="addScanRow()">+ Add Row</div><div class="action-btn" onclick="clearScan()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg> Clear</div><div class="action-btn primary" onclick="showWarnModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="12" y1="4" x2="12" y2="18"/><polyline points="6 12 12 18 18 12"/></svg> Download & Lock</div></div>
+          </div>
         </div>
         <div class="banner price-alert-b" id="palBar" style="display:none;"><div class="pal-left" style="display:flex;align-items:center;gap:8px;"><span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div><span style="background:var(--warn);color:#0a1628;font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;">3 PRICE INCREASES</span> &nbsp;detected since last order on <span id="pal-date">12 Jun 2025</span></div></div><span style="font-size:12px;color:var(--warn);text-decoration:underline;cursor:pointer;">View history <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/></svg></span></div>
         <div class="banner" id="dupBar" style="display:none;background:rgba(255,107,107,0.10);border:1px solid rgba(255,107,107,0.35);color:var(--danger);justify-content:space-between;"><div style="display:flex;align-items:center;gap:8px;"><span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/></svg></span><div><span style="background:var(--danger);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;">DUPLICATE DETECTED</span> &nbsp;<span id="dup-invnum">-</span> was already scanned on <span id="dup-date">-</span></div></div><span style="font-size:12px;color:var(--danger);text-decoration:underline;cursor:pointer;white-space:nowrap;" onclick="document.getElementById('dupModal').classList.add('open')">View original <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/></svg></span></div>
@@ -2957,6 +2959,13 @@ async function doScan() {
     document.getElementById('resMeta').textContent = `${scanRows.length} line items - ${sel.options[sel.selectedIndex].text.replace(/ \(.*\)/,'')} - ${priceChangeCount} price change${priceChangeCount === 1 ? '' : 's'}`;
     document.getElementById('fAlerts').innerHTML = `${priceChangeCount} items ` + priceChangeIconHTML('up');
 
+    // The invoice number/note/action buttons only make sense once there's an
+    // actual scan result to act on - before this point they were clickable
+    // but silently did nothing (Download & Lock would open the confirm
+    // dialog then just fail quietly with no scan to submit).
+    const actionsPanel = document.getElementById('extractedActionsPanel');
+    if (actionsPanel) { actionsPanel.style.opacity = '1'; actionsPanel.style.pointerEvents = 'auto'; }
+
     document.getElementById('scanInvoiceNumberInput').value = extractedInvoiceNumber;
     await checkForDuplicate();
 
@@ -3116,6 +3125,32 @@ function onInvoiceNumberInput() {
   invoiceNumberDebounce = setTimeout(checkForDuplicate, 400);
 }
 
+function clearScan() {
+  document.getElementById('scanBody').innerHTML = '';
+  document.getElementById('scanInvoiceNumberInput').value = '';
+  document.getElementById('scanNoteInput').value = '';
+  document.getElementById('resMeta').textContent = 'Select a supplier and upload an invoice to begin';
+  document.getElementById('fSup').textContent = '-';
+  document.getElementById('fItems').textContent = '0';
+  document.getElementById('fAlerts').innerHTML = '-';
+  document.getElementById('fVat').textContent = 'R0.00';
+  document.getElementById('fTotal').textContent = 'R0.00';
+  document.getElementById('palBar').style.display = 'none';
+  document.getElementById('dupBar').style.display = 'none';
+  uploadedImageBase64 = null;
+  uploadedImageMediaType = null;
+  document.getElementById('dropZoneEmpty').style.display = '';
+  document.getElementById('dropZonePreview').style.display = 'none';
+  document.getElementById('dropZoneImg').src = '';
+  document.getElementById('dropZoneFilename').textContent = '';
+  updateScanBtnState();
+
+  // Back to the "nothing scanned yet" state - these controls shouldn't be
+  // usable again until a fresh scan actually produces real results.
+  const actionsPanel = document.getElementById('extractedActionsPanel');
+  if (actionsPanel) { actionsPanel.style.opacity = '0.35'; actionsPanel.style.pointerEvents = 'none'; }
+}
+
 function discardDuplicateScan() {
   closeModal('dupModal');
   document.getElementById('dupBar').style.display = 'none';
@@ -3131,6 +3166,8 @@ function discardDuplicateScan() {
   document.getElementById('dropZoneImg').src = '';
   document.getElementById('dropZoneFilename').textContent = '';
   updateScanBtnState();
+  const actionsPanel = document.getElementById('extractedActionsPanel');
+  if (actionsPanel) { actionsPanel.style.opacity = '0.35'; actionsPanel.style.pointerEvents = 'none'; }
 }
 
 async function proceedExport() {
