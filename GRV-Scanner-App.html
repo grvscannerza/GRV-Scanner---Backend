@@ -2278,6 +2278,11 @@ function applyRoleUI(role, displayName, initials) {
   document.getElementById('rsStaff').className     = isDispatch  ? 'rs-btn active-staff'  : 'rs-btn inactive';
 
   // Update avatar
+  // Explicitly re-show these - a prior logout hides them via
+  // resetHeaderToLoggedOutState(), and nothing else was restoring their
+  // visibility on a fresh, real login.
+  const userBadgeEl = document.querySelector('.user-badge');
+  if (userBadgeEl) userBadgeEl.style.display = 'flex';
   document.getElementById('userAvatar').className   = isAdmin ? 'avatar' : 'avatar staff';
   document.getElementById('userAvatar').textContent  = initials;
   document.getElementById('userName').textContent    = displayName;
@@ -2431,6 +2436,7 @@ function openSignupWizard() {
   safeStorageRemove('grv_auth_token');
   staffUsers = [];
   suppliers = [];
+  resetHeaderToLoggedOutState();
 
   showPage('signup', null);
   showSignupStep(1);
@@ -2563,6 +2569,34 @@ async function chooseSignupPlan(plan) {
   }
 }
 
+// Hides every header element that reflects WHO is logged in and WHAT role
+// they have (avatar, name, role badge, Recovery button, View As switcher,
+// grace period pill). logout() alone clearing the underlying session
+// variables isn't enough - without this, the header keeps showing the
+// previous person's name and role-specific buttons even after a successful
+// logout, which is a real problem, not just cosmetic (e.g. on a shared
+// computer, someone's name and admin badge staying visible after they've
+// logged out).
+function resetHeaderToLoggedOutState() {
+  const userBadge = document.querySelector('.user-badge');
+  if (userBadge) userBadge.style.display = 'none';
+  const roleSwitcher = document.querySelector('.role-switcher');
+  if (roleSwitcher) roleSwitcher.style.display = 'none';
+  const recoveryBtn = document.getElementById('recoveryBtn');
+  if (recoveryBtn) recoveryBtn.style.display = 'none';
+  const gracePill = document.getElementById('gracePeriodPill');
+  if (gracePill) gracePill.style.display = 'none';
+  // Defense in depth - clear the actual text too, not just hide the
+  // container, so nothing stale could show even if some other code path
+  // ever displays these elements without first setting fresh values.
+  const avatar = document.getElementById('userAvatar');
+  if (avatar) avatar.textContent = '';
+  const nameEl = document.getElementById('userName');
+  if (nameEl) nameEl.textContent = '';
+  const badgeEl = document.getElementById('userRoleBadge');
+  if (badgeEl) badgeEl.textContent = '';
+}
+
 function logout() {
   currentUser = null;
   currentRole = 'admin';
@@ -2571,6 +2605,7 @@ function logout() {
   safeStorageRemove('grv_auth_token');
   staffUsers = [];
   suppliers = [];
+  resetHeaderToLoggedOutState();
   const idEl = document.getElementById('login-identifier');
   const secretEl = document.getElementById('login-secret');
   const errEl = document.getElementById('login-error');
@@ -2636,6 +2671,7 @@ function showPage(id, tabEl) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const loginPg = document.getElementById('page-login');
     if (loginPg) loginPg.classList.add('active');
+    resetHeaderToLoggedOutState();
     return;
   }
 
