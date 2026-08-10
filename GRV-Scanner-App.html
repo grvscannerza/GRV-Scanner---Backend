@@ -2420,6 +2420,18 @@ async function attemptLogin() {
 }
 
 function openSignupWizard() {
+  // Opening signup must always start from a genuinely clean, logged-out
+  // state - otherwise a still-active prior session (never explicitly logged
+  // out) would remain fully reachable via the header/nav while a new account
+  // is being created, since navigating pages alone doesn't clear a session.
+  currentUser = null;
+  currentRole = 'admin';
+  isDeveloperSession = false;
+  authToken = null;
+  safeStorageRemove('grv_auth_token');
+  staffUsers = [];
+  suppliers = [];
+
   showPage('signup', null);
   showSignupStep(1);
 }
@@ -2614,6 +2626,19 @@ const pageLabels = {
 };
 
 function showPage(id, tabEl) {
+  // A real session is required for every page except login/signup itself -
+  // without this, someone could land on an authenticated page's markup
+  // (potentially still showing stale data from an earlier session) even
+  // after that session was cleared, since role checks alone don't catch this
+  // (currentRole defaults to 'admin' even when logged out).
+  const publicPages = ['login', 'signup'];
+  if (!publicPages.includes(id) && !authToken) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const loginPg = document.getElementById('page-login');
+    if (loginPg) loginPg.classList.add('active');
+    return;
+  }
+
   // Block based on role
   const dispatchAllowed  = ['scan','login','signup','inactive-account'];
   const processorBase    = ['home','pending','suppliers','itemmaster','scan','login','signup','inactive-account'];
