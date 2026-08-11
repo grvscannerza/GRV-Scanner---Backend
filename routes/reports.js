@@ -9,6 +9,37 @@ router.use(requireActiveSubscription);
 
 // Real aggregated report for a date range, built from actual scans - not generated.
 // GET /api/reports/summary?start=2026-07-31&end=2026-07-31  (inclusive, business-local dates)
+// Real numbers for the home page's quick-stats strip - previously this was
+// entirely hardcoded placeholder text left over from the original mockup
+// (a fake "4 waiting", "18 scanned today", etc. that never changed no
+// matter what was actually in the database).
+router.get('/home-summary', requireRole('admin', 'processor', 'developer'), async (req, res) => {
+  try {
+    const { features } = await getPlanFeatures(req.user.businessId);
+
+    const pendingResult = await pool.query(
+      `SELECT COUNT(*)::int AS n FROM scans WHERE business_id = $1 AND status = 'pending'`,
+      [req.user.businessId]
+    );
+
+    const todayResult = await pool.query(
+      `SELECT COUNT(*)::int AS n, COALESCE(SUM(total), 0)::float AS "totalValue", COALESCE(SUM(price_alerts), 0)::int AS "priceAlertCount"
+       FROM scans WHERE business_id = $1 AND scanned_at::date = CURRENT_DATE`,
+      [req.user.businessId]
+    );
+
+    res.json({
+      pendingCount: pendingResult.rows[0].n,
+      scannedToday: todayResult.rows[0].n,
+      valueToday: todayResult.rows[0].totalValue,
+      priceAlertsToday: features.priceIncreaseDetection ? todayResult.rows[0].priceAlertCount : 0,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 router.get('/summary', requireRole('admin', 'processor', 'developer'), async (req, res) => {
   const { start, end } = req.query;
   if (!start || !end) return res.status(400).json({ error: 'start and end query params are required (YYYY-MM-DD).' });

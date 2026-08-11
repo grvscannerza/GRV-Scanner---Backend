@@ -1,6 +1,7 @@
 const express = require('express');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { pool } = require('../db');
+const { getPlanFeatures } = require('./planFeatures');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -92,10 +93,13 @@ router.get('/plan', requireRole('admin', 'developer'), async (req, res) => {
       gracePeriodDaysLeft = remainingMs > 0 ? Math.ceil(remainingMs / (24 * 60 * 60 * 1000)) : 0;
     }
 
+    const { features } = await getPlanFeatures(req.user.businessId);
+
     res.json({
       plan: row ? row.plan : 'professional',
       subscriptionStatus: row ? row.subscription_status : 'inactive',
       scansThisMonth: scansResult.rows[0].n,
+      scanLimit: features.scanLimit,
       gracePeriodDaysLeft,
     });
   } catch (err) {
