@@ -20,6 +20,43 @@ router.get('/profile', requireRole('admin', 'developer'), async (req, res) => {
   }
 });
 
+// Up to 5 custom VAT rate presets per business - not hardcoded to South
+// Africa's 15%, since a customer using GRV Scanner outside SA needs their
+// own real rates. These populate the VAT dropdown when creating a supplier.
+router.get('/vat-rates', requireRole('admin', 'processor', 'developer'), async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT vat_rate_presets FROM businesses WHERE id = $1', [req.user.businessId]);
+    if (!rows[0]) return res.status(404).json({ error: 'Business not found.' });
+    res.json({ vatRates: JSON.parse(rows[0].vat_rate_presets) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+router.put('/vat-rates', requireRole('admin', 'developer'), async (req, res) => {
+  const { vatRates } = req.body || {};
+  if (!Array.isArray(vatRates) || vatRates.length === 0) {
+    return res.status(400).json({ error: 'At least one VAT rate is required.' });
+  }
+  if (vatRates.length > 5) {
+    return res.status(400).json({ error: 'A maximum of 5 VAT rates is allowed.' });
+  }
+  for (const r of vatRates) {
+    if (!r.label || !r.label.trim()) return res.status(400).json({ error: 'Every VAT rate needs a label.' });
+    if (typeof r.rate !== 'number' || r.rate < 0 || r.rate > 100) {
+      return res.status(400).json({ error: `"${r.label}" needs a valid rate between 0 and 100.` });
+    }
+  }
+  try {
+    await pool.query('UPDATE businesses SET vat_rate_presets = $1 WHERE id = $2', [JSON.stringify(vatRates), req.user.businessId]);
+    res.json({ ok: true, vatRates });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 router.put('/profile', requireRole('admin', 'developer'), async (req, res) => {
   const { name, address, contactNumber, contactEmail, vatNumber } = req.body || {};
   if (!name || !name.trim()) return res.status(400).json({ error: 'Company name is required.' });

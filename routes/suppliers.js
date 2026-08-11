@@ -24,15 +24,19 @@ router.get('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asyn
 });
 
 router.post('/', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const { name, accountNo, vatNumber, vatType, contactName, phone, email, terms } = req.body || {};
+  const { name, accountNo, vatNumber, vatRate, contactName, phone, email, terms } = req.body || {};
   if (!name) return res.status(400).json({ error: 'Supplier name is required.' });
   if (email && !email.includes('@')) return res.status(400).json({ error: 'Invalid email address.' });
 
+  const rate = typeof vatRate === 'number' ? vatRate : 15;
+  if (rate < 0 || rate > 100) return res.status(400).json({ error: 'VAT rate must be between 0 and 100.' });
+  const legacyVatType = rate === 0 ? 'exempt' : 'vat'; // kept for older parts of the app that still read this
+
   try {
     const insertResult = await pool.query(`
-      INSERT INTO suppliers (business_id, name, account_no, vat_number, vat_type, contact_name, phone, email, terms)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id
-    `, [req.user.businessId, name, accountNo || null, vatNumber || null, vatType || 'vat', contactName || null, phone || null, email || null, terms || null]);
+      INSERT INTO suppliers (business_id, name, account_no, vat_number, vat_type, vat_rate, contact_name, phone, email, terms)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
+    `, [req.user.businessId, name, accountNo || null, vatNumber || null, legacyVatType, rate, contactName || null, phone || null, email || null, terms || null]);
     const newId = insertResult.rows[0].id;
 
     await pool.query(
@@ -49,15 +53,19 @@ router.post('/', requireRole('admin', 'processor', 'developer'), async (req, res
 });
 
 router.put('/:id', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const { name, accountNo, vatNumber, vatType, contactName, phone, email, terms } = req.body || {};
+  const { name, accountNo, vatNumber, vatRate, contactName, phone, email, terms } = req.body || {};
   if (!name) return res.status(400).json({ error: 'Supplier name is required.' });
   if (email && !email.includes('@')) return res.status(400).json({ error: 'Invalid email address.' });
 
+  const rate = typeof vatRate === 'number' ? vatRate : 15;
+  if (rate < 0 || rate > 100) return res.status(400).json({ error: 'VAT rate must be between 0 and 100.' });
+  const legacyVatType = rate === 0 ? 'exempt' : 'vat';
+
   try {
     const result = await pool.query(`
-      UPDATE suppliers SET name=$1, account_no=$2, vat_number=$3, vat_type=$4, contact_name=$5, phone=$6, email=$7, terms=$8
-      WHERE id=$9 AND business_id=$10
-    `, [name, accountNo || null, vatNumber || null, vatType || 'vat', contactName || null, phone || null, email || null, terms || null, req.params.id, req.user.businessId]);
+      UPDATE suppliers SET name=$1, account_no=$2, vat_number=$3, vat_type=$4, vat_rate=$5, contact_name=$6, phone=$7, email=$8, terms=$9
+      WHERE id=$10 AND business_id=$11
+    `, [name, accountNo || null, vatNumber || null, legacyVatType, rate, contactName || null, phone || null, email || null, terms || null, req.params.id, req.user.businessId]);
 
     if (result.rowCount === 0) return res.status(404).json({ error: 'Supplier not found.' });
     res.json({ ok: true });

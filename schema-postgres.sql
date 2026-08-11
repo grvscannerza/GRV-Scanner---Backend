@@ -9,6 +9,10 @@ CREATE TABLE IF NOT EXISTS businesses (
   contact_number            TEXT,
   contact_email             TEXT,
   vat_number                TEXT,
+  -- Up to 5 custom VAT rate options this business can assign to suppliers -
+  -- not hardcoded to South Africa's 15%, since a business outside SA may
+  -- need different rates entirely. JSON array of {"label": "...", "rate": 15}.
+  vat_rate_presets          TEXT NOT NULL DEFAULT '[{"label":"Standard Rate","rate":15},{"label":"Zero-Rated","rate":0}]',
   plan                      TEXT NOT NULL DEFAULT 'professional',
   subscription_status       TEXT NOT NULL DEFAULT 'inactive' CHECK (subscription_status IN ('inactive','active','past_due','cancelled')),
   past_due_since            TIMESTAMPTZ,
@@ -42,6 +46,7 @@ CREATE TABLE IF NOT EXISTS suppliers (
   account_no    TEXT,
   vat_number    TEXT,
   vat_type      TEXT NOT NULL DEFAULT 'vat' CHECK (vat_type IN ('vat','exempt')),
+  vat_rate      REAL NOT NULL DEFAULT 15,
   contact_name  TEXT,
   phone         TEXT,
   email         TEXT,
@@ -140,3 +145,14 @@ CREATE TABLE IF NOT EXISTS item_price_history (
   scan_id     INTEGER REFERENCES scans(id),
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Migrations for databases that already existed before these columns were
+-- added - CREATE TABLE IF NOT EXISTS above only helps brand new databases,
+-- it does nothing to a table that already exists. Safe to run every startup.
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS vat_rate_presets TEXT NOT NULL DEFAULT '[{"label":"Standard Rate","rate":15},{"label":"Zero-Rated","rate":0}]';
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFAULT 15;
+-- Backfill: a supplier already marked 'exempt' under the old system should
+-- carry that forward as an actual 0% rate, not silently become 15%. Only
+-- touches rows still sitting at the fresh-column default, so this can't
+-- clobber a rate someone has already deliberately set through the new system.
+UPDATE suppliers SET vat_rate = 0 WHERE vat_type = 'exempt' AND vat_rate = 15;
