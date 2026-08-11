@@ -972,7 +972,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>#</th><th class="ec" id="hD">Description</th><th class="ec" id="hC">Code/SKU</th><th class="num ec" id="hQ">Qty</th><th class="ec" id="hU">Unit</th><th class="num ec" id="hP">Unit Price</th><th class="num">Last Price</th><th class="num">Change</th><th class="num cc" id="hVat">VAT (15%)</th><th class="num cc">Total (R)</th><th id="hDel"></th></tr></thead>
+          <thead><tr><th>#</th><th class="ec" id="hD">Description</th><th class="ec" id="hC">Code/SKU</th><th class="num ec" id="hQ">Qty</th><th class="ec" id="hU">Unit</th><th class="num ec" id="hP">Unit Price</th><th class="num">Last Price</th><th class="num">Change</th><th class="num">VAT Rate</th><th class="num cc" id="hVat">VAT</th><th class="num cc">Total (R)</th><th id="hDel"></th></tr></thead>
           <tbody id="scanBody"></tbody>
         </table>
       </div>
@@ -2361,6 +2361,7 @@ async function establishSession(u, isRestoring) {
     await loadUsersFromServer();
     await loadSuppliersFromServer();
     await loadItemMasterFromServer();
+    await loadVatRatePresetsCache();
     await loadPendingScans();
     await loadHomeSummary();
     showPage('home', null);
@@ -2372,11 +2373,12 @@ async function establishSession(u, isRestoring) {
     if (u.role === 'processor') {
       await loadSuppliersFromServer();
       await loadItemMasterFromServer();
+      await loadVatRatePresetsCache();
       await loadPendingScans();
       await loadHomeSummary();
       if (u.permissions?.users) await loadUsersFromServer();
     }
-    else if (u.role === 'dispatch') { await loadSuppliersFromServer(); }
+    else if (u.role === 'dispatch') { await loadSuppliersFromServer(); await loadVatRatePresetsCache(); }
     showPage(u.role === 'processor' ? 'home' : 'scan', null);
   }
 
@@ -2873,8 +2875,6 @@ function onSupChange(sel) {
     badge.className='vat-badge vat-reg';
   }
   checkForDuplicate();
-  const hVat = document.getElementById('hVat');
-  if (hVat) hVat.textContent = `VAT (${rate}%)`;
   const nm = sel.options[sel.selectedIndex].text.replace(/ \(.*\)/,'');
   document.getElementById('fSup').textContent = nm;
   recalcAll();
@@ -2927,16 +2927,13 @@ function setFmt(el) {
   selectedExportFormat = el.textContent.trim().toLowerCase();
 }
 
-// Known price history, used to detect price changes / flag new items after a real scan.
-// Session-only demo data - a production version would look this up from the real Item Master database.
-const itemPriceHistory = {
-  'SUN-750':  18.50,
-  'OMO-2KG':  89.99,
-  'DOM-750':  22.50,
-  'HAN-400':  19.99,
-  'SKI-3KG':  119.99,
-  'COM-1LT':  29.99,
-};
+// Real lookup by item code, built from the actual Item Master data (not
+// hardcoded demo data) - used to detect price changes and to recall each
+// item's own remembered VAT rate, since a single supplier can sell both
+// VAT-able and zero-rated products.
+function getKnownItemByCode(code) {
+  return itemMasterCache.find(it => String(it.code || '').trim().toUpperCase() === code);
+}
 
 function priceChangeIconHTML(kind) {
   if (kind === 'up')   return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg>';
@@ -3004,24 +3001,29 @@ async function doScan() {
       const code = String(it.code || '').trim().toUpperCase() || ('ITEM-' + Math.random().toString(36).slice(2, 7).toUpperCase());
       const qty = Number(it.qty) || 0;
       const up  = Number(it.up) || 0;
-      const known = itemPriceHistory[code];
+      const known = getKnownItemByCode(code);
+      const knownPrice = known ? known.current_price : undefined;
+      // If this exact product has a remembered VAT rate from a previous
+      // scan, use it - otherwise fall back to whatever the supplier's
+      // current default rate is.
+      const rowVatRate = (known && typeof known.vat_rate === 'number') ? known.vat_rate : Math.round(vatRate * 100);
       let flag, lp, fp;
-      if (known === undefined) {
+      if (knownPrice === undefined) {
         flag = 'new'; lp = '-'; fp = priceChangeIconHTML('new') + ' New';
-      } else if (Math.abs(up - known) < 0.005) {
-        flag = 'ok'; lp = 'R' + known.toFixed(2); fp = priceChangeIconHTML('ok') + ' Same';
-      } else if (up > known) {
-        flag = 'up'; lp = 'R' + known.toFixed(2);
-        const pct = ((up - known) / known * 100).toFixed(1);
+      } else if (Math.abs(up - knownPrice) < 0.005) {
+        flag = 'ok'; lp = 'R' + knownPrice.toFixed(2); fp = priceChangeIconHTML('ok') + ' Same';
+      } else if (up > knownPrice) {
+        flag = 'up'; lp = 'R' + knownPrice.toFixed(2);
+        const pct = ((up - knownPrice) / knownPrice * 100).toFixed(1);
         fp = priceChangeIconHTML('up') + ' +' + pct + '%';
         priceChangeCount++;
       } else {
-        flag = 'down'; lp = 'R' + known.toFixed(2);
-        const pct = ((known - up) / known * 100).toFixed(1);
+        flag = 'down'; lp = 'R' + knownPrice.toFixed(2);
+        const pct = ((knownPrice - up) / knownPrice * 100).toFixed(1);
         fp = priceChangeIconHTML('down') + ' -' + pct + '%';
         priceChangeCount++;
       }
-      return { desc: String(it.desc || 'Unknown item'), code, qty, unit: String(it.unit || 'each'), up, lp, flag, fp };
+      return { desc: String(it.desc || 'Unknown item'), code, qty, unit: String(it.unit || 'each'), up, lp, flag, fp, vatRate: rowVatRate };
     });
 
     const tbody = document.getElementById('scanBody');
@@ -3051,6 +3053,17 @@ async function doScan() {
   }
 }
 
+function vatRateOptionsHTML(selectedRate) {
+  const rate = typeof selectedRate === 'number' ? selectedRate : Math.round(vatRate * 100);
+  // If the current rate isn't one of the configured presets (e.g. a remembered
+  // rate from before a preset was edited/removed), still show it as a real
+  // option so nothing silently changes what the user is looking at.
+  const rates = vatRatePresetsCache.some(p => p.rate === rate)
+    ? vatRatePresetsCache
+    : [...vatRatePresetsCache, { label: `${rate}%`, rate }];
+  return rates.map(p => `<option value="${p.rate}" ${p.rate === rate ? 'selected' : ''}>${p.label} (${p.rate}%)</option>`).join('');
+}
+
 function makeScanRow(r,i) {
   const tr = document.createElement('tr');
   if (r.flag==='up') tr.classList.add('pu');
@@ -3064,6 +3077,7 @@ function makeScanRow(r,i) {
     <td class="ed"><input class="n" value="${r.up.toFixed(2)}" oninput="recalcRow(this)"/></td>
     <td class="lp">${r.lp}</td>
     <td class="pf"><div class="flag-badge ${fc}">${r.fp}</div></td>
+    <td class="ed"><select class="row-vat-rate" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:6px;color:var(--text-body);font-size:11px;padding:3px 4px;" onchange="recalcRow(this)">${vatRateOptionsHTML(r.vatRate)}</select></td>
     <td class="ca vv" data-vat>R0.00</td>
     <td class="ca tv" data-total>R0.00</td>
     <td><button class="del-btn" onclick="this.closest('tr').remove();recalcAll()" title="Remove this line"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td>`;
@@ -3073,8 +3087,10 @@ function makeScanRow(r,i) {
 function recalcRow(inp) {
   const tr=inp.closest('tr');
   const inp2=tr.querySelectorAll('input');
+  const rateSel=tr.querySelector('.row-vat-rate');
+  const rowVatRate=(rateSel ? parseFloat(rateSel.value) : Math.round(vatRate*100)) / 100;
   const qty=parseFloat(inp2[2]?.value)||0, up=parseFloat(inp2[4]?.value)||0;
-  const sub=qty*up, vat=sub*vatRate;
+  const sub=qty*up, vat=sub*rowVatRate;
   tr.querySelector('[data-vat]').textContent='R'+vat.toFixed(2);
   tr.querySelector('[data-total]').textContent='R'+(sub+vat).toFixed(2);
   recalcAll();
@@ -3084,8 +3100,10 @@ function recalcAll() {
   document.querySelectorAll('#scanBody tr').forEach(tr=>{
     const inp=tr.querySelectorAll('input');
     if(inp.length<5) return;
+    const rateSel=tr.querySelector('.row-vat-rate');
+    const rowVatRate=(rateSel ? parseFloat(rateSel.value) : Math.round(vatRate*100)) / 100;
     const qty=parseFloat(inp[2]?.value)||0, up=parseFloat(inp[4]?.value)||0;
-    const sub=qty*up, vat=sub*vatRate;
+    const sub=qty*up, vat=sub*rowVatRate;
     const vc=tr.querySelector('[data-vat]'), tc=tr.querySelector('[data-total]');
     if(vc) vc.textContent='R'+vat.toFixed(2);
     if(tc) tc.textContent='R'+(sub+vat).toFixed(2);
@@ -3130,12 +3148,14 @@ async function submitScanToServer() {
     if (badge?.classList.contains('flag-up')) flag = 'up';
     else if (badge?.classList.contains('flag-down')) flag = 'down';
     else if (badge?.classList.contains('flag-new')) flag = 'new';
+    const rateSel = r.querySelector('.row-vat-rate');
     return {
       desc: inputs[0]?.value || '',
       code: inputs[1]?.value || '',
       qty: parseFloat(inputs[2]?.value) || 0,
       unit: inputs[3]?.value || 'each',
       unitPrice: parseFloat(inputs[4]?.value) || 0,
+      vatRate: rateSel ? parseFloat(rateSel.value) : Math.round(vatRate * 100),
       flag,
     };
   });
@@ -4043,6 +4063,16 @@ function itemMasterRowHTML(item) {
 }
 
 let itemMasterCache = [];
+let vatRatePresetsCache = [{ label: 'Standard VAT rate', rate: 15 }, { label: 'Zero-Rated', rate: 0 }];
+
+async function loadVatRatePresetsCache() {
+  try {
+    const result = await apiFetch('/business/vat-rates');
+    vatRatePresetsCache = result.vatRates;
+  } catch (err) {
+    console.error('Failed to load VAT rate presets:', err.message);
+  }
+}
 
 function renderItemMaster() {
   const tbody = document.getElementById('itemMasterBody');

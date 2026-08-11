@@ -61,6 +61,11 @@ CREATE TABLE IF NOT EXISTS item_master (
   name            TEXT NOT NULL,
   unit            TEXT NOT NULL DEFAULT 'each',
   current_price   REAL NOT NULL DEFAULT 0,
+  -- NULL means "follow whatever the supplier's default VAT rate is"; a real
+  -- number means this specific product has its own remembered rate, since a
+  -- single supplier can sell both VAT-able and VAT-exempt items (e.g. basic
+  -- zero-rated foodstuffs alongside standard-rated goods).
+  vat_rate        REAL,
   supplier_id     INTEGER REFERENCES suppliers(id),
   last_ordered_at TIMESTAMPTZ,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -94,6 +99,7 @@ CREATE TABLE IF NOT EXISTS scan_line_items (
   qty           REAL NOT NULL DEFAULT 0,
   unit          TEXT NOT NULL DEFAULT 'each',
   unit_price    REAL NOT NULL DEFAULT 0,
+  vat_rate      REAL NOT NULL DEFAULT 15,
   flag          TEXT NOT NULL DEFAULT 'ok' CHECK (flag IN ('ok','up','down','new'))
 );
 
@@ -151,6 +157,8 @@ CREATE TABLE IF NOT EXISTS item_price_history (
 -- it does nothing to a table that already exists. Safe to run every startup.
 ALTER TABLE businesses ADD COLUMN IF NOT EXISTS vat_rate_presets TEXT NOT NULL DEFAULT '[{"label":"Standard VAT rate","rate":15},{"label":"Zero-Rated","rate":0}]';
 ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFAULT 15;
+ALTER TABLE item_master ADD COLUMN IF NOT EXISTS vat_rate REAL;
+ALTER TABLE scan_line_items ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFAULT 15;
 -- Backfill: a supplier already marked 'exempt' under the old system should
 -- carry that forward as an actual 0% rate, not silently become 15%. Only
 -- touches rows still sitting at the fresh-column default, so this can't

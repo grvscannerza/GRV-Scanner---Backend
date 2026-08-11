@@ -45,14 +45,18 @@ router.get('/', requireRole('admin', 'processor', 'developer'), async (req, res)
 });
 
 router.post('/', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const { code, name, unit, currentPrice, supplierId } = req.body || {};
+  const { code, name, unit, currentPrice, supplierId, vatRate } = req.body || {};
   if (!code || !name) return res.status(400).json({ error: 'Code and name are required.' });
+  const rate = (vatRate === null || vatRate === undefined || vatRate === '') ? null : parseFloat(vatRate);
+  if (rate !== null && (isNaN(rate) || rate < 0 || rate > 100)) {
+    return res.status(400).json({ error: 'VAT rate must be between 0 and 100.' });
+  }
 
   try {
     const insertResult = await pool.query(`
-      INSERT INTO item_master (business_id, code, name, unit, current_price, supplier_id, last_ordered_at)
-      VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id
-    `, [req.user.businessId, code, name, unit || 'each', currentPrice || 0, supplierId || null]);
+      INSERT INTO item_master (business_id, code, name, unit, current_price, vat_rate, supplier_id, last_ordered_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING id
+    `, [req.user.businessId, code, name, unit || 'each', currentPrice || 0, rate, supplierId || null]);
     const newId = insertResult.rows[0].id;
 
     await pool.query(`INSERT INTO item_price_history (item_id, price, source) VALUES ($1, $2, 'manual')`, [newId, currentPrice || 0]);
@@ -71,8 +75,12 @@ router.post('/', requireRole('admin', 'processor', 'developer'), async (req, res
 });
 
 router.put('/:id', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const { code, name, unit, currentPrice, supplierId } = req.body || {};
+  const { code, name, unit, currentPrice, supplierId, vatRate } = req.body || {};
   if (!code || !name) return res.status(400).json({ error: 'Code and name are required.' });
+  const rate = (vatRate === null || vatRate === undefined || vatRate === '') ? null : parseFloat(vatRate);
+  if (rate !== null && (isNaN(rate) || rate < 0 || rate > 100)) {
+    return res.status(400).json({ error: 'VAT rate must be between 0 and 100.' });
+  }
 
   try {
     const existingResult = await pool.query(
@@ -83,9 +91,9 @@ router.put('/:id', requireRole('admin', 'processor', 'developer'), async (req, r
     if (!existing) return res.status(404).json({ error: 'Item not found.' });
 
     const result = await pool.query(`
-      UPDATE item_master SET code=$1, name=$2, unit=$3, current_price=$4, supplier_id=$5
-      WHERE id=$6 AND business_id=$7
-    `, [code, name, unit || 'each', currentPrice || 0, supplierId || null, req.params.id, req.user.businessId]);
+      UPDATE item_master SET code=$1, name=$2, unit=$3, current_price=$4, vat_rate=$5, supplier_id=$6
+      WHERE id=$7 AND business_id=$8
+    `, [code, name, unit || 'each', currentPrice || 0, rate, supplierId || null, req.params.id, req.user.businessId]);
 
     if (result.rowCount === 0) return res.status(404).json({ error: 'Item not found.' });
 

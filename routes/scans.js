@@ -85,27 +85,48 @@ router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asy
 
     if (Array.isArray(lineItems) && lineItems.length) {
       for (const li of lineItems) {
+        const lineVatRate = typeof li.vatRate === 'number' ? li.vatRate : 15;
         await pool.query(`
-          INSERT INTO scan_line_items (scan_id, description, code, qty, unit, unit_price, flag)
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, [scanId, li.desc || '', li.code || '', li.qty || 0, li.unit || 'each', li.unitPrice || 0, li.flag || 'ok']);
+          INSERT INTO scan_line_items (scan_id, description, code, qty, unit, unit_price, vat_rate, flag)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `, [scanId, li.desc || '', li.code || '', li.qty || 0, li.unit || 'each', li.unitPrice || 0, lineVatRate, li.flag || 'ok']);
 
         // If this line item matches a known Item Master code, keep its price current
         // and record the change, so Item Master reflects what's actually been paid.
+        // Also remember this item's VAT rate - a single supplier can sell both
+        // VAT-able and zero-rated items, so the rate has to be remembered per
+        // product, not just assumed from the supplier, next time it's scanned.
         if (li.code) {
           const itemResult = await pool.query(
-            'SELECT id, current_price FROM item_master WHERE business_id = $1 AND code = $2',
+            'SELECT id, current_price, vat_rate FROM item_master WHERE business_id = $1 AND code = $2',
             [req.user.businessId, li.code]
           );
           const item = itemResult.rows[0];
           if (item) {
-            await pool.query('UPDATE item_master SET current_price = $1, last_ordered_at = NOW() WHERE id = $2', [li.unitPrice, item.id]);
+            await pool.query(
+              'UPDATE item_master SET current_price = $1, vat_rate = $2, last_ordered_at = NOW() WHERE id = $3',
+              [li.unitPrice, lineVatRate, item.id]
+            );
             if (Number(li.unitPrice) !== item.current_price) {
               await pool.query(
                 `INSERT INTO item_price_history (item_id, price, source, scan_id) VALUES ($1, $2, 'scan', $3)`,
                 [item.id, li.unitPrice, scanId]
               );
             }
+          } else {
+            // A genuinely new product code, never seen before - create the
+            // Item Master entry now so its price AND VAT rate really are
+            // remembered the next time this exact product gets scanned,
+            // rather than only ever working for items someone had already
+            // added manually.
+            const newItemResult = await pool.query(`
+              INSERT INTO item_master (business_id, code, name, unit, current_price, vat_rate, supplier_id, last_ordered_at)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING id
+            `, [req.user.businessId, li.code, li.desc || li.code, li.unit || 'each', li.unitPrice || 0, lineVatRate, supplierId]);
+            await pool.query(
+              `INSERT INTO item_price_history (item_id, price, source, scan_id) VALUES ($1, $2, 'scan', $3)`,
+              [newItemResult.rows[0].id, li.unitPrice || 0, scanId]
+            );
           }
         }
       }
