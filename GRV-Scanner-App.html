@@ -853,12 +853,12 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <div class="login-title">Your Details</div>
         <div class="login-sub">Let's start with who you are</div>
         <div id="su1-error" style="display:none;background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:14px;"></div>
-        <div class="login-field"><label>First Name</label><input id="su-fname" type="text" placeholder="e.g. Nomvula" oninput="updateSignupUsername()"/></div>
-        <div class="login-field"><label>Last Name</label><input id="su-lname" type="text" placeholder="e.g. Dube" oninput="updateSignupUsername()"/></div>
-        <div class="login-field"><label>Username</label><input id="su-username" type="text" placeholder="e.g. nomvula.dube" oninput="checkSignupUsername()"/><div id="su-username-status" style="font-size:11px;margin-top:4px;"></div></div>
-        <div class="login-field"><label>Email Address</label><input id="su-email" type="email" placeholder="you@yourbusiness.co.za"/></div>
-        <div class="login-field"><label>Create a 4-Digit PIN</label><input id="su-pin" type="password" inputmode="numeric" maxlength="4" placeholder="4 digits"/></div>
-        <div class="login-field"><label>Confirm PIN</label><input id="su-pin2" type="password" inputmode="numeric" maxlength="4" placeholder="Confirm your PIN"/></div>
+        <div class="tb-field"><label>First Name <span class="req">*</span></label><input id="su-fname" type="text" oninput="updateSignupUsername()"/></div>
+        <div class="tb-field"><label>Last Name <span class="req">*</span></label><input id="su-lname" type="text" oninput="updateSignupUsername()"/></div>
+        <div class="tb-field"><label>Username <span class="req">*</span></label><input id="su-username" type="text" oninput="checkSignupUsername()"/><div id="su-username-status" style="font-size:11px;margin-top:4px;"></div></div>
+        <div class="tb-field"><label>Email Address <span class="req">*</span></label><input id="su-email" type="email"/></div>
+        <div class="tb-field"><label>Create a 4-Digit PIN <span class="req">*</span></label><input id="su-pin" type="password" inputmode="numeric" maxlength="4"/></div>
+        <div class="tb-field"><label>Confirm PIN <span class="req">*</span></label><input id="su-pin2" type="password" inputmode="numeric" maxlength="4"/></div>
         <button class="login-submit" onclick="goToSignupStep2()">CONTINUE</button>
         <div class="login-switch">Already have an account? <a onclick="showPage('login', null)" style="cursor:pointer;">Sign in</a></div>
       </div>
@@ -868,11 +868,11 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <div class="login-title">Your Company</div>
         <div class="login-sub">Used on your invoices and account records</div>
         <div id="su2-error" style="display:none;background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:14px;"></div>
-        <div class="login-field"><label>Company Name</label><input id="su-company-name" type="text" placeholder="e.g. John's Restaurant (Pty) Ltd"/></div>
-        <div class="login-field"><label>Company Address</label><input id="su-company-address" type="text" placeholder="Street, city, postal code"/></div>
-        <div class="login-field"><label>Contact Number</label><input id="su-company-phone" type="text" placeholder="e.g. 011 123 4567"/></div>
-        <div class="login-field"><label>Company Email Address</label><input id="su-company-email" type="email" placeholder="e.g. accounts@yourbusiness.co.za"/></div>
-        <div class="login-field"><label>VAT Number <span style="color:var(--muted);font-weight:400;">(optional - only if VAT registered)</span></label><input id="su-company-vat" type="text" placeholder="e.g. 4123456789"/></div>
+        <div class="tb-field"><label>Company Name <span class="req">*</span></label><input id="su-company-name" type="text"/></div>
+        <div class="tb-field"><label>Company Address <span class="req">*</span></label><input id="su-company-address" type="text"/></div>
+        <div class="tb-field"><label>Contact Number <span class="req">*</span></label><input id="su-company-phone" type="text"/></div>
+        <div class="tb-field"><label>Company Email Address <span class="req">*</span></label><input id="su-company-email" type="email"/></div>
+        <div class="tb-field"><label>VAT Number <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label><input id="su-company-vat" type="text"/></div>
         <div style="display:flex;gap:10px;">
           <button class="login-submit" style="background:var(--surface);color:var(--text);border:1px solid var(--border-light);flex:0 0 auto;padding:0 20px;" onclick="showSignupStep(1)">BACK</button>
           <button class="login-submit" id="su-step2-btn" onclick="submitSignup()" style="flex:1;">CREATE ACCOUNT</button>
