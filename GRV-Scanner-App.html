@@ -1074,7 +1074,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       </div>
       <div id="s-vat" style="display:none;">
         <div class="settings-title">VAT Rates</div>
-        <div class="settings-sub">Set up to 5 VAT rates for your business - not every country uses South Africa's 15%. These show up as options when you add a supplier.</div>
+        <div class="settings-sub">Set up to 5 VAT rates for your business.</div>
         <div id="vat-error" style="display:none;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:12px;max-width:480px;"></div>
         <div id="vatRateRows" style="max-width:480px;"></div>
         <button id="vatAddRowBtn" onclick="addVatRateRow()" style="background:none;border:1px dashed var(--border-light);color:var(--muted-light);border-radius:var(--radius);padding:8px 14px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:16px;">+ Add another rate</button>
@@ -2784,7 +2784,7 @@ function renderVatRateRows() {
   const container = document.getElementById('vatRateRows');
   container.innerHTML = currentVatRates.map((r, i) => `
     <div class="setting-row" style="display:flex;gap:8px;align-items:center;">
-      <input class="setting-input" style="flex:1;" value="${r.label.replace(/"/g, '&quot;')}" oninput="currentVatRates[${i}].label = this.value" placeholder="e.g. Standard Rate"/>
+      <input class="setting-input" style="flex:1;" value="${r.label.replace(/"/g, '&quot;')}" oninput="currentVatRates[${i}].label = this.value" placeholder="e.g. Standard VAT rate"/>
       <input class="setting-input" style="width:90px;" type="number" min="0" max="100" step="0.1" value="${r.rate}" oninput="currentVatRates[${i}].rate = parseFloat(this.value) || 0" placeholder="15"/>
       <span style="color:var(--muted);font-size:13px;">%</span>
       ${currentVatRates.length > 1 ? `<button onclick="removeVatRateRow(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;" title="Remove this rate"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>` : ''}
@@ -3950,7 +3950,7 @@ async function populateSupplierVatDropdown() {
     sel.innerHTML = result.vatRates.map(r => `<option value="${r.rate}">${r.label} (${r.rate}%)</option>`).join('');
   } catch (err) {
     // Fall back to a sane default so supplier creation isn't blocked if this fails to load
-    sel.innerHTML = `<option value="15">Standard Rate (15%)</option>`;
+    sel.innerHTML = `<option value="15">Standard VAT rate (15%)</option>`;
   }
 }
 

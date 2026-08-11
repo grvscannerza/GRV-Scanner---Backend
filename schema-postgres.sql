@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS businesses (
   -- Up to 5 custom VAT rate options this business can assign to suppliers -
   -- not hardcoded to South Africa's 15%, since a business outside SA may
   -- need different rates entirely. JSON array of {"label": "...", "rate": 15}.
-  vat_rate_presets          TEXT NOT NULL DEFAULT '[{"label":"Standard Rate","rate":15},{"label":"Zero-Rated","rate":0}]',
+  vat_rate_presets          TEXT NOT NULL DEFAULT '[{"label":"Standard VAT rate","rate":15},{"label":"Zero-Rated","rate":0}]',
   plan                      TEXT NOT NULL DEFAULT 'professional',
   subscription_status       TEXT NOT NULL DEFAULT 'inactive' CHECK (subscription_status IN ('inactive','active','past_due','cancelled')),
   past_due_since            TIMESTAMPTZ,
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS item_price_history (
 -- Migrations for databases that already existed before these columns were
 -- added - CREATE TABLE IF NOT EXISTS above only helps brand new databases,
 -- it does nothing to a table that already exists. Safe to run every startup.
-ALTER TABLE businesses ADD COLUMN IF NOT EXISTS vat_rate_presets TEXT NOT NULL DEFAULT '[{"label":"Standard Rate","rate":15},{"label":"Zero-Rated","rate":0}]';
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS vat_rate_presets TEXT NOT NULL DEFAULT '[{"label":"Standard VAT rate","rate":15},{"label":"Zero-Rated","rate":0}]';
 ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFAULT 15;
 -- Backfill: a supplier already marked 'exempt' under the old system should
 -- carry that forward as an actual 0% rate, not silently become 15%. Only
