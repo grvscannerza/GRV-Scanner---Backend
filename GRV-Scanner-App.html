@@ -224,6 +224,13 @@ nav{display:flex;gap:2px;background:var(--card-header);border-bottom:2px solid v
 .login-field input{width:100%;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:11px 14px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;}
 .login-field input:focus{border-color:var(--accent);}
 .login-field input::placeholder{color:var(--muted);}
+/* "Type box format" - the label sits fixed inside the box (top-left) and
+   never disappears; typed text appears below it in the same bordered box. */
+.tb-field{position:relative;margin-bottom:14px;}
+.tb-field label{position:absolute;top:7px;left:14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;pointer-events:none;}
+.tb-field label .req{color:#ff6b6b;}
+.tb-field input{width:100%;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;}
+.tb-field input:focus{border-color:var(--accent);}
 .login-submit{width:100%;padding:13px;background:var(--accent);color:#0a1628;border:none;border-radius:var(--radius);font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(200,241,53,0.3);transition:opacity 0.2s;font-family:'Inter',sans-serif;margin-top:4px;}
 .login-submit:hover{opacity:0.90;}
 .login-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--muted);}
@@ -813,8 +820,8 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div class="login-title">Welcome back</div>
       <div class="login-sub">Sign in to your GRV Scanner account</div>
       <div id="login-error" style="display:none;background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:14px;"></div>
-      <div class="login-field"><label>Username or Email</label><input id="login-identifier" type="text"/></div>
-      <div class="login-field"><label>Password</label><input id="login-secret" type="password"/></div>
+      <div class="tb-field"><label>Username or Email <span class="req">*</span></label><input id="login-identifier" type="text"/></div>
+      <div class="tb-field"><label>Password <span class="req">*</span></label><input id="login-secret" type="password"/></div>
       <button class="login-submit" onclick="attemptLogin()">SIGN IN</button>
       <div class="login-switch">Don't have an account? <a onclick="openSignupWizard()" style="cursor:pointer;">Create one free</a></div>
     </div>
