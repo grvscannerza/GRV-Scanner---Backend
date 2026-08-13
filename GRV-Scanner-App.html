@@ -2232,6 +2232,7 @@ async function establishSession(u, isRestoring) {
     await loadPendingScans();
     await loadHomeSummary();
     prefetchDailySummaryData(); // fire in the background, not awaited - ready by the time the user clicks Daily Summary
+    prefetchInsightsData();
     landOnRememberedOrDefaultPage('home');
   } else {
     currentUser = { id: u.id, fname: u.firstName, lname: u.lastName, uname: u.username, role: u.role, perms: u.permissions };
@@ -2245,6 +2246,7 @@ async function establishSession(u, isRestoring) {
       await loadPendingScans();
       await loadHomeSummary();
       prefetchDailySummaryData();
+      prefetchInsightsData();
       if (u.permissions?.users) await loadUsersFromServer();
     }
     else if (u.role === 'dispatch') { await loadSuppliersFromServer(); await loadVatRatePresetsCache(); }
@@ -5616,6 +5618,23 @@ async function runLookup() {
   }
 }
 
+let insightsPrefetch = null;
+
+async function prefetchInsightsData() {
+  const start = mondayOfWeek(APP_TODAY);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const startStr = ymd(start), endStr = ymd(end);
+  try {
+    const data = await apiFetch(`/reports/insights?start=${startStr}&end=${endStr}`);
+    insightsPrefetch = { start: startStr, end: endStr, data };
+  } catch (err) {
+    // Gated (not on Professional+) or a genuine failure - either way, just
+    // don't cache anything, loadInsights() will fetch normally when opened.
+    insightsPrefetch = null;
+  }
+}
+
 async function loadInsights() {
   if (!currentInsightsRange) {
     const start = mondayOfWeek(APP_TODAY);
@@ -5624,16 +5643,21 @@ async function loadInsights() {
     currentInsightsRange = { start: ymd(start), end: ymd(end) };
   }
   let data;
-  try {
-    data = await apiFetch(`/reports/insights?start=${currentInsightsRange.start}&end=${currentInsightsRange.end}`);
-  } catch (err) {
-    if (err.data?.gated) {
-      document.getElementById('insightsUpgradePrompt').style.display = 'block';
-      document.getElementById('insightsContent').style.display = 'none';
+  const usesCachedRange = insightsPrefetch && insightsPrefetch.start === currentInsightsRange.start && insightsPrefetch.end === currentInsightsRange.end;
+  if (usesCachedRange) {
+    data = insightsPrefetch.data;
+  } else {
+    try {
+      data = await apiFetch(`/reports/insights?start=${currentInsightsRange.start}&end=${currentInsightsRange.end}`);
+    } catch (err) {
+      if (err.data?.gated) {
+        document.getElementById('insightsUpgradePrompt').style.display = 'block';
+        document.getElementById('insightsContent').style.display = 'none';
+        return;
+      }
+      console.error('Failed to load insights:', err.message);
       return;
     }
-    console.error('Failed to load insights:', err.message);
-    return;
   }
 
   if (!document.getElementById('lookupSelect').options.length || document.getElementById('lookupSelect').options.length === 1) {
