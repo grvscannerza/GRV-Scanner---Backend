@@ -227,6 +227,7 @@ nav{display:flex;gap:2px;background:var(--card-header);border-bottom:2px solid v
 /* "Type box format" - the label sits fixed inside the box (top-left) and
    never disappears; typed text appears below it in the same bordered box. */
 .tb-field{position:relative;margin-bottom:14px;}
+.tb-field.full{grid-column:1/-1;}
 .tb-field label{position:absolute;top:7px;left:14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;pointer-events:none;}
 .tb-field label .req{color:#ff6b6b;}
 .tb-field input{width:100%;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;}
@@ -2036,13 +2037,13 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
   <div class="modal-box user-box">
     <div class="modal-title" style="text-align:left;margin-bottom:18px;" id="supModalTitle">Add Supplier</div>
     <div class="sup-modal-grid">
-      <div class="smf full"><label>Supplier Name *</label><input id="sm-name" placeholder="e.g. Fresh Produce Co"/></div>
-      <div class="smf"><label>Account Number</label><input id="sm-account" placeholder="e.g. FPC-014"/></div>
-      <div class="smf"><label>VAT Number</label><input id="sm-vatnumber" placeholder="e.g. 4123456789"/></div>
-      <div class="smf"><label>Payment Terms</label><input id="sm-terms" placeholder="e.g. 30 days EOM"/></div>
-      <div class="smf"><label>Contact Person</label><input id="sm-contact" placeholder="e.g. Themba Nkosi"/></div>
-      <div class="smf"><label>Phone Number</label><input id="sm-phone" placeholder="e.g. 082 555 0010"/></div>
-      <div class="smf"><label>Email Address</label><input id="sm-email" type="email" placeholder="e.g. sales@supplier.co.za"/></div>
+      <div class="tb-field full"><label>Supplier Name <span class="req">*</span></label><input id="sm-name"/></div>
+      <div class="tb-field"><label>Account Number</label><input id="sm-account"/></div>
+      <div class="tb-field"><label>VAT Number</label><input id="sm-vatnumber"/></div>
+      <div class="tb-field"><label>Payment Terms</label><input id="sm-terms"/></div>
+      <div class="tb-field"><label>Contact Person</label><input id="sm-contact"/></div>
+      <div class="tb-field"><label>Phone Number</label><input id="sm-phone"/></div>
+      <div class="tb-field"><label>Email Address</label><input id="sm-email" type="email"/></div>
     </div>
     <div style="margin-top:14px;"><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">VAT Status</div>
     <div class="vat-opts">
