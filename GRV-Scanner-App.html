@@ -1528,8 +1528,8 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <div id="duplicateAlertsList"></div>
 
         <!-- Price alerts -->
-        <div style="background:var(--warn-dim);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:10px;">
-          <div style="font-size:13px;font-weight:600;color:var(--warn);margin-bottom:10px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> 5 Price Increases Detected Today</div>
+        <div id="dailyPriceAlertsSection" style="display:none;background:var(--warn-dim);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:600;color:var(--warn);margin-bottom:10px;" id="dailyPriceAlertsTitle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Price Increases Detected Today</div>
           <table style="width:100%;border-collapse:collapse;font-size:12px;">
             <thead><tr>
               <th style="text-align:left;color:var(--muted);font-weight:600;padding:3px 8px 7px 0;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;">Product</th>
@@ -1538,13 +1538,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
               <th style="text-align:right;color:var(--muted);font-weight:600;padding:3px 0 7px 8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;">New Price</th>
               <th style="text-align:right;color:var(--muted);font-weight:600;padding:3px 0 7px 8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;">Change</th>
             </tr></thead>
-            <tbody>
-              <tr style="border-top:1px solid rgba(245,158,11,0.15);"><td style="padding:5px 8px 5px 0;color:var(--text-body);">Sunlight Dishwashing 750ml</td><td style="padding:5px 8px 5px 0;color:var(--muted);">Unilever SA</td><td style="padding:5px 0;text-align:right;font-family:'DM Mono',monospace;color:var(--muted);">R18.50</td><td style="padding:5px 0 5px 8px;text-align:right;font-family:'DM Mono',monospace;color:#fff;">R21.50</td><td style="padding:5px 0 5px 8px;text-align:right;"><span style="color:var(--warn);font-weight:700;font-size:11px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg> +16.2%</span></td></tr>
-              <tr style="border-top:1px solid rgba(245,158,11,0.15);"><td style="padding:5px 8px 5px 0;color:var(--text-body);">Domestos Thick Bleach 750ml</td><td style="padding:5px 8px 5px 0;color:var(--muted);">Unilever SA</td><td style="padding:5px 0;text-align:right;font-family:'DM Mono',monospace;color:var(--muted);">R22.50</td><td style="padding:5px 0 5px 8px;text-align:right;font-family:'DM Mono',monospace;color:#fff;">R26.99</td><td style="padding:5px 0 5px 8px;text-align:right;"><span style="color:var(--warn);font-weight:700;font-size:11px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg> +19.9%</span></td></tr>
-              <tr style="border-top:1px solid rgba(245,158,11,0.15);"><td style="padding:5px 8px 5px 0;color:var(--text-body);">Skip Washing Powder 3kg</td><td style="padding:5px 8px 5px 0;color:var(--muted);">Unilever SA</td><td style="padding:5px 0;text-align:right;font-family:'DM Mono',monospace;color:var(--muted);">R119.99</td><td style="padding:5px 0 5px 8px;text-align:right;font-family:'DM Mono',monospace;color:#fff;">R134.99</td><td style="padding:5px 0 5px 8px;text-align:right;"><span style="color:var(--warn);font-weight:700;font-size:11px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg> +12.5%</span></td></tr>
-              <tr style="border-top:1px solid rgba(245,158,11,0.15);"><td style="padding:5px 8px 5px 0;color:var(--text-body);">Albany Bread Flour 10kg</td><td style="padding:5px 8px 5px 0;color:var(--muted);">Tiger Brands</td><td style="padding:5px 0;text-align:right;font-family:'DM Mono',monospace;color:var(--muted);">R89.00</td><td style="padding:5px 0 5px 8px;text-align:right;font-family:'DM Mono',monospace;color:#fff;">R98.50</td><td style="padding:5px 0 5px 8px;text-align:right;"><span style="color:var(--warn);font-weight:700;font-size:11px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg> +10.7%</span></td></tr>
-              <tr style="border-top:1px solid rgba(245,158,11,0.15);"><td style="padding:5px 8px 5px 0;color:var(--text-body);">Milo Tin 500g</td><td style="padding:5px 8px 5px 0;color:var(--muted);">Nestlé SA</td><td style="padding:5px 0;text-align:right;font-family:'DM Mono',monospace;color:var(--muted);">R84.99</td><td style="padding:5px 0 5px 8px;text-align:right;font-family:'DM Mono',monospace;color:#fff;">R92.50</td><td style="padding:5px 0 5px 8px;text-align:right;"><span style="color:var(--warn);font-weight:700;font-size:11px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg> +8.8%</span></td></tr>
-            </tbody>
+            <tbody id="dailyPriceAlertsBody"></tbody>
           </table>
         </div>
       </div>
@@ -2794,7 +2788,7 @@ function showPage(id, tabEl) {
   }
 
   if (id === 'pending' && authToken) loadPendingScans();
-  if (id === 'daily' && authToken) loadSummary('today');
+  if (id === 'daily' && authToken) { loadSummary('today'); loadDailyPriceAlerts(); }
   if (id === 'suppliers' && authToken) loadSuppliersFromServer();
   if (id === 'itemmaster' && authToken) loadItemMasterFromServer();
   if (id === 'users' && authToken) loadUsersFromServer();
@@ -4664,6 +4658,42 @@ function renderDuplicateAlerts(scanRows) {
         <div style="font-size:12px;color:var(--muted-light);">${s.scannedBy} scanned this from ${s.supplier} at ${scannedTime}. ${origText}</div>
       </div>
     </div>`;
+  }).join('');
+}
+
+async function loadDailyPriceAlerts() {
+  const section = document.getElementById('dailyPriceAlertsSection');
+  const body = document.getElementById('dailyPriceAlertsBody');
+  const title = document.getElementById('dailyPriceAlertsTitle');
+  const todayStr = APP_TODAY.toISOString().slice(0, 10);
+
+  let data;
+  try {
+    data = await apiFetch(`/reports/price-increases?start=${todayStr}&end=${todayStr}`);
+  } catch (err) {
+    // Not on Enterprise, or something failed - either way, no fake data,
+    // just don't show this section at all.
+    section.style.display = 'none';
+    return;
+  }
+
+  if (!data.increases || data.increases.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  title.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${data.increases.length} Price Increase${data.increases.length === 1 ? '' : 's'} Detected Today`;
+
+  body.innerHTML = data.increases.map(inc => {
+    const pct = inc.oldPrice > 0 ? (((inc.newPrice - inc.oldPrice) / inc.oldPrice) * 100).toFixed(1) : '-';
+    return `<tr style="border-top:1px solid rgba(245,158,11,0.15);">
+      <td style="padding:5px 8px 5px 0;color:var(--text-body);">${inc.name}</td>
+      <td style="padding:5px 8px 5px 0;color:var(--muted);">${inc.supplier_name || 'Unknown'}</td>
+      <td style="padding:5px 0;text-align:right;font-family:'DM Mono',monospace;color:var(--muted);">${fmtRand(inc.oldPrice)}</td>
+      <td style="padding:5px 0 5px 8px;text-align:right;font-family:'DM Mono',monospace;color:#fff;">${fmtRand(inc.newPrice)}</td>
+      <td style="padding:5px 0 5px 8px;text-align:right;"><span style="color:var(--warn);font-weight:700;font-size:11px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg> +${pct}%</span></td>
+    </tr>`;
   }).join('');
 }
 
