@@ -341,4 +341,43 @@ router.get('/lookup', requireRole('admin', 'processor', 'developer'), async (req
   }
 });
 
+// The actual list behind the "Price Alerts" stat - every real price increase
+// event within the selected range, not just the 2 auto-picked trend charts.
+// An "increase" is a price genuinely higher than the immediately preceding
+// price recorded for that same item.
+router.get('/price-increases', requireRole('admin', 'processor', 'developer'), async (req, res) => {
+  const bizId = req.user.businessId;
+  const { start, end } = req.query;
+
+  try {
+    const { features } = await getPlanFeatures(bizId);
+    if (!features.priceIncreaseDetection) {
+      return res.status(403).json({ error: 'Price increase detection requires the Enterprise plan.', gated: true, requiredPlan: 'enterprise' });
+    }
+
+    const dateFilter = (start && end) ? `AND ranked.recorded_at::date BETWEEN $2 AND $3` : '';
+    const params = (start && end) ? [bizId, start, end] : [bizId];
+
+    const result = await pool.query(`
+      WITH ranked AS (
+        SELECT item_id, price, recorded_at,
+               LAG(price) OVER (PARTITION BY item_id ORDER BY recorded_at, id) AS prev_price
+        FROM item_price_history
+      )
+      SELECT im.code, im.name, sup.name AS supplier_name,
+             ranked.prev_price AS "oldPrice", ranked.price AS "newPrice", ranked.recorded_at AS date
+      FROM ranked
+      JOIN item_master im ON im.id = ranked.item_id
+      LEFT JOIN suppliers sup ON sup.id = im.supplier_id
+      WHERE im.business_id = $1 AND ranked.prev_price IS NOT NULL AND ranked.price > ranked.prev_price ${dateFilter}
+      ORDER BY ranked.recorded_at DESC
+    `, params);
+
+    res.json({ increases: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 module.exports = router;
