@@ -930,15 +930,19 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       </div>
       <div class="lp-sec" id="uploadSec" style="opacity:0.35;pointer-events:none;">
         <div class="section-label">02 - Upload Invoice</div>
-        <input type="file" id="invoiceFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="onInvoiceFileSelected(this.files)"/>
+        <input type="file" id="invoiceFileInput" accept="image/jpeg,image/png,image/webp,application/pdf" style="display:none;" onchange="onInvoiceFileSelected(this.files)"/>
         <div class="drop-zone" id="dropZone" onclick="document.getElementById('invoiceFileInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent-dim)';" ondragleave="this.style.borderColor='';this.style.background='';" ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';onInvoiceFileSelected(event.dataTransfer.files);">
           <div id="dropZoneEmpty">
             <div style="font-size:26px;margin-bottom:6px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
             <div style="font-size:13px;font-weight:500;color:var(--text-body);margin-bottom:3px;">Drop invoice here or click to browse</div>
-            <div style="font-size:11px;color:var(--muted);">JPG, PNG, WEBP - photo or scanned copy</div>
+            <div style="font-size:11px;color:var(--muted);">JPG, PNG, WEBP, or PDF - photo, scan, or PDF copy</div>
           </div>
           <div id="dropZonePreview" style="display:none;">
             <img id="dropZoneImg" src="" style="max-width:100%;max-height:110px;border-radius:6px;margin-bottom:8px;"/>
+            <div id="dropZonePdfIcon" style="display:none;margin-bottom:8px;">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <div style="font-size:9px;font-weight:700;color:var(--accent2);letter-spacing:0.5px;margin-top:2px;">PDF</div>
+            </div>
             <div style="font-size:12px;color:var(--text-body);font-weight:500;" id="dropZoneFilename"></div>
             <div style="font-size:11px;color:var(--accent2);margin-top:3px;">Click to choose a different file</div>
           </div>
@@ -2894,20 +2898,23 @@ let uploadedImageMediaType = null;
 function onInvoiceFileSelected(files) {
   if (!files || !files.length) return;
   const file = files[0];
-  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
-    alert('Please upload a JPG, PNG, or WEBP image of the invoice.');
+  if (!/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(file.type)) {
+    alert('Please upload a JPG, PNG, WEBP, or PDF of the invoice.');
     return;
   }
   const reader = new FileReader();
   reader.onload = function(e) {
-    const dataUrl = e.target.result; // data:image/png;base64,XXXX
+    const dataUrl = e.target.result; // data:image/png;base64,XXXX or data:application/pdf;base64,XXXX
     const commaIdx = dataUrl.indexOf(',');
     uploadedImageMediaType = dataUrl.substring(5, dataUrl.indexOf(';'));
     uploadedImageBase64 = dataUrl.substring(commaIdx + 1);
 
+    const isPdf = uploadedImageMediaType === 'application/pdf';
     document.getElementById('dropZoneEmpty').style.display = 'none';
     document.getElementById('dropZonePreview').style.display = 'block';
-    document.getElementById('dropZoneImg').src = dataUrl;
+    document.getElementById('dropZoneImg').style.display = isPdf ? 'none' : 'block';
+    document.getElementById('dropZonePdfIcon').style.display = isPdf ? 'block' : 'none';
+    document.getElementById('dropZoneImg').src = isPdf ? '' : dataUrl;
     document.getElementById('dropZoneFilename').textContent = file.name;
     updateScanBtnState();
   };
@@ -2962,6 +2969,10 @@ async function doScan() {
   btn.classList.add('disabled');
 
   try {
+    const isPdfUpload = uploadedImageMediaType === 'application/pdf';
+    const fileContentBlock = isPdfUpload
+      ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: uploadedImageBase64 } }
+      : { type: 'image', source: { type: 'base64', media_type: uploadedImageMediaType, data: uploadedImageBase64 } };
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2971,8 +2982,8 @@ async function doScan() {
         messages: [{
           role: 'user',
           content: [
-            { type: 'image', source: { type: 'base64', media_type: uploadedImageMediaType, data: uploadedImageBase64 } },
-            { type: 'text', text: 'This is a photo of a supplier invoice or delivery note (GRV). Extract the invoice/document number and every line item. Respond with ONLY a raw JSON object, no markdown code fences, no prose before or after. The object must have exactly two fields: "invoiceNumber" (string, the invoice/GRV/document number as printed - if none is visible, use an empty string) and "items" (array). Each element of "items" must have exactly these fields: "desc" (string, product description), "code" (string, product code/SKU as printed on the invoice, or a short uppercase code you invent from the description if none is printed), "qty" (number), "unit" (string, e.g. "each", "box", "kg"), "up" (number, unit price in Rand, no currency symbol). If a field is not visible on the invoice, make a reasonable estimate rather than omitting it. Do not include VAT, totals, or header/footer rows in items - only product line items.' }
+            fileContentBlock,
+            { type: 'text', text: 'This is a photo or PDF of a supplier invoice or delivery note (GRV). Extract the invoice/document number and every line item. Respond with ONLY a raw JSON object, no markdown code fences, no prose before or after. The object must have exactly two fields: "invoiceNumber" (string, the invoice/GRV/document number as printed - if none is visible, use an empty string) and "items" (array). Each element of "items" must have exactly these fields: "desc" (string, product description), "code" (string, product code/SKU as printed on the invoice, or a short uppercase code you invent from the description if none is printed), "qty" (number), "unit" (string, e.g. "each", "box", "kg"), "up" (number, unit price in Rand, no currency symbol). If a field is not visible on the invoice, make a reasonable estimate rather than omitting it. Do not include VAT, totals, or header/footer rows in items - only product line items.' }
           ]
         }]
       })
@@ -3242,6 +3253,8 @@ function clearScan() {
   document.getElementById('dropZoneEmpty').style.display = '';
   document.getElementById('dropZonePreview').style.display = 'none';
   document.getElementById('dropZoneImg').src = '';
+  document.getElementById('dropZoneImg').style.display = 'block';
+  document.getElementById('dropZonePdfIcon').style.display = 'none';
   document.getElementById('dropZoneFilename').textContent = '';
   updateScanBtnState();
 
@@ -3264,6 +3277,8 @@ function discardDuplicateScan() {
   document.getElementById('dropZoneEmpty').style.display = '';
   document.getElementById('dropZonePreview').style.display = 'none';
   document.getElementById('dropZoneImg').src = '';
+  document.getElementById('dropZoneImg').style.display = 'block';
+  document.getElementById('dropZonePdfIcon').style.display = 'none';
   document.getElementById('dropZoneFilename').textContent = '';
   updateScanBtnState();
   const actionsPanel = document.getElementById('extractedActionsPanel');
