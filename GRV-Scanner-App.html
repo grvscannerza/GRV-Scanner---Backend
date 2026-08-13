@@ -924,7 +924,6 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <select class="styled-select" id="supSel" onchange="onSupChange(this)">
           <option value="">- Select a supplier first -</option>
         </select>
-        <div style="margin-top:7px;font-size:11px;color:var(--accent2);display:none;" id="imHint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> 47 items in Item Master</div>
         <div style="margin-top:7px;font-size:11px;color:var(--muted);" id="supPrompt"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M12 19V6M12 6l-4 4M12 6l4 4"/></svg> Choose a supplier to continue</div>
       </div>
       <div class="lp-sec" id="uploadSec" style="opacity:0.35;pointer-events:none;">
@@ -2858,18 +2857,17 @@ function populateScanSupplierDropdown() {
 
 function onSupChange(sel) {
   const val = sel.value;
-  const hint  = document.getElementById('imHint');
   const prompt = document.getElementById('supPrompt');
   const uSec  = document.getElementById('uploadSec');
   const fSec  = document.getElementById('fmtSec');
 
   if (!val) {
-    hint.style.display='none'; prompt.style.display='block';
+    prompt.style.display='block';
     uSec.style.opacity='0.35'; uSec.style.pointerEvents='none';
     fSec.style.opacity='0.35'; fSec.style.pointerEvents='none';
     updateScanBtnState(); return;
   }
-  prompt.style.display='none'; hint.style.display='block';
+  prompt.style.display='none';
   uSec.style.opacity='1'; uSec.style.pointerEvents='auto';
   fSec.style.opacity='1'; fSec.style.pointerEvents='auto';
   updateScanBtnState();
