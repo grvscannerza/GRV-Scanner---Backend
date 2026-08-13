@@ -4922,6 +4922,7 @@ async function exportDailySummary(format) {
 
   const { stats, alertRows, scanRows } = collectDailySummaryData();
   const dateStamp = getCurrentSummaryDateStamp();
+  const generatedAt = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
   if (format === 'xlsx') {
     if (typeof XLSX === 'undefined') {
@@ -4929,7 +4930,7 @@ async function exportDailySummary(format) {
       return;
     }
     const wb = XLSX.utils.book_new();
-    const statsSheet = XLSX.utils.aoa_to_sheet([['Daily Summary', dateStamp], [], ['Metric','Value'], ...stats]);
+    const statsSheet = XLSX.utils.aoa_to_sheet([['Daily Summary', dateStamp], ['Generated at', generatedAt], [], ['Metric','Value'], ...stats]);
     statsSheet['!cols'] = [{wch:26},{wch:16}];
     XLSX.utils.book_append_sheet(wb, statsSheet, 'Summary');
     const scansSheet = XLSX.utils.aoa_to_sheet(scanRows);
@@ -4948,6 +4949,7 @@ async function exportDailySummary(format) {
   const escape = (c) => `"${String(c).replace(/"/g,'""')}"`;
   const lines = [
     ['Daily Summary', dateStamp].map(escape).join(','),
+    ['Generated at', generatedAt].map(escape).join(','),
     '',
     ['Metric','Value'].map(escape).join(','),
     ...stats.map(r => r.map(escape).join(',')),
