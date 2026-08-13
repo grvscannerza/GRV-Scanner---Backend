@@ -924,7 +924,6 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <select class="styled-select" id="supSel" onchange="onSupChange(this)">
           <option value="">- Select a supplier first -</option>
         </select>
-        <div class="vat-badge" id="vatBadge" style="display:none;"></div>
         <div style="margin-top:7px;font-size:11px;color:var(--accent2);display:none;" id="imHint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> 47 items in Item Master</div>
         <div style="margin-top:7px;font-size:11px;color:var(--muted);" id="supPrompt"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M12 19V6M12 6l-4 4M12 6l4 4"/></svg> Choose a supplier to continue</div>
       </div>
@@ -937,7 +936,8 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
             <div style="font-size:13px;font-weight:500;color:var(--text-body);margin-bottom:3px;">Drop invoice here or click to browse</div>
             <div style="font-size:11px;color:var(--muted);">JPG, PNG, WEBP, or PDF - photo, scan, or PDF copy</div>
           </div>
-          <div id="dropZonePreview" style="display:none;">
+          <div id="dropZonePreview" style="display:none;position:relative;">
+            <button onclick="removeUploadedFile(event)" title="Remove this file" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:rgba(255,107,107,0.15);border:1px solid rgba(255,107,107,0.4);color:var(--danger);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
             <img id="dropZoneImg" src="" style="max-width:100%;max-height:110px;border-radius:6px;margin-bottom:8px;"/>
             <div id="dropZonePdfIcon" style="display:none;margin-bottom:8px;">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -2858,19 +2858,18 @@ function populateScanSupplierDropdown() {
 
 function onSupChange(sel) {
   const val = sel.value;
-  const badge = document.getElementById('vatBadge');
   const hint  = document.getElementById('imHint');
   const prompt = document.getElementById('supPrompt');
   const uSec  = document.getElementById('uploadSec');
   const fSec  = document.getElementById('fmtSec');
 
   if (!val) {
-    badge.style.display='none'; hint.style.display='none'; prompt.style.display='block';
+    hint.style.display='none'; prompt.style.display='block';
     uSec.style.opacity='0.35'; uSec.style.pointerEvents='none';
     fSec.style.opacity='0.35'; fSec.style.pointerEvents='none';
     updateScanBtnState(); return;
   }
-  prompt.style.display='none'; badge.style.display='inline-flex'; hint.style.display='block';
+  prompt.style.display='none'; hint.style.display='block';
   uSec.style.opacity='1'; uSec.style.pointerEvents='auto';
   fSec.style.opacity='1'; fSec.style.pointerEvents='auto';
   updateScanBtnState();
@@ -2878,13 +2877,6 @@ function onSupChange(sel) {
   const supplier = suppliers.find(s => String(s.id) === val);
   const rate = (supplier && typeof supplier.vatRate === 'number') ? supplier.vatRate : 15;
   vatRate = rate / 100;
-  if (rate === 0) {
-    badge.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M11 20A7 7 0 019.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 11 15.42 11 20"/></svg> No VAT - 0% rate';
-    badge.className='vat-badge vat-exempt-b';
-  } else {
-    badge.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg> ' + rate + '% VAT applied';
-    badge.className='vat-badge vat-reg';
-  }
   checkForDuplicate();
   const nm = sel.options[sel.selectedIndex].text.replace(/ \(.*\)/,'');
   document.getElementById('fSup').textContent = nm;
@@ -2894,6 +2886,20 @@ function onSupChange(sel) {
 // Uploaded invoice file state
 let uploadedImageBase64 = null;
 let uploadedImageMediaType = null;
+
+function removeUploadedFile(event) {
+  event.stopPropagation(); // otherwise this click would bubble up to the drop zone and reopen the file picker
+  uploadedImageBase64 = null;
+  uploadedImageMediaType = null;
+  document.getElementById('invoiceFileInput').value = ''; // so picking the same file again still triggers a real change event
+  document.getElementById('dropZoneEmpty').style.display = '';
+  document.getElementById('dropZonePreview').style.display = 'none';
+  document.getElementById('dropZoneImg').src = '';
+  document.getElementById('dropZoneImg').style.display = 'block';
+  document.getElementById('dropZonePdfIcon').style.display = 'none';
+  document.getElementById('dropZoneFilename').textContent = '';
+  updateScanBtnState();
+}
 
 function onInvoiceFileSelected(files) {
   if (!files || !files.length) return;
