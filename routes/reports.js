@@ -108,6 +108,7 @@ router.get('/summary', requireRole('admin', 'processor', 'developer'), async (re
         scannedById: s.scanned_by_id,
         scannedByEmail: s.scanned_by_email,
         scannedByRole: s.scanned_by_role,
+        status: s.status,
         scannedAt: s.scanned_at,
       };
       if (features.duplicateDetection && s.is_duplicate && s.duplicate_of_scan_id) {

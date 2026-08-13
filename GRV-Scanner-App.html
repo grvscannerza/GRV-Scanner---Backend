@@ -1603,20 +1603,20 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
       <button onclick="showPage('users', null)" style="background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:7px 14px;color:var(--muted);cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border-light)';this.style.color='var(--muted)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="20" y1="12" x2="4" y2="12"/><polyline points="10 6 4 12 10 18"/></svg> Back to Users</button>
       <div style="display:flex;align-items:center;gap:12px;">
-        <div class="user-av staff" style="width:40px;height:40px;font-size:14px;">SM</div>
+        <div class="user-av staff" style="width:40px;height:40px;font-size:14px;" id="sd-avatar">--</div>
         <div>
-          <div style="font-size:20px;font-weight:700;color:#fff;">Sarah Mokoena</div>
-          <div style="font-size:12px;color:var(--muted);">sarah@johnsrestaurant.co.za &nbsp;·&nbsp; <span style="color:var(--success);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="12" cy="12" r="10" fill="currentColor"/></svg> Active</span> &nbsp;·&nbsp; Staff User</div>
+          <div style="font-size:20px;font-weight:700;color:#fff;" id="sd-name">Loading...</div>
+          <div style="font-size:12px;color:var(--muted);" id="sd-email-line">Loading...</div>
         </div>
       </div>
     </div>
 
     <!-- Stat cards -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
-      <div class="ims" id="sd-stat1"><div class="ims-v" id="sd-count">68</div><div class="ims-l" id="sd-count-label">Scans This Month</div></div>
-      <div class="ims blue"><div class="ims-v" style="color:var(--accent2);" id="sd-today">8</div><div class="ims-l">Scans Today</div></div>
-      <div class="ims green"><div class="ims-v" style="color:var(--success);">R94,820</div><div class="ims-l" id="sd-value-label">Total Value This Month</div></div>
-      <div class="ims warn"><div class="ims-v" style="color:var(--warn);">3</div><div class="ims-l">Price Alerts Triggered</div></div>
+      <div class="ims" id="sd-stat1"><div class="ims-v" id="sd-count">-</div><div class="ims-l" id="sd-count-label">Scans This Month</div></div>
+      <div class="ims blue"><div class="ims-v" style="color:var(--accent2);" id="sd-today">-</div><div class="ims-l">Scans Today</div></div>
+      <div class="ims green"><div class="ims-v" style="color:var(--success);" id="sd-value">-</div><div class="ims-l" id="sd-value-label">Total Value This Month</div></div>
+      <div class="ims warn"><div class="ims-v" style="color:var(--warn);" id="sd-alerts">-</div><div class="ims-l">Price Alerts Triggered</div></div>
     </div>
 
     <!-- Filter row -->
@@ -2009,85 +2009,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
             <th style="font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--accent2);padding:9px 13px;text-align:right;border-bottom:1px solid var(--border);">Total</th>
           </tr>
         </thead>
-        <tbody>
-          <tr style="border-bottom:1px solid rgba(30,58,95,0.7);background:rgba(245,158,11,0.05);">
-            <td style="padding:8px 13px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">1</td>
-            <td style="padding:8px 13px;color:#fff;font-weight:500;">Sunlight Dishwashing Liquid 750ml</td>
-            <td style="padding:8px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);">SUN-750</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">48</td>
-            <td style="padding:8px 13px;color:var(--muted);">each</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">R21.50</td>
-            <td style="padding:8px 13px;text-align:right;"><div class="flag-badge flag-up"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg> +16.2%</div></td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent2);">R147.60</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:#fff;font-weight:600;">R1,180.80</td>
-          </tr>
-          <tr style="border-bottom:1px solid rgba(30,58,95,0.7);">
-            <td style="padding:8px 13px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">2</td>
-            <td style="padding:8px 13px;color:#fff;font-weight:500;">Omo Auto Washing Powder 2kg</td>
-            <td style="padding:8px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);">OMO-2KG</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">24</td>
-            <td style="padding:8px 13px;color:var(--muted);">each</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">R89.99</td>
-            <td style="padding:8px 13px;text-align:right;"><div class="flag-badge flag-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg> Same</div></td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent2);">R323.96</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:#fff;font-weight:600;">R2,483.72</td>
-          </tr>
-          <tr style="border-bottom:1px solid rgba(30,58,95,0.7);background:rgba(245,158,11,0.05);">
-            <td style="padding:8px 13px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">3</td>
-            <td style="padding:8px 13px;color:#fff;font-weight:500;">Domestos Thick Bleach 750ml</td>
-            <td style="padding:8px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);">DOM-750</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">36</td>
-            <td style="padding:8px 13px;color:var(--muted);">each</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">R26.99</td>
-            <td style="padding:8px 13px;text-align:right;"><div class="flag-badge flag-up"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg> +19.9%</div></td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent2);">R145.75</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:#fff;font-weight:600;">R1,111.39</td>
-          </tr>
-          <tr style="border-bottom:1px solid rgba(30,58,95,0.7);">
-            <td style="padding:8px 13px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">4</td>
-            <td style="padding:8px 13px;color:#fff;font-weight:500;">Handy Andy Cream Cleanser 400g</td>
-            <td style="padding:8px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);">HAN-400</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">24</td>
-            <td style="padding:8px 13px;color:var(--muted);">each</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">R19.99</td>
-            <td style="padding:8px 13px;text-align:right;"><div class="flag-badge flag-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg> Same</div></td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent2);">R71.96</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:#fff;font-weight:600;">R551.72</td>
-          </tr>
-          <tr style="border-bottom:1px solid rgba(30,58,95,0.7);background:rgba(245,158,11,0.05);">
-            <td style="padding:8px 13px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">5</td>
-            <td style="padding:8px 13px;color:#fff;font-weight:500;">Skip Auto Washing Powder 3kg</td>
-            <td style="padding:8px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);">SKI-3KG</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">18</td>
-            <td style="padding:8px 13px;color:var(--muted);">each</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">R134.99</td>
-            <td style="padding:8px 13px;text-align:right;"><div class="flag-badge flag-up"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg> +12.5%</div></td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent2);">R364.47</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:#fff;font-weight:600;">R2,793.97</td>
-          </tr>
-          <tr style="border-bottom:1px solid rgba(30,58,95,0.7);">
-            <td style="padding:8px 13px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">6</td>
-            <td style="padding:8px 13px;color:#fff;font-weight:500;">Comfort Fabric Softener 1L</td>
-            <td style="padding:8px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);">COM-1LT</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">24</td>
-            <td style="padding:8px 13px;color:var(--muted);">each</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">R29.99</td>
-            <td style="padding:8px 13px;text-align:right;"><div class="flag-badge flag-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg> Same</div></td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent2);">R107.96</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:#fff;font-weight:600;">R827.72</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 13px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">7</td>
-            <td style="padding:8px 13px;color:#fff;font-weight:500;">Sunlight Bar Soap 6 Pack</td>
-            <td style="padding:8px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);">SUN-BAR6</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">30</td>
-            <td style="padding:8px 13px;color:var(--muted);">pack</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">R34.99</td>
-            <td style="padding:8px 13px;text-align:right;"><div class="flag-badge flag-new"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" fill="currentColor" stroke="none"/></svg> New</div></td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent2);">R157.46</td>
-            <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:#fff;font-weight:600;">R1,206.81</td>
-          </tr>
-        </tbody>
+<tbody id="invLineItemsBody"></tbody>
       </table>
     </div>
 
@@ -3456,7 +3378,7 @@ function staffRowHTML(u) {
     <td style="font-family:'DM Mono',monospace;font-size:13px;color:${u.scans > 0 ? 'var(--accent)' : 'var(--muted)'};">${u.scans}</td>
     <td style="font-size:12px;color:var(--muted);">${u.lastActive}</td>
     <td>${permsListHTML(u)}</td>
-    <td><div class="user-actions"><button class="icon-btn" onclick="openStaffDetail('${fullName}','${initials}','${u.email || ''}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/></svg> View</button><button class="icon-btn" onclick="openResetPw('${fullName}','${u.uname}',${u.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="8" cy="15" r="4"/><path d="M10.85 12.15L19 4M16 7l3 3M13 10l3 3"/></svg> Reset PW</button><button class="icon-btn danger" onclick="deactivateUser(${u.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></div></td>
+    <td><div class="user-actions"><button class="icon-btn" onclick="openStaffDetail('${fullName}','${initials}','${u.email || ''}',${u.id},'${u.role}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/></svg> View</button><button class="icon-btn" onclick="openResetPw('${fullName}','${u.uname}',${u.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="8" cy="15" r="4"/><path d="M10.85 12.15L19 4M16 7l3 3M13 10l3 3"/></svg> Reset PW</button><button class="icon-btn danger" onclick="deactivateUser(${u.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></div></td>
   </tr>`;
 }
 
@@ -5108,24 +5030,13 @@ function exportSummaryPDF() {
 
   doc.save(`GRV-Daily-Summary-${dateStamp}.pdf`);
 }
-const allScans = [
-  {inv:'INV-2025-3901',supplier:'Fresh Produce Co',date:fmtDDMMYY(daysAgoDate(0)),time:'09:14',items:6,vat:'R0.00',total:'R1,840.00',alerts:0,locked:true,period:'day'},
-  {inv:'INV-2025-3891',supplier:'Unilever SA',date:fmtDDMMYY(daysAgoDate(0)),time:'08:42',items:7,vat:'R1,319.16',total:'R10,156.13',alerts:3,locked:true,period:'day'},
-  {inv:'INV-2025-3875',supplier:'Tiger Brands',date:fmtDDMMYY(daysAgoDate(1)),time:'14:22',items:5,vat:'R642.30',total:'R4,283.00',alerts:1,locked:true,period:'week'},
-  {inv:'INV-2025-3862',supplier:'Nestlé SA',date:fmtDDMMYY(daysAgoDate(1)),time:'10:08',items:8,vat:'R892.50',total:'R5,950.00',alerts:0,locked:true,period:'week'},
-  {inv:'INV-2025-3847',supplier:'Unilever SA',date:fmtDDMMYY(daysAgoDate(8)),time:'09:30',items:7,vat:'R1,319.16',total:'R10,156.13',alerts:3,locked:true,period:'month'},
-  {inv:'INV-2025-3821',supplier:'Fresh Produce Co',date:fmtDDMMYY(daysAgoDate(10)),time:'11:15',items:4,vat:'R0.00',total:'R980.00',alerts:0,locked:true,period:'month'},
-  {inv:'INV-2025-3803',supplier:'Tiger Brands',date:fmtDDMMYY(daysAgoDate(12)),time:'08:55',items:9,vat:'R1,140.00',total:'R7,600.00',alerts:2,locked:false,period:'month'},
-  {inv:'INV-2025-3790',supplier:'Clover SA',date:fmtDDMMYY(daysAgoDate(15)),time:'13:42',items:3,vat:'R210.00',total:'R1,610.00',alerts:0,locked:true,period:'month'},
-  {inv:'INV-2025-3744',supplier:'Nestlé SA',date:fmtDDMMYY(daysAgoDate(22)),time:'09:00',items:6,vat:'R744.00',total:'R4,960.00',alerts:1,locked:true,period:'month'},
-  {inv:'INV-2025-3701',supplier:'Unilever SA',date:fmtDDMMYY(daysAgoDate(28)),time:'10:30',items:8,vat:'R1,488.00',total:'R9,920.00',alerts:2,locked:true,period:'month'},
-];
+let currentStaffDetailUserId = null;
 
-function openStaffDetail(name, initials, email) {
-  // Update header info
-  document.querySelector('#page-staffdetail .user-av.staff').textContent = initials;
-  document.querySelector('#page-staffdetail [style*="font-size:20px"]').textContent = name;
-  document.querySelector('#page-staffdetail [style*="font-size:12px;color:var(--muted)"]').innerHTML = `${email} &nbsp;·&nbsp; <span style="color:var(--success);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="12" cy="12" r="10" fill="currentColor"/></svg> Active</span> &nbsp;·&nbsp; Staff User`;
+async function openStaffDetail(name, initials, email, userId, role) {
+  currentStaffDetailUserId = userId;
+  document.getElementById('sd-avatar').textContent = initials;
+  document.getElementById('sd-name').textContent = name;
+  document.getElementById('sd-email-line').innerHTML = `${email} &nbsp;\u00b7&nbsp; <span style="color:var(--success);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="12" cy="12" r="10" fill="currentColor"/></svg> Active</span> &nbsp;\u00b7&nbsp; ${role === 'admin' ? 'Admin' : 'Staff'} User`;
 
   // Switch to staff detail page using showPage breadcrumb logic
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -5139,60 +5050,130 @@ function openStaffDetail(name, initials, email) {
   document.getElementById('nav-pending-badge').style.display = 'none';
 
   // Default to month filter
-  setStaffFilter('month', document.getElementById('sf-month'));
+  await setStaffFilter('month', document.getElementById('sf-month'));
 }
 
-function setStaffFilter(period, el) {
+async function setStaffFilter(period, el) {
   // Update active button
   ['sf-day','sf-week','sf-month','sf-year'].forEach(id => {
     document.getElementById(id).classList.remove('active');
   });
   el.classList.add('active');
 
-  // Filter scans
-  let filtered;
-  if (period === 'day')   filtered = allScans.filter(s => s.period === 'day');
-  else if (period === 'week') filtered = allScans.filter(s => s.period === 'day' || s.period === 'week');
-  else if (period === 'month') filtered = allScans.filter(s => s.period !== 'year');
-  else filtered = allScans;
+  const today = APP_TODAY;
+  let start, end;
+  if (period === 'day') {
+    start = today; end = today;
+  } else if (period === 'week') {
+    start = mondayOfWeek(today);
+    end = new Date(start); end.setDate(end.getDate() + 6);
+  } else if (period === 'month') {
+    start = new Date(today.getFullYear(), today.getMonth(), 1);
+    end = today;
+  } else {
+    start = new Date(today.getFullYear(), 0, 1);
+    end = today;
+  }
 
-  // Update stat cards
+  let report;
+  try {
+    report = await apiFetch(`/reports/summary?start=${ymd(start)}&end=${ymd(end)}`);
+  } catch (err) {
+    console.error('Failed to load staff activity:', err.message);
+    return;
+  }
+  const userScans = report.scans.filter(s => s.scannedById === currentStaffDetailUserId);
+
+  // Update stat cards with real numbers for the selected period
   const labels = {day:'Today',week:'This Week',month:'This Month',year:'This Year'};
-  document.getElementById('sd-count').textContent = filtered.length;
+  document.getElementById('sd-count').textContent = userScans.length;
   document.getElementById('sd-count-label').textContent = `Scans ${labels[period]}`;
   document.getElementById('sd-value-label').textContent = `Total Value ${labels[period]}`;
-  document.getElementById('sd-today').textContent = allScans.filter(s=>s.period==='day').length;
+  document.getElementById('sd-value').textContent = fmtRand(userScans.reduce((sum, s) => sum + s.total, 0));
+  document.getElementById('sd-alerts').textContent = userScans.reduce((sum, s) => sum + (s.priceIncreases || 0), 0);
 
-  // Render table
-  renderStaffScans(filtered);
+  // "Scans Today" always reflects today specifically, even when a different period is selected
+  if (period === 'day') {
+    document.getElementById('sd-today').textContent = userScans.length;
+  } else {
+    try {
+      const todayReport = await apiFetch(`/reports/summary?start=${ymd(today)}&end=${ymd(today)}`);
+      document.getElementById('sd-today').textContent = todayReport.scans.filter(s => s.scannedById === currentStaffDetailUserId).length;
+    } catch (err) {
+      document.getElementById('sd-today').textContent = '-';
+    }
+  }
+
+  renderStaffScans(userScans);
 }
 
 function renderStaffScans(scans) {
   const tbody = document.getElementById('staffScanTable');
   tbody.innerHTML = '';
+  if (scans.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted);">No scans in this period.</td></tr>';
+    return;
+  }
   scans.forEach(s => {
+    const dt = new Date(s.scannedAt);
+    const dateStr = fmtDDMMYY(dt);
+    const timeStr = dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    const isLocked = s.status === 'approved';
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid rgba(30,58,95,0.6)';
     tr.innerHTML = `
-      <td style="padding:10px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);">${s.inv}</td>
+      <td style="padding:10px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);">${s.invoiceNumber || '-'}</td>
       <td style="padding:10px 12px;font-weight:500;color:#fff;">${s.supplier}</td>
-      <td style="padding:10px 12px;font-size:12px;color:var(--muted);">${s.date} <span style="color:var(--muted);font-size:11px;">at ${s.time}</span></td>
-      <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--text-body);">${s.items}</td>
-      <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent2);">${s.vat}</td>
-      <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);">${s.total}</td>
-      <td style="padding:10px 12px;">${s.locked ? '<div style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(107,112,128,0.15);border:1px solid rgba(107,112,128,0.3);color:var(--locked);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Locked</div>' : '<div style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:var(--success-dim);border:1px solid rgba(52,211,153,0.3);color:var(--success);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg> Open</div>'}</td>
-      <td style="padding:10px 12px;">${s.alerts > 0 ? `<div class="flag-badge flag-up"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${s.alerts} price ${s.alerts===1?'alert':'alerts'}</div>` : '<span style="font-size:12px;color:var(--muted);">-</span>'}</td>
-      <td style="padding:10px 12px;text-align:right;"><button class="icon-btn" onclick="openInvoiceModal('${s.inv}','${s.supplier}','${s.date} at ${s.time}',${s.items},${s.alerts})" style="font-size:11px;padding:4px 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> View</button></td>`;
+      <td style="padding:10px 12px;font-size:12px;color:var(--muted);">${dateStr} <span style="color:var(--muted);font-size:11px;">at ${timeStr}</span></td>
+      <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--text-body);">${s.itemCount}</td>
+      <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent2);">${fmtRand(s.vat)}</td>
+      <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:var(--accent);">${fmtRand(s.total)}</td>
+      <td style="padding:10px 12px;">${isLocked ? '<div style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(107,112,128,0.15);border:1px solid rgba(107,112,128,0.3);color:var(--locked);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Locked</div>' : '<div style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:var(--success-dim);border:1px solid rgba(52,211,153,0.3);color:var(--success);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg> Open</div>'}</td>
+      <td style="padding:10px 12px;">${s.priceIncreases > 0 ? `<div class="flag-badge flag-up"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${s.priceIncreases} price ${s.priceIncreases===1?'alert':'alerts'}</div>` : '<span style="font-size:12px;color:var(--muted);">-</span>'}</td>
+      <td style="padding:10px 12px;text-align:right;"><button class="icon-btn" onclick="openInvoiceModal(${s.id},'${s.invoiceNumber || ''}','${(s.supplier || '').replace(/'/g,"\\'")}','${dateStr} at ${timeStr}',${s.itemCount})" style="font-size:11px;padding:4px 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> View</button></td>`;
     tbody.appendChild(tr);
   });
 }
 
-function openInvoiceModal(invNum, supplier, datetime, items, alerts) {
+async function openInvoiceModal(scanId, invNum, supplier, datetime, items) {
   document.getElementById('inv-number').textContent = invNum;
-  document.getElementById('inv-meta').textContent = `Scanned by Sarah Mokoena · ${datetime} · ${supplier}`;
+  document.getElementById('inv-meta').textContent = `Scanned by ${document.getElementById('sd-name').textContent} \u00b7 ${datetime} \u00b7 ${supplier}`;
   document.getElementById('inv-supplier').textContent = supplier;
   document.getElementById('inv-items').textContent = `${items} items`;
   document.getElementById('invoiceModal').classList.add('open');
+
+  const tbody = document.getElementById('invLineItemsBody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:16px;color:var(--muted);">Loading real line items...</td></tr>';
+
+  let lineItems;
+  try {
+    lineItems = await apiFetch(`/scans/${scanId}/line-items`);
+  } catch (err) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:16px;color:var(--danger);">Could not load line items: ${err.message}</td></tr>`;
+    return;
+  }
+
+  if (!tbody) return;
+  if (lineItems.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:16px;color:var(--muted);">No line items recorded for this scan.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = lineItems.map((li, i) => {
+    const subtotal = li.qty * li.unit_price;
+    const vat = subtotal * (li.vat_rate / 100);
+    return `<tr style="border-bottom:1px solid rgba(30,58,95,0.6);">
+      <td style="padding:8px 13px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">${i + 1}</td>
+      <td style="padding:8px 13px;color:#fff;font-weight:500;">${li.description}</td>
+      <td style="padding:8px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);">${li.code || '-'}</td>
+      <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">${li.qty}</td>
+      <td style="padding:8px 13px;color:var(--muted);">${li.unit}</td>
+      <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;">${fmtRand(li.unit_price)}</td>
+      <td style="padding:8px 13px;text-align:right;">${li.flag === 'up' ? '<div class="flag-badge flag-up"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="18 15 12 9 6 15"/></svg></div>' : li.flag === 'new' ? '<div class="flag-badge flag-new">New</div>' : '<div class="flag-badge flag-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>'}</td>
+      <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:var(--accent2);">${fmtRand(vat)}</td>
+      <td style="padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;color:#fff;font-weight:600;">${fmtRand(subtotal + vat)}</td>
+    </tr>`;
+  }).join('');
 }
 
 function showDeleteConfirm() {
