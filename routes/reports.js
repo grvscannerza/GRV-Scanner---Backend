@@ -64,7 +64,8 @@ router.get('/summary', requireRole('admin', 'processor', 'developer'), async (re
     }
 
     const scansResult = await pool.query(`
-      SELECT s.*, sup.name AS supplier_name, u.first_name, u.last_name
+      SELECT s.*, sup.name AS supplier_name, u.id AS scanned_by_id, u.first_name, u.last_name, u.email AS scanned_by_email, u.role AS scanned_by_role,
+             (SELECT COUNT(*)::int FROM scan_line_items WHERE scan_id = s.id) AS item_count
       FROM scans s
       JOIN suppliers sup ON sup.id = s.supplier_id
       JOIN users u ON u.id = s.scanned_by
@@ -95,13 +96,18 @@ router.get('/summary', requireRole('admin', 'processor', 'developer'), async (re
       const row = {
         scanNumber: i + 1,
         id: s.id,
+        invoiceNumber: s.invoice_number,
         supplier: s.supplier_name,
+        itemCount: s.item_count,
         priceIncreases: features.priceIncreaseDetection ? s.price_alerts : 0,
         exclVat: s.excl_vat,
         vat: s.vat,
         total: s.total,
         isDuplicate: features.duplicateDetection ? s.is_duplicate : false,
         scannedBy: `${s.first_name} ${s.last_name}`,
+        scannedById: s.scanned_by_id,
+        scannedByEmail: s.scanned_by_email,
+        scannedByRole: s.scanned_by_role,
         scannedAt: s.scanned_at,
       };
       if (features.duplicateDetection && s.is_duplicate && s.duplicate_of_scan_id) {
