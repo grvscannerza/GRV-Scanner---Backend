@@ -150,6 +150,13 @@ router.get('/summary', requireRole('admin', 'processor', 'developer'), async (re
 // as actual spend yet).
 router.get('/insights', requireRole('admin', 'processor', 'developer'), async (req, res) => {
   const bizId = req.user.businessId;
+  const { start, end } = req.query;
+  // Every query below optionally respects this same date range, so the whole
+  // page consistently reflects whatever period is selected - a scan_id join
+  // is used for the line-item queries since scan_line_items itself has no date.
+  const dateFilter = (start && end) ? `AND s.scanned_at::date BETWEEN $2 AND $3` : '';
+  const dateFilterNoAlias = (start && end) ? `AND scanned_at::date BETWEEN $2 AND $3` : '';
+  const params = (start && end) ? [bizId, start, end] : [bizId];
 
   try {
     const { features } = await getPlanFeatures(bizId);
@@ -161,47 +168,47 @@ router.get('/insights', requireRole('admin', 'processor', 'developer'), async (r
 
     const statsResult = await pool.query(`
       SELECT COUNT(*)::int AS "invoicesScanned", COALESCE(SUM(total),0)::float AS "totalSpend", COALESCE(SUM(price_alerts),0)::int AS "priceAlerts"
-      FROM scans WHERE business_id = $1 AND status = 'approved'
-    `, [bizId]);
+      FROM scans WHERE business_id = $1 AND status = 'approved' ${dateFilterNoAlias}
+    `, params);
     const stats = statsResult.rows[0];
 
     const activeSuppliersResult = await pool.query(`
-      SELECT COUNT(DISTINCT supplier_id)::int AS n FROM scans WHERE business_id = $1 AND status = 'approved'
-    `, [bizId]);
+      SELECT COUNT(DISTINCT supplier_id)::int AS n FROM scans WHERE business_id = $1 AND status = 'approved' ${dateFilterNoAlias}
+    `, params);
     const activeSuppliers = activeSuppliersResult.rows[0].n;
 
     const mostOrderedResult = await pool.query(`
       SELECT sli.description, SUM(sli.qty)::float AS "totalQty"
       FROM scan_line_items sli JOIN scans s ON s.id = sli.scan_id
-      WHERE s.business_id = $1 AND s.status = 'approved'
+      WHERE s.business_id = $1 AND s.status = 'approved' ${dateFilter}
       GROUP BY sli.description ORDER BY "totalQty" DESC LIMIT 1
-    `, [bizId]);
+    `, params);
     const mostOrdered = mostOrderedResult.rows[0];
 
     const spendPerSupplierResult = await pool.query(`
       SELECT sup.name AS supplier, COALESCE(SUM(s.total),0)::float AS total
-      FROM suppliers sup LEFT JOIN scans s ON s.supplier_id = sup.id AND s.status = 'approved'
+      FROM suppliers sup LEFT JOIN scans s ON s.supplier_id = sup.id AND s.status = 'approved' ${dateFilter}
       WHERE sup.business_id = $1 GROUP BY sup.id, sup.name ORDER BY total DESC
-    `, [bizId]);
+    `, params);
 
     const invoicesPerSupplierResult = await pool.query(`
       SELECT sup.name AS supplier, COUNT(s.id)::int AS count
-      FROM suppliers sup LEFT JOIN scans s ON s.supplier_id = sup.id AND s.status = 'approved'
+      FROM suppliers sup LEFT JOIN scans s ON s.supplier_id = sup.id AND s.status = 'approved' ${dateFilter}
       WHERE sup.business_id = $1 GROUP BY sup.id, sup.name ORDER BY count DESC
-    `, [bizId]);
+    `, params);
 
     const topProductsResult = await pool.query(`
       SELECT sli.description, SUM(sli.qty)::float AS qty
       FROM scan_line_items sli JOIN scans s ON s.id = sli.scan_id
-      WHERE s.business_id = $1 AND s.status = 'approved'
+      WHERE s.business_id = $1 AND s.status = 'approved' ${dateFilter}
       GROUP BY sli.description ORDER BY qty DESC LIMIT 7
-    `, [bizId]);
+    `, params);
 
     const monthlySpendResult = await pool.query(`
       SELECT TO_CHAR(scanned_at, 'YYYY-MM') AS month, COALESCE(SUM(total),0)::float AS total
-      FROM scans WHERE business_id = $1 AND status = 'approved'
+      FROM scans WHERE business_id = $1 AND status = 'approved' ${dateFilterNoAlias}
       GROUP BY month ORDER BY month ASC
-    `, [bizId]);
+    `, params);
 
     // Pick the two items with the most price history activity for the trend charts.
     // Price trend charts are Enterprise-only ("Price increase detection").
@@ -217,9 +224,11 @@ router.get('/insights', requireRole('admin', 'processor', 'developer'), async (r
       `, [bizId]);
 
       for (const item of trendItemsResult.rows) {
+        const historyDateFilter = (start && end) ? `AND recorded_at::date BETWEEN $2 AND $3` : '';
+        const historyParams = (start && end) ? [item.id, start, end] : [item.id];
         const historyResult = await pool.query(
-          `SELECT price, recorded_at FROM item_price_history WHERE item_id = $1 ORDER BY recorded_at ASC`,
-          [item.id]
+          `SELECT price, recorded_at FROM item_price_history WHERE item_id = $1 ${historyDateFilter} ORDER BY recorded_at ASC`,
+          historyParams
         );
         priceTrends.push({ code: item.code, name: item.name, supplier: item.supplier_name, history: historyResult.rows });
       }

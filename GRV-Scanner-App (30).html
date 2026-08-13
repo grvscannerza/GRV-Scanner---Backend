@@ -1003,8 +1003,36 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     <div class="ins-hdr">
       <div><div class="ins-title">Business Insights</div><div class="ins-sub">Built automatically from your scan history</div></div>
       <div style="display:flex;gap:8px;">
-        <select class="styled-select" style="min-width:150px;"><option>All Suppliers</option><option>Unilever SA</option></select>
-        <select class="styled-select" style="min-width:140px;"><option>Last 12 months</option><option>Last 6 months</option><option>Last 3 months</option></select>
+        <div style="position:relative;display:inline-block;">
+          <select class="styled-select" style="min-width:160px;" id="insightsDatePicker" onchange="handleInsightsDateFilterChange(this.value)">
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="3months">Last 3 Months</option>
+            <option value="custom">Custom...</option>
+          </select>
+          <div id="insightsCustomDatePopover" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,0.4);padding:14px;z-index:30;width:260px;user-select:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <button type="button" onclick="insCalendarChangeMonth(-1)" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:3px 8px;color:var(--muted);cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <div id="insightsCalendarMonthLabel" style="font-size:12px;font-weight:700;color:#fff;"></div>
+              <button type="button" onclick="insCalendarChangeMonth(1)" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:3px 8px;color:var(--muted);cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;">
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">M</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">T</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">W</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">T</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">F</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">S</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">S</div>
+            </div>
+            <div id="insightsCalendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px;"></div>
+            <div id="insightsCustomRangeLabel" style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:10px;min-height:14px;">Click a day, or drag to select a range</div>
+            <div style="display:flex;gap:8px;">
+              <button type="button" onclick="closeInsightsCustomDatePopover()" style="flex:1;padding:7px;background:transparent;border:1px solid var(--border-light);color:var(--text-body);border-radius:6px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;">Cancel</button>
+              <button type="button" onclick="applyInsightsCustomDateRange()" style="flex:1;padding:7px;background:var(--accent);border:none;color:#0a1628;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">Apply</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="price-alert-card" id="insightsAlertCard">
@@ -5267,10 +5295,153 @@ async function loadMyBusinessInsights() {
   }
 }
 
+// Insights date filter - deliberately separate state from Daily Summary's
+// calendar (insCalendarViewDate, insRangeStart, etc.) so navigating between
+// the two pages can never leave one calendar's selection bleeding into the
+// other's.
+let insCalendarViewDate = new Date();
+let insRangeStart = null;
+let insRangeEnd = null;
+let insIsDraggingRange = false;
+let currentInsightsRange = null; // {start, end} actually applied right now
+
+function mondayOfWeek(d) {
+  const date = new Date(d);
+  const day = date.getDay(); // 0=Sun..6=Sat
+  const diff = day === 0 ? -6 : 1 - day; // shift back to Monday
+  date.setDate(date.getDate() + diff);
+  return date;
+}
+
+function ymd(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function handleInsightsDateFilterChange(val) {
+  if (val === 'custom') {
+    insCalendarViewDate = new Date(APP_TODAY);
+    insRangeStart = null;
+    insRangeEnd = null;
+    renderInsightsCalendarMonth();
+    document.getElementById('insightsCustomDatePopover').style.display = 'block';
+    return;
+  }
+  document.getElementById('insightsCustomDatePopover').style.display = 'none';
+
+  let start, end;
+  if (val === 'week') {
+    start = mondayOfWeek(APP_TODAY);
+    end = new Date(start);
+    end.setDate(end.getDate() + 6); // Monday through Sunday, always
+  } else if (val === 'month') {
+    start = new Date(APP_TODAY.getFullYear(), APP_TODAY.getMonth(), 1);
+    end = new Date(APP_TODAY);
+  } else if (val === '3months') {
+    start = new Date(APP_TODAY.getFullYear(), APP_TODAY.getMonth() - 2, 1);
+    end = new Date(APP_TODAY);
+  }
+  currentInsightsRange = { start: ymd(start), end: ymd(end) };
+  loadInsights();
+}
+
+function closeInsightsCustomDatePopover() {
+  document.getElementById('insightsCustomDatePopover').style.display = 'none';
+  document.getElementById('insightsDatePicker').value = 'week';
+}
+
+function insCalendarChangeMonth(delta) {
+  insCalendarViewDate.setMonth(insCalendarViewDate.getMonth() + delta);
+  renderInsightsCalendarMonth();
+}
+
+function renderInsightsCalendarMonth() {
+  const grid = document.getElementById('insightsCalendarGrid');
+  const label = document.getElementById('insightsCalendarMonthLabel');
+  const year = insCalendarViewDate.getFullYear();
+  const month = insCalendarViewDate.getMonth();
+  label.textContent = insCalendarViewDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+  const firstDay = new Date(year, month, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7; // Monday-first grid: 0=Mon..6=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  let html = '';
+  for (let i = 0; i < startOffset; i++) html += '<div></div>';
+  for (let day = 1; day <= daysInMonth; day++) {
+    const cellDate = new Date(year, month, day);
+    const isFuture = cellDate > APP_TODAY;
+    const isSelected = insRangeStart && insRangeEnd && cellDate >= (insRangeStart < insRangeEnd ? insRangeStart : insRangeEnd) && cellDate <= (insRangeStart < insRangeEnd ? insRangeEnd : insRangeStart);
+    const isEndpoint = sameDay(cellDate, insRangeStart) || sameDay(cellDate, insRangeEnd);
+    let bg = 'transparent', color = isFuture ? 'var(--border-light)' : 'var(--text-body)';
+    if (isSelected) bg = 'var(--accent-dim)';
+    if (isEndpoint) { bg = 'var(--accent)'; color = '#0a1628'; }
+    const handlers = isFuture ? '' : `onmousedown="insCalendarDayMouseDown(${year},${month},${day})" onmouseover="insCalendarDayMouseOver(${year},${month},${day})"`;
+    const cursor = isFuture ? 'default' : 'pointer';
+    html += `<div ${handlers} style="text-align:center;padding:5px 0;font-size:11px;border-radius:4px;background:${bg};color:${color};cursor:${cursor};font-family:'DM Mono',monospace;">${day}</div>`;
+  }
+  grid.innerHTML = html;
+  updateInsightsCustomRangeLabel();
+}
+
+function insCalendarDayMouseDown(y, m, d) {
+  insIsDraggingRange = true;
+  insRangeStart = new Date(y, m, d);
+  insRangeEnd = new Date(y, m, d);
+  renderInsightsCalendarMonth();
+}
+function insCalendarDayMouseOver(y, m, d) {
+  if (!insIsDraggingRange) return;
+  insRangeEnd = new Date(y, m, d);
+  renderInsightsCalendarMonth();
+}
+document.addEventListener('mouseup', () => { insIsDraggingRange = false; });
+
+function updateInsightsCustomRangeLabel() {
+  const el = document.getElementById('insightsCustomRangeLabel');
+  if (!insRangeStart) { el.textContent = 'Click a day, or drag to select a range'; return; }
+  const lo = insRangeEnd && insRangeEnd < insRangeStart ? insRangeEnd : insRangeStart;
+  const hi = insRangeEnd && insRangeEnd > insRangeStart ? insRangeEnd : (insRangeEnd || insRangeStart);
+  el.textContent = sameDay(lo, hi) ? fmtDDMMYY(lo) : `${fmtDDMMYY(lo)} - ${fmtDDMMYY(hi)}`;
+}
+
+function applyInsightsCustomDateRange() {
+  if (!insRangeStart) { alert('Please choose a date first.'); return; }
+  const lo = insRangeEnd && insRangeEnd < insRangeStart ? insRangeEnd : insRangeStart;
+  const hi = insRangeEnd && insRangeEnd > insRangeStart ? insRangeEnd : (insRangeEnd || insRangeStart);
+  currentInsightsRange = { start: ymd(lo), end: ymd(hi) };
+
+  const sel = document.getElementById('insightsDatePicker');
+  let customOpt = sel.querySelector('option[value="customApplied"]');
+  if (!customOpt) {
+    customOpt = document.createElement('option');
+    customOpt.value = 'customApplied';
+    sel.appendChild(customOpt);
+  }
+  customOpt.textContent = sameDay(lo, hi) ? fmtDDMMYY(lo) : `${fmtDDMMYY(lo)} - ${fmtDDMMYY(hi)}`;
+  sel.value = 'customApplied';
+  document.getElementById('insightsCustomDatePopover').style.display = 'none';
+  loadInsights();
+}
+
+document.addEventListener('click', (e) => {
+  const popover = document.getElementById('insightsCustomDatePopover');
+  const picker = document.getElementById('insightsDatePicker');
+  if (!popover || popover.style.display === 'none') return;
+  if (!popover.contains(e.target) && e.target !== picker) {
+    popover.style.display = 'none';
+  }
+});
+
 async function loadInsights() {
+  if (!currentInsightsRange) {
+    const start = mondayOfWeek(APP_TODAY);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    currentInsightsRange = { start: ymd(start), end: ymd(end) };
+  }
   let data;
   try {
-    data = await apiFetch('/reports/insights');
+    data = await apiFetch(`/reports/insights?start=${currentInsightsRange.start}&end=${currentInsightsRange.end}`);
   } catch (err) {
     if (err.data?.gated) {
       document.getElementById('insightsUpgradePrompt').style.display = 'block';
