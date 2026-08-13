@@ -591,6 +591,9 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
 </style>
 </head>
 <body>
+<div id="appLoadingOverlay" style="position:fixed;inset:0;background:#0a1628;z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="font-size:26px;font-weight:900;letter-spacing:3px;"><span style="color:#c8f135;">GRV</span><span style="color:#fff;">SCANNER</span></div>
+</div>
 
 <!-- HEADER -->
 <header>
@@ -2422,7 +2425,7 @@ async function establishSession(u, isRestoring) {
     await loadVatRatePresetsCache();
     await loadPendingScans();
     await loadHomeSummary();
-    showPage('home', null);
+    landOnRememberedOrDefaultPage('home');
   } else {
     currentUser = { id: u.id, fname: u.firstName, lname: u.lastName, uname: u.username, role: u.role, perms: u.permissions };
     const initials = (u.firstName[0] + u.lastName[0]).toUpperCase();
@@ -2437,7 +2440,7 @@ async function establishSession(u, isRestoring) {
       if (u.permissions?.users) await loadUsersFromServer();
     }
     else if (u.role === 'dispatch') { await loadSuppliersFromServer(); await loadVatRatePresetsCache(); }
-    showPage(u.role === 'processor' ? 'home' : 'scan', null);
+    landOnRememberedOrDefaultPage(u.role === 'processor' ? 'home' : 'scan');
   }
 
   if (pendingPaystackReference) await checkPaystackCallback();
@@ -2461,6 +2464,7 @@ async function restoreSession() {
   } catch (err) {
     authToken = null;
     safeStorageRemove('grv_auth_token');
+    safeStorageRemove('grv_last_page');
     resetHeaderToLoggedOutState();
     return false;
   }
@@ -2511,6 +2515,7 @@ function openSignupWizard() {
   isDeveloperSession = false;
   authToken = null;
   safeStorageRemove('grv_auth_token');
+  safeStorageRemove('grv_last_page');
   staffUsers = [];
   suppliers = [];
   resetHeaderToLoggedOutState();
@@ -2680,6 +2685,7 @@ function logout() {
   isDeveloperSession = false;
   authToken = null;
   safeStorageRemove('grv_auth_token');
+  safeStorageRemove('grv_last_page');
   staffUsers = [];
   suppliers = [];
   resetHeaderToLoggedOutState();
@@ -2737,6 +2743,16 @@ const pageLabels = {
   staffdetail: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Staff Activity',
 };
 
+function landOnRememberedOrDefaultPage(defaultId) {
+  const saved = safeStorageGet('grv_last_page');
+  if (saved && saved !== defaultId) {
+    showPage(saved, null);
+    const pg = document.getElementById('page-' + saved);
+    if (pg && pg.classList.contains('active')) return; // the remembered page was valid for this session - done
+  }
+  showPage(defaultId, null); // no usable remembered page - fall back to the normal default
+}
+
 function showPage(id, tabEl) {
   // A real session is required for every page except login/signup itself -
   // without this, someone could land on an authenticated page's markup
@@ -2769,6 +2785,14 @@ function showPage(id, tabEl) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const pg = document.getElementById('page-' + id);
   if (pg) pg.classList.add('active');
+
+  // Remember this as "where the user actually was", so a page refresh can
+  // return here instead of always landing on the generic default page.
+  const rememberablePages = ['login', 'signup', 'inactive-account'];
+  if (!rememberablePages.includes(id)) {
+    safeStorageSet('grv_last_page', id);
+  }
+
   if (id === 'pending' && authToken) loadPendingScans();
   if (id === 'daily' && authToken) loadSummary('today');
   if (id === 'suppliers' && authToken) loadSuppliersFromServer();
@@ -5653,7 +5677,12 @@ applyRealDates();
 // Try to restore a session from a saved token, so refreshing the page doesn't
 // log the user out. If there's no valid saved session, the login page (already
 // set up above) stays as-is.
-(async () => { await restoreSession(); await checkPaystackCallback(); })();
+(async () => {
+  await restoreSession();
+  await checkPaystackCallback();
+  const overlay = document.getElementById('appLoadingOverlay');
+  if (overlay) overlay.style.display = 'none';
+})();
 populateSummaryDatePicker();
 </script>
 </body>
