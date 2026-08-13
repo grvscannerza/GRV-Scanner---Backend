@@ -2851,7 +2851,7 @@ function populateScanSupplierDropdown() {
   if (!sel) return;
   const current = sel.value;
   sel.innerHTML = '<option value="">- Select a supplier first -</option>' +
-    suppliers.map(s => `<option value="${s.id}">${s.name} (${s.vatRate}% VAT)</option>`).join('');
+    suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
   if (current && suppliers.some(s => String(s.id) === current)) sel.value = current;
 }
 
