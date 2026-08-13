@@ -2231,6 +2231,7 @@ async function establishSession(u, isRestoring) {
     await loadVatRatePresetsCache();
     await loadPendingScans();
     await loadHomeSummary();
+    prefetchDailySummaryData(); // fire in the background, not awaited - ready by the time the user clicks Daily Summary
     landOnRememberedOrDefaultPage('home');
   } else {
     currentUser = { id: u.id, fname: u.firstName, lname: u.lastName, uname: u.username, role: u.role, perms: u.permissions };
@@ -2243,6 +2244,7 @@ async function establishSession(u, isRestoring) {
       await loadVatRatePresetsCache();
       await loadPendingScans();
       await loadHomeSummary();
+      prefetchDailySummaryData();
       if (u.permissions?.users) await loadUsersFromServer();
     }
     else if (u.role === 'dispatch') { await loadSuppliersFromServer(); await loadVatRatePresetsCache(); }
@@ -2557,6 +2559,26 @@ function landOnRememberedOrDefaultPage(defaultId) {
     if (pg && pg.classList.contains('active')) return; // the remembered page was valid for this session - done
   }
   showPage(defaultId, null); // no usable remembered page - fall back to the normal default
+}
+
+let dailySummaryPrefetch = { today: null, priceAlerts: null, bizInfo: null };
+
+async function prefetchDailySummaryData() {
+  const today = APP_TODAY;
+  const todayStr = ymd(today);
+  try {
+    const [report, priceAlerts, profile, planInfo] = await Promise.all([
+      apiFetch(`/reports/summary?start=${todayStr}&end=${todayStr}`),
+      apiFetch(`/reports/price-increases?start=${todayStr}&end=${todayStr}`).catch(err => (err.data?.gated ? { gated: true } : null)),
+      apiFetch('/business/profile'),
+      apiFetch('/business/plan'),
+    ]);
+    dailySummaryPrefetch.today = report;
+    dailySummaryPrefetch.priceAlerts = priceAlerts;
+    dailySummaryPrefetch.bizInfo = { profile, planInfo };
+  } catch (err) {
+    console.error('Background prefetch of Daily Summary failed (will fetch normally when opened):', err.message);
+  }
 }
 
 function showPage(id, tabEl) {
@@ -4475,16 +4497,17 @@ function renderDuplicateAlerts(scanRows) {
 
 async function loadDailyReportBizInfo() {
   try {
-    const [profile, planInfo] = await Promise.all([
+    const { profile, planInfo } = dailySummaryPrefetch.bizInfo || {};
+    const [realProfile, realPlanInfo] = (profile && planInfo) ? [profile, planInfo] : await Promise.all([
       apiFetch('/business/profile'),
       apiFetch('/business/plan'),
     ]);
     const bizNameEl = document.getElementById('dailyReportBizName');
     const footerBizNameEl = document.getElementById('dailyReportFooterBizName');
     const planEl = document.getElementById('dailyReportPlan');
-    if (bizNameEl) bizNameEl.textContent = profile.name;
-    if (footerBizNameEl) footerBizNameEl.textContent = profile.name;
-    if (planEl) planEl.textContent = `${(PLAN_INFO[planInfo.plan]?.label || planInfo.plan).toUpperCase()} PLAN`;
+    if (bizNameEl) bizNameEl.textContent = realProfile.name;
+    if (footerBizNameEl) footerBizNameEl.textContent = realProfile.name;
+    if (planEl) planEl.textContent = `${(PLAN_INFO[realPlanInfo.plan]?.label || realPlanInfo.plan).toUpperCase()} PLAN`;
   } catch (err) {
     console.error('Failed to load business info for Daily Report:', err.message);
   }
@@ -4497,13 +4520,21 @@ async function loadDailyPriceAlerts() {
   const todayStr = APP_TODAY.toISOString().slice(0, 10);
 
   let data;
-  try {
-    data = await apiFetch(`/reports/price-increases?start=${todayStr}&end=${todayStr}`);
-  } catch (err) {
-    // Not on Enterprise, or something failed - either way, no fake data,
-    // just don't show this section at all.
-    section.style.display = 'none';
-    return;
+  if (dailySummaryPrefetch.priceAlerts !== null) {
+    if (dailySummaryPrefetch.priceAlerts.gated) {
+      section.style.display = 'none';
+      return;
+    }
+    data = dailySummaryPrefetch.priceAlerts;
+  } else {
+    try {
+      data = await apiFetch(`/reports/price-increases?start=${todayStr}&end=${todayStr}`);
+    } catch (err) {
+      // Not on Enterprise, or something failed - either way, no fake data,
+      // just don't show this section at all.
+      section.style.display = 'none';
+      return;
+    }
   }
 
   if (!data.increases || data.increases.length === 0) {
@@ -4602,8 +4633,9 @@ function renderUserBreakdowns(scans) {
 async function fetchAndRenderReport(startDate, endDate, dateLabelText, footerLabelText) {
   const startStr = startDate.toISOString().slice(0, 10);
   const endStr = endDate.toISOString().slice(0, 10);
+  const isTodayOnly = startStr === ymd(APP_TODAY) && endStr === ymd(APP_TODAY);
   try {
-    const report = await apiFetch(`/reports/summary?start=${startStr}&end=${endStr}`);
+    const report = (isTodayOnly && dailySummaryPrefetch.today) ? dailySummaryPrefetch.today : await apiFetch(`/reports/summary?start=${startStr}&end=${endStr}`);
     renderReportScanTable(report.scans);
     renderUserBreakdowns(report.scans);
     renderDuplicateAlerts(report.scans);
