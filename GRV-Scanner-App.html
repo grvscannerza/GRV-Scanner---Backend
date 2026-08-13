@@ -1067,6 +1067,22 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div class="cc"><div class="ct">Invoices Per Supplier</div><div class="csub">Order frequency</div><div class="cw"><canvas id="c6"></canvas></div></div>
       <div class="cc"><div class="ct">Spend Breakdown</div><div class="csub">% of total per supplier</div><div class="cw"><canvas id="c7"></canvas></div></div>
     </div>
+
+    <div class="cc" style="margin-top:4px;">
+      <div class="ct">Supplier or Product Lookup</div>
+      <div class="csub">See everything for one specific supplier or product, instead of the side-by-side comparisons above.</div>
+      <div style="display:flex;gap:8px;margin:14px 0;">
+        <button id="lookupTypeSupplierBtn" onclick="setLookupType('supplier')" class="filter-btn active" style="flex:0 0 auto;">Supplier</button>
+        <button id="lookupTypeProductBtn" onclick="setLookupType('product')" class="filter-btn" style="flex:0 0 auto;">Product</button>
+        <select class="styled-select" id="lookupSelect" style="flex:1;min-width:200px;" onchange="runLookup()"><option value="">- Choose a supplier -</option></select>
+      </div>
+      <div id="lookupEmptyState" style="text-align:center;padding:30px 0;color:var(--muted);font-size:13px;">Choose a supplier or product above to see everything about it.</div>
+      <div id="lookupResults" style="display:none;">
+        <div class="stats-5" id="lookupStats" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px;"></div>
+        <div class="cw" style="height:180px;"><canvas id="lookupChart"></canvas></div>
+        <div id="lookupTableWrap" style="margin-top:14px;"></div>
+      </div>
+    </div>
     </div>
   </div>
 </div>
@@ -5432,6 +5448,77 @@ document.addEventListener('click', (e) => {
   }
 });
 
+let lookupType = 'supplier';
+
+function setLookupType(type) {
+  lookupType = type;
+  document.getElementById('lookupTypeSupplierBtn').classList.toggle('active', type === 'supplier');
+  document.getElementById('lookupTypeProductBtn').classList.toggle('active', type === 'product');
+  populateLookupSelect();
+  document.getElementById('lookupResults').style.display = 'none';
+  document.getElementById('lookupEmptyState').style.display = 'block';
+}
+
+function populateLookupSelect() {
+  const sel = document.getElementById('lookupSelect');
+  if (lookupType === 'supplier') {
+    sel.innerHTML = '<option value="">- Choose a supplier -</option>' +
+      suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  } else {
+    sel.innerHTML = '<option value="">- Choose a product -</option>' +
+      itemMasterCache.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+  }
+}
+
+async function runLookup() {
+  const sel = document.getElementById('lookupSelect');
+  if (!sel.value) {
+    document.getElementById('lookupResults').style.display = 'none';
+    document.getElementById('lookupEmptyState').style.display = 'block';
+    return;
+  }
+  let data;
+  try {
+    data = await apiFetch(`/reports/lookup?type=${lookupType}&id=${sel.value}&start=${currentInsightsRange.start}&end=${currentInsightsRange.end}`);
+  } catch (err) {
+    alert('Could not load that lookup: ' + err.message);
+    return;
+  }
+
+  document.getElementById('lookupEmptyState').style.display = 'none';
+  document.getElementById('lookupResults').style.display = 'block';
+
+  const statsEl = document.getElementById('lookupStats');
+  const tableWrap = document.getElementById('lookupTableWrap');
+
+  if (data.type === 'supplier') {
+    statsEl.innerHTML = `
+      <div class="sc"><div class="sc-val">${data.invoiceCount}</div><div class="sc-lbl">Invoices</div></div>
+      <div class="sc blue"><div class="sc-val">${fmtRand(data.totalSpend)}</div><div class="sc-lbl">Total Spend</div></div>
+      <div class="sc"><div class="sc-val" style="font-size:13px;">${data.topItems[0]?.description || '-'}</div><div class="sc-lbl">Top Item</div></div>`;
+    renderOrUpdateChart('lookupChart', {
+      type: 'line',
+      data: { labels: data.spendOverTime.map(m => fmtMonthLabel(m.month)), datasets: [{ data: data.spendOverTime.map(m => m.total), borderColor: '#c8f135', backgroundColor: 'rgba(200,241,53,0.07)', tension: 0.4, fill: true, pointBackgroundColor: '#c8f135', pointRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8faac3', font: { size: 9 } } }, y: { ticks: { color: '#8faac3', font: { size: 9 } } } } },
+    });
+    tableWrap.innerHTML = data.topItems.length === 0 ? '<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px;">No items in this period.</div>' :
+      `<table style="width:100%;font-size:12px;"><thead><tr style="color:var(--muted);text-align:left;"><th style="padding:6px 0;">Item</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Spend</th></tr></thead><tbody>` +
+      data.topItems.map(it => `<tr style="border-top:1px solid var(--border);"><td style="padding:6px 0;">${it.description}</td><td style="text-align:right;">${it.qty}</td><td style="text-align:right;">${fmtRand(it.totalSpent)}</td></tr>`).join('') +
+      `</tbody></table>`;
+  } else {
+    statsEl.innerHTML = `
+      <div class="sc"><div class="sc-val">${data.totalQty}</div><div class="sc-lbl">Total Qty Ordered</div></div>
+      <div class="sc blue"><div class="sc-val">${fmtRand(data.totalSpend)}</div><div class="sc-lbl">Total Spend</div></div>
+      <div class="sc"><div class="sc-val">${fmtRand(data.currentPrice)}</div><div class="sc-lbl">Current Price</div></div>`;
+    renderOrUpdateChart('lookupChart', {
+      type: 'line',
+      data: { labels: data.priceHistory.map(h => fmtDDMMYY(new Date(h.recorded_at))), datasets: [{ data: data.priceHistory.map(h => h.price), borderColor: '#7dd3fc', backgroundColor: 'rgba(125,211,252,0.07)', tension: 0.4, fill: true, pointBackgroundColor: '#7dd3fc', pointRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8faac3', font: { size: 9 } } }, y: { ticks: { color: '#8faac3', font: { size: 9 }, callback: v => 'R' + v } } } },
+    });
+    tableWrap.innerHTML = `<div style="font-size:12px;color:var(--muted);text-align:center;">Supplied by <strong style="color:#fff;">${data.supplierName || 'Unknown'}</strong> - ${data.invoiceCount} invoice${data.invoiceCount === 1 ? '' : 's'} in this period</div>`;
+  }
+}
+
 async function loadInsights() {
   if (!currentInsightsRange) {
     const start = mondayOfWeek(APP_TODAY);
@@ -5451,6 +5538,11 @@ async function loadInsights() {
     console.error('Failed to load insights:', err.message);
     return;
   }
+
+  if (!document.getElementById('lookupSelect').options.length || document.getElementById('lookupSelect').options.length === 1) {
+    populateLookupSelect();
+  }
+  if (document.getElementById('lookupSelect').value) runLookup();
   document.getElementById('insightsUpgradePrompt').style.display = 'none';
   document.getElementById('insightsContent').style.display = '';
 

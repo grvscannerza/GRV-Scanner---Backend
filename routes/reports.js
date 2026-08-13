@@ -255,4 +255,90 @@ router.get('/insights', requireRole('admin', 'processor', 'developer'), async (r
   }
 });
 
+// "Supplier or Product Lookup" - everything relevant to ONE specific
+// supplier or product, rather than the aggregate/side-by-side comparisons
+// the rest of the Insights page shows. Respects the same date range as the
+// main dashboard for consistency.
+router.get('/lookup', requireRole('admin', 'processor', 'developer'), async (req, res) => {
+  const bizId = req.user.businessId;
+  const { type, id, start, end } = req.query;
+
+  if (type !== 'supplier' && type !== 'product') {
+    return res.status(400).json({ error: 'type must be "supplier" or "product".' });
+  }
+  if (!id) return res.status(400).json({ error: 'id is required.' });
+
+  const dateFilter = (start && end) ? `AND s.scanned_at::date BETWEEN $3 AND $4` : '';
+  const dateParams = (start && end) ? [start, end] : [];
+
+  try {
+    if (type === 'supplier') {
+      const supResult = await pool.query('SELECT id, name FROM suppliers WHERE id = $1 AND business_id = $2', [id, bizId]);
+      if (!supResult.rows[0]) return res.status(404).json({ error: 'Supplier not found.' });
+
+      const statsResult = await pool.query(`
+        SELECT COUNT(*)::int AS "invoiceCount", COALESCE(SUM(total),0)::float AS "totalSpend"
+        FROM scans s WHERE s.business_id = $2 AND s.supplier_id = $1 AND s.status = 'approved' ${dateFilter}
+      `, [id, bizId, ...dateParams]);
+
+      const spendOverTimeResult = await pool.query(`
+        SELECT TO_CHAR(s.scanned_at, 'YYYY-MM') AS month, COALESCE(SUM(s.total),0)::float AS total
+        FROM scans s WHERE s.business_id = $2 AND s.supplier_id = $1 AND s.status = 'approved' ${dateFilter}
+        GROUP BY month ORDER BY month ASC
+      `, [id, bizId, ...dateParams]);
+
+      const topItemsResult = await pool.query(`
+        SELECT sli.description, SUM(sli.qty)::float AS qty, SUM(sli.qty * sli.unit_price)::float AS "totalSpent"
+        FROM scan_line_items sli JOIN scans s ON s.id = sli.scan_id
+        WHERE s.business_id = $2 AND s.supplier_id = $1 AND s.status = 'approved' ${dateFilter}
+        GROUP BY sli.description ORDER BY "totalSpent" DESC LIMIT 10
+      `, [id, bizId, ...dateParams]);
+
+      return res.json({
+        type: 'supplier',
+        name: supResult.rows[0].name,
+        invoiceCount: statsResult.rows[0].invoiceCount,
+        totalSpend: statsResult.rows[0].totalSpend,
+        spendOverTime: spendOverTimeResult.rows,
+        topItems: topItemsResult.rows,
+      });
+    } else {
+      const itemResult = await pool.query(
+        'SELECT im.id, im.code, im.name, im.current_price, sup.name AS supplier_name FROM item_master im LEFT JOIN suppliers sup ON sup.id = im.supplier_id WHERE im.id = $1 AND im.business_id = $2',
+        [id, bizId]
+      );
+      if (!itemResult.rows[0]) return res.status(404).json({ error: 'Product not found.' });
+      const item = itemResult.rows[0];
+
+      const priceHistoryDateFilter = (start && end) ? `AND recorded_at::date BETWEEN $2 AND $3` : '';
+      const priceHistoryParams = (start && end) ? [id, start, end] : [id];
+      const priceHistoryResult = await pool.query(
+        `SELECT price, recorded_at FROM item_price_history WHERE item_id = $1 ${priceHistoryDateFilter} ORDER BY recorded_at ASC`,
+        priceHistoryParams
+      );
+
+      const qtyResult = await pool.query(`
+        SELECT COALESCE(SUM(sli.qty),0)::float AS "totalQty", COALESCE(SUM(sli.qty * sli.unit_price),0)::float AS "totalSpend", COUNT(DISTINCT s.id)::int AS "invoiceCount"
+        FROM scan_line_items sli JOIN scans s ON s.id = sli.scan_id
+        WHERE s.business_id = $2 AND sli.code = $1 AND s.status = 'approved' ${dateFilter}
+      `, [item.code, bizId, ...dateParams]);
+
+      return res.json({
+        type: 'product',
+        code: item.code,
+        name: item.name,
+        supplierName: item.supplier_name,
+        currentPrice: item.current_price,
+        totalQty: qtyResult.rows[0].totalQty,
+        totalSpend: qtyResult.rows[0].totalSpend,
+        invoiceCount: qtyResult.rows[0].invoiceCount,
+        priceHistory: priceHistoryResult.rows,
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 module.exports = router;
