@@ -204,6 +204,12 @@ router.get('/insights', requireRole('admin', 'processor', 'developer'), async (r
       WHERE sup.business_id = $1 GROUP BY sup.id, sup.name ORDER BY count DESC
     `, params);
 
+    const spendByDepartmentResult = await pool.query(`
+      SELECT COALESCE(sup.department, 'No Department') AS department, COALESCE(SUM(s.total),0)::float AS total, COUNT(s.id)::int AS "invoiceCount"
+      FROM suppliers sup LEFT JOIN scans s ON s.supplier_id = sup.id AND s.status = 'approved' ${dateFilter}
+      WHERE sup.business_id = $1 GROUP BY sup.department ORDER BY total DESC
+    `, params);
+
     const topProductsResult = await pool.query(`
       SELECT sli.description, SUM(sli.qty)::float AS qty
       FROM scan_line_items sli JOIN scans s ON s.id = sli.scan_id
@@ -251,6 +257,7 @@ router.get('/insights', requireRole('admin', 'processor', 'developer'), async (r
       },
       spendPerSupplier: spendPerSupplierResult.rows,
       invoicesPerSupplier: invoicesPerSupplierResult.rows,
+      spendByDepartment: spendByDepartmentResult.rows,
       topProducts: topProductsResult.rows,
       monthlySpend: monthlySpendResult.rows,
       priceTrends,
@@ -270,8 +277,8 @@ router.get('/lookup', requireRole('admin', 'processor', 'developer'), async (req
   const bizId = req.user.businessId;
   const { type, id, start, end } = req.query;
 
-  if (type !== 'supplier' && type !== 'product') {
-    return res.status(400).json({ error: 'type must be "supplier" or "product".' });
+  if (type !== 'supplier' && type !== 'product' && type !== 'department') {
+    return res.status(400).json({ error: 'type must be "supplier", "product", or "department".' });
   }
   if (!id) return res.status(400).json({ error: 'id is required.' });
 
@@ -309,7 +316,7 @@ router.get('/lookup', requireRole('admin', 'processor', 'developer'), async (req
         spendOverTime: spendOverTimeResult.rows,
         topItems: topItemsResult.rows,
       });
-    } else {
+    } else if (type === 'product') {
       const itemResult = await pool.query(
         'SELECT im.id, im.code, im.name, im.current_price, sup.name AS supplier_name FROM item_master im LEFT JOIN suppliers sup ON sup.id = im.supplier_id WHERE im.id = $1 AND im.business_id = $2',
         [id, bizId]
@@ -340,6 +347,51 @@ router.get('/lookup', requireRole('admin', 'processor', 'developer'), async (req
         totalSpend: qtyResult.rows[0].totalSpend,
         invoiceCount: qtyResult.rows[0].invoiceCount,
         priceHistory: priceHistoryResult.rows,
+      });
+    } else {
+      // Department is a plain string, not its own table with an id - "No
+      // Department" is the special case for suppliers with none assigned.
+      const isNoDept = id === 'No Department';
+      const deptWhere = isNoDept ? 'sup.department IS NULL' : 'sup.department = $1';
+      const baseParams = isNoDept ? [bizId] : [id, bizId];
+      const bizParamIdx = isNoDept ? 1 : 2;
+      const fullParams = (start && end) ? [...baseParams, start, end] : baseParams;
+      const scanDateFilter = (start && end) ? `AND s.scanned_at::date BETWEEN $${bizParamIdx + 1} AND $${bizParamIdx + 2}` : '';
+
+      const supplierListResult = await pool.query(
+        `SELECT id, name FROM suppliers sup WHERE sup.business_id = $${bizParamIdx} AND ${deptWhere}`,
+        baseParams
+      );
+
+      const statsResult = await pool.query(`
+        SELECT COUNT(s.id)::int AS "invoiceCount", COALESCE(SUM(s.total),0)::float AS "totalSpend"
+        FROM scans s JOIN suppliers sup ON sup.id = s.supplier_id
+        WHERE sup.business_id = $${bizParamIdx} AND ${deptWhere} AND s.status = 'approved' ${scanDateFilter}
+      `, fullParams);
+
+      const spendOverTimeResult = await pool.query(`
+        SELECT TO_CHAR(s.scanned_at, 'YYYY-MM') AS month, COALESCE(SUM(s.total),0)::float AS total
+        FROM scans s JOIN suppliers sup ON sup.id = s.supplier_id
+        WHERE sup.business_id = $${bizParamIdx} AND ${deptWhere} AND s.status = 'approved' ${scanDateFilter}
+        GROUP BY month ORDER BY month ASC
+      `, fullParams);
+
+      const topItemsResult = await pool.query(`
+        SELECT sli.description, SUM(sli.qty)::float AS qty, SUM(sli.qty * sli.unit_price)::float AS "totalSpent"
+        FROM scan_line_items sli JOIN scans s ON s.id = sli.scan_id JOIN suppliers sup ON sup.id = s.supplier_id
+        WHERE sup.business_id = $${bizParamIdx} AND ${deptWhere} AND s.status = 'approved' ${scanDateFilter}
+        GROUP BY sli.description ORDER BY "totalSpent" DESC LIMIT 10
+      `, fullParams);
+
+      return res.json({
+        type: 'department',
+        name: id,
+        supplierCount: supplierListResult.rows.length,
+        supplierNames: supplierListResult.rows.map(r => r.name),
+        invoiceCount: statsResult.rows[0].invoiceCount,
+        totalSpend: statsResult.rows[0].totalSpend,
+        spendOverTime: spendOverTimeResult.rows,
+        topItems: topItemsResult.rows,
       });
     }
   } catch (err) {

@@ -1066,12 +1066,15 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div class="cc"><div class="ct">Spend Breakdown</div><div class="csub">% of total per supplier</div><div class="cw"><canvas id="c7"></canvas></div></div>
     </div>
 
+    <div class="cc"><div class="ct">Spend by Department</div><div class="csub">Total invoice value by department</div><div class="cw"><canvas id="c8"></canvas></div></div>
+
     <div class="cc" style="margin-top:4px;">
       <div class="ct">Supplier or Product Lookup</div>
       <div class="csub">See everything for one specific supplier or product, instead of the side-by-side comparisons above.</div>
       <div style="display:flex;gap:8px;margin:14px 0;">
         <button id="lookupTypeSupplierBtn" onclick="setLookupType('supplier')" class="filter-btn active" style="flex:0 0 auto;">Supplier</button>
         <button id="lookupTypeProductBtn" onclick="setLookupType('product')" class="filter-btn" style="flex:0 0 auto;">Product</button>
+        <button id="lookupTypeDepartmentBtn" onclick="setLookupType('department')" class="filter-btn" style="flex:0 0 auto;">Department</button>
         <select class="styled-select" id="lookupSelect" style="flex:1;min-width:200px;" onchange="runLookup()"><option value="">- Choose a supplier -</option></select>
       </div>
       <div id="lookupEmptyState" style="text-align:center;padding:30px 0;color:var(--muted);font-size:13px;">Choose a supplier or product above to see everything about it.</div>
@@ -5799,6 +5802,7 @@ function setLookupType(type) {
   lookupType = type;
   document.getElementById('lookupTypeSupplierBtn').classList.toggle('active', type === 'supplier');
   document.getElementById('lookupTypeProductBtn').classList.toggle('active', type === 'product');
+  document.getElementById('lookupTypeDepartmentBtn').classList.toggle('active', type === 'department');
   populateLookupSelect();
   document.getElementById('lookupResults').style.display = 'none';
   document.getElementById('lookupEmptyState').style.display = 'block';
@@ -5809,9 +5813,14 @@ function populateLookupSelect() {
   if (lookupType === 'supplier') {
     sel.innerHTML = '<option value="">- Choose a supplier -</option>' +
       suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-  } else {
+  } else if (lookupType === 'product') {
     sel.innerHTML = '<option value="">- Choose a product -</option>' +
       itemMasterCache.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+  } else {
+    const hasUnassigned = suppliers.some(s => !s.department);
+    sel.innerHTML = '<option value="">- Choose a department -</option>' +
+      departmentsCache.map(d => `<option value="${d.replace(/"/g, '&quot;')}">${d}</option>`).join('') +
+      (hasUnassigned ? '<option value="No Department">No Department</option>' : '');
   }
 }
 
@@ -5824,7 +5833,7 @@ async function runLookup() {
   }
   let data;
   try {
-    data = await apiFetch(`/reports/lookup?type=${lookupType}&id=${sel.value}&start=${currentInsightsRange.start}&end=${currentInsightsRange.end}`);
+    data = await apiFetch(`/reports/lookup?type=${lookupType}&id=${encodeURIComponent(sel.value)}&start=${currentInsightsRange.start}&end=${currentInsightsRange.end}`);
   } catch (err) {
     alert('Could not load that lookup: ' + err.message);
     return;
@@ -5850,7 +5859,7 @@ async function runLookup() {
       `<table style="width:100%;font-size:12px;"><thead><tr style="color:var(--muted);text-align:left;"><th style="padding:6px 0;">Item</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Spend</th></tr></thead><tbody>` +
       data.topItems.map(it => `<tr style="border-top:1px solid var(--border);"><td style="padding:6px 0;">${it.description}</td><td style="text-align:right;">${it.qty}</td><td style="text-align:right;">${fmtRand(it.totalSpent)}</td></tr>`).join('') +
       `</tbody></table>`;
-  } else {
+  } else if (data.type === 'product') {
     statsEl.innerHTML = `
       <div class="sc"><div class="sc-val">${data.totalQty}</div><div class="sc-lbl">Total Qty Ordered</div></div>
       <div class="sc blue"><div class="sc-val">${fmtRand(data.totalSpend)}</div><div class="sc-lbl">Total Spend</div></div>
@@ -5861,6 +5870,21 @@ async function runLookup() {
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8faac3', font: { size: 9 } } }, y: { ticks: { color: '#8faac3', font: { size: 9 }, callback: v => 'R' + v } } } },
     });
     tableWrap.innerHTML = `<div style="font-size:12px;color:var(--muted);text-align:center;">Supplied by <strong style="color:#fff;">${data.supplierName || 'Unknown'}</strong> - ${data.invoiceCount} invoice${data.invoiceCount === 1 ? '' : 's'} in this period</div>`;
+  } else {
+    statsEl.innerHTML = `
+      <div class="sc"><div class="sc-val">${data.supplierCount}</div><div class="sc-lbl">Suppliers</div></div>
+      <div class="sc blue"><div class="sc-val">${fmtRand(data.totalSpend)}</div><div class="sc-lbl">Total Spend</div></div>
+      <div class="sc"><div class="sc-val">${data.invoiceCount}</div><div class="sc-lbl">Invoices</div></div>`;
+    renderOrUpdateChart('lookupChart', {
+      type: 'line',
+      data: { labels: data.spendOverTime.map(m => fmtMonthLabel(m.month)), datasets: [{ data: data.spendOverTime.map(m => m.total), borderColor: '#7dd3fc', backgroundColor: 'rgba(125,211,252,0.07)', tension: 0.4, fill: true, pointBackgroundColor: '#7dd3fc', pointRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8faac3', font: { size: 9 } } }, y: { ticks: { color: '#8faac3', font: { size: 9 } } } } },
+    });
+    const suppliersLine = data.supplierNames.length ? `<div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:10px;">Suppliers: ${data.supplierNames.join(', ')}</div>` : '';
+    tableWrap.innerHTML = suppliersLine + (data.topItems.length === 0 ? '<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px;">No items in this period.</div>' :
+      `<table style="width:100%;font-size:12px;"><thead><tr style="color:var(--muted);text-align:left;"><th style="padding:6px 0;">Item</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Spend</th></tr></thead><tbody>` +
+      data.topItems.map(it => `<tr style="border-top:1px solid var(--border);"><td style="padding:6px 0;">${it.description}</td><td style="text-align:right;">${it.qty}</td><td style="text-align:right;">${fmtRand(it.totalSpent)}</td></tr>`).join('') +
+      `</tbody></table>`);
   }
 }
 
@@ -5959,6 +5983,10 @@ async function loadInsights() {
   renderOrUpdateChart('c6', {type:'bar',data:{labels:invSupNames,datasets:[{data:data.invoicesPerSupplier.map(s=>s.count),backgroundColor:'rgba(167,139,250,0.7)',borderColor:'#a78bfa',borderWidth:1,borderRadius:4}]},options:base()});
 
   renderOrUpdateChart('c7', {type:'doughnut',data:{labels:supplierNames,datasets:[{data:supplierSpend,backgroundColor:PAL,borderColor:'#112240',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#e2e8f0',font:{size:10},boxWidth:10,padding:8}}}}});
+
+  const deptNames = data.spendByDepartment.map(d => d.department);
+  const deptSpend = data.spendByDepartment.map(d => d.total);
+  renderOrUpdateChart('c8', {type:'bar',data:{labels:deptNames,datasets:[{data:deptSpend,backgroundColor:'rgba(125,211,252,0.7)',borderColor:'#7dd3fc',borderWidth:1,borderRadius:4}]},options:base()});
 }
 
 // ── On load - set correct initial nav state ──
