@@ -57,6 +57,42 @@ router.put('/vat-rates', requireRole('admin', 'developer'), async (req, res) => 
   }
 });
 
+router.get('/departments', requireRole('admin', 'processor', 'dispatch', 'developer'), async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT departments FROM businesses WHERE id = $1', [req.user.businessId]);
+    if (!rows[0]) return res.status(404).json({ error: 'Business not found.' });
+    res.json({ departments: JSON.parse(rows[0].departments) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+router.put('/departments', requireRole('admin', 'developer'), async (req, res) => {
+  const { departments } = req.body || {};
+  if (!Array.isArray(departments)) {
+    return res.status(400).json({ error: 'departments must be an array.' });
+  }
+  const cleaned = [];
+  for (const d of departments) {
+    if (typeof d !== 'string' || !d.trim()) {
+      return res.status(400).json({ error: 'Every department needs a real name.' });
+    }
+    const name = d.trim();
+    if (cleaned.some(existing => existing.toLowerCase() === name.toLowerCase())) {
+      return res.status(400).json({ error: `"${name}" is listed more than once.` });
+    }
+    cleaned.push(name);
+  }
+  try {
+    await pool.query('UPDATE businesses SET departments = $1 WHERE id = $2', [JSON.stringify(cleaned), req.user.businessId]);
+    res.json({ ok: true, departments: cleaned });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 router.put('/profile', requireRole('admin', 'developer'), async (req, res) => {
   const { name, address, contactNumber, contactEmail, vatNumber } = req.body || {};
   if (!name || !name.trim()) return res.status(400).json({ error: 'Company name is required.' });

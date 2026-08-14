@@ -1094,6 +1094,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div class="snav-item" onclick="showSetting(this,'s-sec')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>  Security</div>
       <div class="snav-grp" style="margin-top:8px;">Preferences</div>
       <div class="snav-item" onclick="showSetting(this,'s-vat')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>  VAT Rates</div>
+      <div class="snav-item" onclick="showSetting(this,'s-dept')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>  Departments</div>
       <div class="snav-item" onclick="showSetting(this,'s-exp')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>  Export Defaults</div>
       <div class="snav-item" onclick="showSetting(this,'s-not')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>  Notifications</div>
       <div class="snav-grp" style="margin-top:8px;">Subscription</div>
@@ -1131,6 +1132,14 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <div id="vatRateRows" style="max-width:480px;"></div>
         <button id="vatAddRowBtn" onclick="addVatRateRow()" style="background:none;border:1px dashed var(--border-light);color:var(--muted-light);border-radius:var(--radius);padding:8px 14px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:16px;">+ Add another rate</button>
         <div><button class="save-btn" onclick="saveVatRates(this)">Save VAT Rates</button></div>
+      </div>
+      <div id="s-dept" style="display:none;">
+        <div class="settings-title">Departments</div>
+        <div class="settings-sub">Set up departments for your business. When you create a supplier, you can assign it to one - then filter suppliers by department.</div>
+        <div id="dept-error" style="display:none;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:12px;max-width:480px;"></div>
+        <div id="deptRows" style="max-width:480px;"></div>
+        <button onclick="addDeptRow()" style="background:none;border:1px dashed var(--border-light);color:var(--muted-light);border-radius:var(--radius);padding:8px 14px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:16px;">+ Add another department</button>
+        <div><button class="save-btn" onclick="saveDepartments(this)">Save Departments</button></div>
       </div>
       <div id="s-exp" style="display:none;">
         <div class="settings-title">Export Defaults</div>
@@ -1233,6 +1242,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div class="filter-btn active" onclick="filterSuppliers('all',this)">All</div>
       <div class="filter-btn" onclick="filterSuppliers('vr',this)">VAT Registered</div>
       <div class="filter-btn" onclick="filterSuppliers('ve',this)">VAT Exempt</div>
+      <select class="styled-select" id="supDeptFilter" style="min-width:160px;" onchange="filterSuppliersByDepartment(this.value)"><option value="">All Departments</option></select>
     </div>
     <div class="supplier-list" id="supplierList"></div>
     </div>
@@ -2044,6 +2054,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div class="tb-field"><label>Contact Person</label><input id="sm-contact"/></div>
       <div class="tb-field"><label>Phone Number</label><input id="sm-phone"/></div>
       <div class="tb-field"><label>Email Address</label><input id="sm-email" type="email"/></div>
+      <div class="tb-field full"><label>Department</label><select id="sm-department" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;"><option value="">- No department -</option></select></div>
     </div>
     <div style="margin-top:14px;"><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">VAT Status</div>
     <div class="vat-opts">
@@ -2230,6 +2241,7 @@ async function establishSession(u, isRestoring) {
     await loadSuppliersFromServer();
     await loadItemMasterFromServer();
     await loadVatRatePresetsCache();
+    await loadDepartmentsCache();
     await loadPendingScans();
     await loadHomeSummary();
     prefetchDailySummaryData(); // fire in the background, not awaited - ready by the time the user clicks Daily Summary
@@ -2244,13 +2256,14 @@ async function establishSession(u, isRestoring) {
       await loadSuppliersFromServer();
       await loadItemMasterFromServer();
       await loadVatRatePresetsCache();
+    await loadDepartmentsCache();
       await loadPendingScans();
       await loadHomeSummary();
       prefetchDailySummaryData();
       prefetchInsightsData();
       if (u.permissions?.users) await loadUsersFromServer();
     }
-    else if (u.role === 'dispatch') { await loadSuppliersFromServer(); await loadVatRatePresetsCache(); }
+    else if (u.role === 'dispatch') { await loadSuppliersFromServer(); await loadVatRatePresetsCache(); await loadDepartmentsCache(); }
     landOnRememberedOrDefaultPage(u.role === 'processor' ? 'home' : 'scan');
   }
 
@@ -2671,7 +2684,7 @@ function showPage(id, tabEl) {
 function showSetting(el, secId) {
   document.querySelectorAll('.snav-item').forEach(s => s.classList.remove('active'));
   el.classList.add('active');
-  ['s-biz','s-sec','s-vat','s-exp','s-not'].forEach(id => {
+  ['s-biz','s-sec','s-vat','s-dept','s-exp','s-not'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = id === secId ? 'block' : 'none';
   });
@@ -2681,6 +2694,7 @@ function showSetting(el, secId) {
     document.getElementById('sec-admin-only-msg').style.display = isAdmin ? 'none' : 'block';
   }
   if (secId === 's-vat') loadVatRates();
+  if (secId === 's-dept') loadDepartments();
 }
 
 let currentVatRates = [];
@@ -2746,6 +2760,71 @@ async function saveVatRates(btn) {
     btn.disabled = false;
   }
 }
+
+let currentDepartments = [];
+let departmentsCache = []; // used elsewhere (supplier form dropdown, Suppliers page filter)
+
+async function loadDepartments() {
+  try {
+    const result = await apiFetch('/business/departments');
+    currentDepartments = result.departments.length ? [...result.departments] : [''];
+    renderDeptRows();
+  } catch (err) {
+    console.error('Failed to load departments:', err.message);
+  }
+}
+
+function renderDeptRows() {
+  const container = document.getElementById('deptRows');
+  container.innerHTML = currentDepartments.map((d, i) => `
+    <div class="setting-row" style="display:flex;gap:8px;align-items:center;">
+      <input class="setting-input" style="flex:1;" value="${(d || '').replace(/"/g, '&quot;')}" oninput="currentDepartments[${i}] = this.value" placeholder="e.g. Kitchen"/>
+      ${currentDepartments.length > 1 ? `<button onclick="removeDeptRow(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;" title="Remove this department"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>` : ''}
+    </div>
+  `).join('');
+}
+
+function addDeptRow() {
+  currentDepartments.push('');
+  renderDeptRows();
+}
+
+function removeDeptRow(index) {
+  currentDepartments.splice(index, 1);
+  renderDeptRows();
+}
+
+async function saveDepartments(btn) {
+  const errEl = document.getElementById('dept-error');
+  errEl.style.display = 'none';
+
+  const cleaned = currentDepartments.map(d => (d || '').trim()).filter(d => d);
+  const lower = cleaned.map(d => d.toLowerCase());
+  const hasDupe = lower.some((d, i) => lower.indexOf(d) !== i);
+  if (hasDupe) {
+    errEl.textContent = 'You have the same department listed more than once.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    const result = await apiFetch('/business/departments', { method: 'PUT', body: JSON.stringify({ departments: cleaned }) });
+    departmentsCache = result.departments;
+    currentDepartments = cleaned.length ? cleaned : [''];
+    renderDeptRows();
+    btn.textContent = 'Saved!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+    btn.textContent = original;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 let vatRate = 0.15;
 let scanLocked = false;
 
@@ -3818,13 +3897,16 @@ function supplierCardHTML(s) {
   const vatTagHTML = isVat
     ? `<div class="vat-tag r"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg> ${s.vatRate}% VAT</div>`
     : '<div class="vat-tag e"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M11 20A7 7 0 019.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 11 15.42 11 20"/></svg> No VAT</div>';
+  const departmentTagHTML = s.department
+    ? `<div class="vat-tag" style="background:rgba(125,211,252,0.12);border:1px solid rgba(125,211,252,0.3);color:var(--accent2);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg> ${s.department}</div>`
+    : '';
   const vatNumberRow = s.vatNumber
     ? `<div class="sup-mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> VAT ${s.vatNumber}</div>`
     : '';
   const emailRow = s.email
     ? `<div class="sup-mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg> ${s.email}</div>`
     : '';
-  return `<div class="supplier-card ${isVat ? 'vr' : 've'}"><div style="flex:1;"><div class="sup-top"><div class="sup-name">${s.name}</div>${vatTagHTML}</div><div class="sup-meta"><div class="sup-mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/></svg> <strong>${s.account || '-'}</strong></div>${vatNumberRow}<div class="sup-mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${s.contact || '-'}</div><div class="sup-mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.68 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0122 16.92z"/></svg> ${s.phone || '-'}</div>${emailRow}<div class="sup-mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${s.terms || '-'}</div></div></div><div class="sup-stats"><div class="sup-stat"><div class="ss-v">${s.invoices}</div><div class="ss-l">Invoices</div></div><div class="sup-stat"><div class="ss-v">${s.spend}</div><div class="ss-l">Spend</div></div></div><div class="sup-acts"><button class="icon-btn" onclick="openSupplierModal(${s.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M17 3a2.85 2.85 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button><button class="icon-btn danger" onclick="deleteSupplier(${s.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></div></div>`;
+  return `<div class="supplier-card ${isVat ? 'vr' : 've'}" data-department="${(s.department || '').replace(/"/g, '&quot;')}"><div style="flex:1;"><div class="sup-top"><div class="sup-name">${s.name}</div>${vatTagHTML}${departmentTagHTML}</div><div class="sup-meta"><div class="sup-mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/></svg> <strong>${s.account || '-'}</strong></div>${vatNumberRow}<div class="sup-mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${s.contact || '-'}</div><div class="sup-mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.68 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0122 16.92z"/></svg> ${s.phone || '-'}</div>${emailRow}<div class="sup-mi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${s.terms || '-'}</div></div></div><div class="sup-stats"><div class="sup-stat"><div class="ss-v">${s.invoices}</div><div class="ss-l">Invoices</div></div><div class="sup-stat"><div class="ss-v">${s.spend}</div><div class="ss-l">Spend</div></div></div><div class="sup-acts"><button class="icon-btn" onclick="openSupplierModal(${s.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M17 3a2.85 2.85 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button><button class="icon-btn danger" onclick="deleteSupplier(${s.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></div></div>`;
 }
 
 async function loadSuppliersFromServer() {
@@ -3841,6 +3923,7 @@ async function loadSuppliersFromServer() {
       email: s.email || '',
       vatType: s.vat_type,
       vatRate: s.vat_rate,
+      department: s.department || '',
       invoices: s.invoice_count || 0,
       spend: 'R' + Number(s.total_spend || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
     }));
@@ -3861,12 +3944,15 @@ function renderSuppliers() {
   setText('sup-count-vr', vrCount);
   setText('sup-count-ve', veCount);
   setText('sup-count-total', suppliers.length);
+  populateSupplierDepartmentFilter();
+  applySupplierFilters();
 }
 
 async function openSupplierModal(id) {
   editingSupplierId = id || null;
   const titleEl = document.getElementById('supModalTitle');
   await populateSupplierVatDropdown();
+  populateSupplierDepartmentDropdown();
   if (id) {
     const s = suppliers.find(x => x.id === id);
     if (!s) return;
@@ -3879,6 +3965,7 @@ async function openSupplierModal(id) {
     document.getElementById('sm-phone').value = s.phone;
     document.getElementById('sm-email').value = s.email || '';
     document.getElementById('sm-vatrate').value = s.vatRate;
+    document.getElementById('sm-department').value = s.department || '';
   } else {
     titleEl.textContent = 'Add Supplier';
     document.getElementById('sm-name').value = '';
@@ -3888,8 +3975,15 @@ async function openSupplierModal(id) {
     document.getElementById('sm-contact').value = '';
     document.getElementById('sm-phone').value = '';
     document.getElementById('sm-email').value = '';
+    document.getElementById('sm-department').value = '';
   }
   document.getElementById('supModal').classList.add('open');
+}
+
+function populateSupplierDepartmentDropdown() {
+  const sel = document.getElementById('sm-department');
+  sel.innerHTML = '<option value="">- No department -</option>' +
+    departmentsCache.map(d => `<option value="${d.replace(/"/g, '&quot;')}">${d}</option>`).join('');
 }
 
 async function populateSupplierVatDropdown() {
@@ -3917,6 +4011,7 @@ async function saveSupplier() {
     phone: document.getElementById('sm-phone').value.trim(),
     email,
     vatRate: parseFloat(document.getElementById('sm-vatrate').value),
+    department: document.getElementById('sm-department').value || null,
   };
 
   const saveBtn = document.querySelector('#supModal .m-save');
@@ -3952,22 +4047,49 @@ async function deleteSupplier(id) {
   }
 }
 
+let currentSupplierVatFilter = 'all';
+let currentSupplierDeptFilter = '';
+
 function filterSuppliers(type, el) {
   document.querySelectorAll('#page-suppliers .filter-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
+  currentSupplierVatFilter = type;
+  applySupplierFilters();
+}
+
+function filterSuppliersByDepartment(dept) {
+  currentSupplierDeptFilter = dept;
+  applySupplierFilters();
+}
+
+function applySupplierFilters() {
   document.querySelectorAll('.supplier-card').forEach(card => {
     let show = true;
-    if (type === 'vr') show = card.classList.contains('vr');
-    if (type === 've') show = card.classList.contains('ve');
+    if (currentSupplierVatFilter === 'vr') show = show && card.classList.contains('vr');
+    if (currentSupplierVatFilter === 've') show = show && card.classList.contains('ve');
+    if (currentSupplierDeptFilter) show = show && card.dataset.department === currentSupplierDeptFilter;
     card.style.display = show ? '' : 'none';
   });
+}
+
+function populateSupplierDepartmentFilter() {
+  const sel = document.getElementById('supDeptFilter');
+  if (!sel) return;
+  const previousValue = sel.value;
+  sel.innerHTML = '<option value="">All Departments</option>' +
+    departmentsCache.map(d => `<option value="${d.replace(/"/g, '&quot;')}">${d}</option>`).join('');
+  if (departmentsCache.includes(previousValue)) sel.value = previousValue;
 }
 
 function searchSuppliers(el) {
   const q = el.value.trim().toLowerCase();
   document.querySelectorAll('.supplier-card').forEach(card => {
     const name = (card.querySelector('.sup-name')?.textContent || '').toLowerCase();
-    card.style.display = name.includes(q) ? '' : 'none';
+    let show = name.includes(q);
+    if (currentSupplierVatFilter === 'vr') show = show && card.classList.contains('vr');
+    if (currentSupplierVatFilter === 've') show = show && card.classList.contains('ve');
+    if (currentSupplierDeptFilter) show = show && card.dataset.department === currentSupplierDeptFilter;
+    card.style.display = show ? '' : 'none';
   });
 }
 
@@ -4000,6 +4122,15 @@ async function loadVatRatePresetsCache() {
     vatRatePresetsCache = result.vatRates;
   } catch (err) {
     console.error('Failed to load VAT rate presets:', err.message);
+  }
+}
+
+async function loadDepartmentsCache() {
+  try {
+    const result = await apiFetch('/business/departments');
+    departmentsCache = result.departments;
+  } catch (err) {
+    console.error('Failed to load departments:', err.message);
   }
 }
 

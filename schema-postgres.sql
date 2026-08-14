@@ -13,6 +13,10 @@ CREATE TABLE IF NOT EXISTS businesses (
   -- not hardcoded to South Africa's 15%, since a business outside SA may
   -- need different rates entirely. JSON array of {"label": "...", "rate": 15}.
   vat_rate_presets          TEXT NOT NULL DEFAULT '[{"label":"Standard VAT rate","rate":15},{"label":"Zero-Rated","rate":0}]',
+  -- Business-defined departments for categorizing suppliers (e.g. Kitchen,
+  -- Bar, Maintenance) - no fixed cap, since this varies a lot by business.
+  -- JSON array of plain strings.
+  departments               TEXT NOT NULL DEFAULT '[]',
   plan                      TEXT NOT NULL DEFAULT 'professional',
   subscription_status       TEXT NOT NULL DEFAULT 'inactive' CHECK (subscription_status IN ('inactive','active','past_due','cancelled')),
   past_due_since            TIMESTAMPTZ,
@@ -47,6 +51,7 @@ CREATE TABLE IF NOT EXISTS suppliers (
   vat_number    TEXT,
   vat_type      TEXT NOT NULL DEFAULT 'vat' CHECK (vat_type IN ('vat','exempt')),
   vat_rate      REAL NOT NULL DEFAULT 15,
+  department    TEXT,
   contact_name  TEXT,
   phone         TEXT,
   email         TEXT,
@@ -156,7 +161,9 @@ CREATE TABLE IF NOT EXISTS item_price_history (
 -- added - CREATE TABLE IF NOT EXISTS above only helps brand new databases,
 -- it does nothing to a table that already exists. Safe to run every startup.
 ALTER TABLE businesses ADD COLUMN IF NOT EXISTS vat_rate_presets TEXT NOT NULL DEFAULT '[{"label":"Standard VAT rate","rate":15},{"label":"Zero-Rated","rate":0}]';
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS departments TEXT NOT NULL DEFAULT '[]';
 ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFAULT 15;
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS department TEXT;
 ALTER TABLE item_master ADD COLUMN IF NOT EXISTS vat_rate REAL;
 ALTER TABLE scan_line_items ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFAULT 15;
 -- Backfill: a supplier already marked 'exempt' under the old system should

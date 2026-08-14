@@ -24,7 +24,7 @@ router.get('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asyn
 });
 
 router.post('/', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const { name, accountNo, vatNumber, vatRate, contactName, phone, email, terms } = req.body || {};
+  const { name, accountNo, vatNumber, vatRate, department, contactName, phone, email, terms } = req.body || {};
   if (!name) return res.status(400).json({ error: 'Supplier name is required.' });
   if (email && !email.includes('@')) return res.status(400).json({ error: 'Invalid email address.' });
 
@@ -34,9 +34,9 @@ router.post('/', requireRole('admin', 'processor', 'developer'), async (req, res
 
   try {
     const insertResult = await pool.query(`
-      INSERT INTO suppliers (business_id, name, account_no, vat_number, vat_type, vat_rate, contact_name, phone, email, terms)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
-    `, [req.user.businessId, name, accountNo || null, vatNumber || null, legacyVatType, rate, contactName || null, phone || null, email || null, terms || null]);
+      INSERT INTO suppliers (business_id, name, account_no, vat_number, vat_type, vat_rate, department, contact_name, phone, email, terms)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id
+    `, [req.user.businessId, name, accountNo || null, vatNumber || null, legacyVatType, rate, department || null, contactName || null, phone || null, email || null, terms || null]);
     const newId = insertResult.rows[0].id;
 
     await pool.query(
@@ -53,7 +53,7 @@ router.post('/', requireRole('admin', 'processor', 'developer'), async (req, res
 });
 
 router.put('/:id', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const { name, accountNo, vatNumber, vatRate, contactName, phone, email, terms } = req.body || {};
+  const { name, accountNo, vatNumber, vatRate, department, contactName, phone, email, terms } = req.body || {};
   if (!name) return res.status(400).json({ error: 'Supplier name is required.' });
   if (email && !email.includes('@')) return res.status(400).json({ error: 'Invalid email address.' });
 
@@ -63,9 +63,9 @@ router.put('/:id', requireRole('admin', 'processor', 'developer'), async (req, r
 
   try {
     const result = await pool.query(`
-      UPDATE suppliers SET name=$1, account_no=$2, vat_number=$3, vat_type=$4, vat_rate=$5, contact_name=$6, phone=$7, email=$8, terms=$9
-      WHERE id=$10 AND business_id=$11
-    `, [name, accountNo || null, vatNumber || null, legacyVatType, rate, contactName || null, phone || null, email || null, terms || null, req.params.id, req.user.businessId]);
+      UPDATE suppliers SET name=$1, account_no=$2, vat_number=$3, vat_type=$4, vat_rate=$5, department=$6, contact_name=$7, phone=$8, email=$9, terms=$10
+      WHERE id=$11 AND business_id=$12
+    `, [name, accountNo || null, vatNumber || null, legacyVatType, rate, department || null, contactName || null, phone || null, email || null, terms || null, req.params.id, req.user.businessId]);
 
     if (result.rowCount === 0) return res.status(404).json({ error: 'Supplier not found.' });
     res.json({ ok: true });
