@@ -75,21 +75,93 @@ router.put('/:id', requireRole('admin', 'processor', 'developer'), async (req, r
   }
 });
 
-router.delete('/:id', requireRole('admin', 'processor', 'developer'), async (req, res) => {
+// Shows exactly what's linked to this supplier, so the person can see the
+// real impact before confirming a deletion that would otherwise fail (or
+// worse, be attempted blindly) - genuinely accurate counts, not estimates.
+router.get('/:id/deletion-impact', requireRole('admin', 'processor', 'developer'), async (req, res) => {
   try {
-    const result = await pool.query(
-      'DELETE FROM suppliers WHERE id = $1 AND business_id = $2',
-      [req.params.id, req.user.businessId]
-    );
-    if (result.rowCount === 0) return res.status(404).json({ error: 'Supplier not found.' });
+    const supResult = await pool.query('SELECT id, name FROM suppliers WHERE id = $1 AND business_id = $2', [req.params.id, req.user.businessId]);
+    if (!supResult.rows[0]) return res.status(404).json({ error: 'Supplier not found.' });
 
-    await pool.query(
-      `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id)
-       VALUES ($1, $2, 'supplier.deleted', 'supplier', $3)`,
-      [req.user.businessId, req.user.userId, req.params.id]
+    const itemCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM item_master WHERE supplier_id = $1', [req.params.id]);
+    const scanCountResult = await pool.query('SELECT COUNT(*)::int AS n, COALESCE(SUM(total),0)::float AS "totalValue" FROM scans WHERE supplier_id = $1', [req.params.id]);
+    const priceHistoryCountResult = await pool.query(
+      `SELECT COUNT(*)::int AS n FROM item_price_history WHERE item_id IN (SELECT id FROM item_master WHERE supplier_id = $1)`,
+      [req.params.id]
     );
 
-    res.json({ ok: true });
+    res.json({
+      supplierName: supResult.rows[0].name,
+      itemCount: itemCountResult.rows[0].n,
+      scanCount: scanCountResult.rows[0].n,
+      totalScanValue: scanCountResult.rows[0].totalValue,
+      priceHistoryCount: priceHistoryCountResult.rows[0].n,
+      hasLinkedData: itemCountResult.rows[0].n > 0 || scanCountResult.rows[0].n > 0,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+router.delete('/:id', requireRole('admin', 'processor', 'developer'), async (req, res) => {
+  const confirmCascade = req.query.confirmCascade === 'true';
+
+  try {
+    const supResult = await pool.query('SELECT id, name FROM suppliers WHERE id = $1 AND business_id = $2', [req.params.id, req.user.businessId]);
+    if (!supResult.rows[0]) return res.status(404).json({ error: 'Supplier not found.' });
+
+    // Without explicit confirmation, refuse to delete if anything real is
+    // still linked - tell the caller exactly why, rather than let the
+    // database throw a confusing foreign-key error.
+    if (!confirmCascade) {
+      const itemCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM item_master WHERE supplier_id = $1', [req.params.id]);
+      const scanCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM scans WHERE supplier_id = $1', [req.params.id]);
+      if (itemCountResult.rows[0].n > 0 || scanCountResult.rows[0].n > 0) {
+        return res.status(409).json({
+          error: 'This supplier still has linked items and/or scan history.',
+          needsConfirmation: true,
+          itemCount: itemCountResult.rows[0].n,
+          scanCount: scanCountResult.rows[0].n,
+        });
+      }
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      if (confirmCascade) {
+        // Delete order matters: item_price_history cascades automatically
+        // when its item_master row is deleted, and scan_line_items cascades
+        // automatically when its scan row is deleted - but item_price_history
+        // rows tied to a scan_id (not just an item_id) need an explicit pass
+        // too, in the rare case a line item matched an item from a different
+        // supplier during one of this supplier's scans.
+        await client.query(
+          `DELETE FROM item_price_history WHERE scan_id IN (SELECT id FROM scans WHERE supplier_id = $1)`,
+          [req.params.id]
+        );
+        await client.query('DELETE FROM item_master WHERE supplier_id = $1', [req.params.id]);
+        await client.query('DELETE FROM scans WHERE supplier_id = $1', [req.params.id]);
+      }
+      const deleteResult = await client.query('DELETE FROM suppliers WHERE id = $1 AND business_id = $2', [req.params.id, req.user.businessId]);
+      if (deleteResult.rowCount === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: 'Supplier not found.' });
+      }
+      await client.query(
+        `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id)
+         VALUES ($1, $2, 'supplier.deleted', 'supplier', $3)`,
+        [req.user.businessId, req.user.userId, req.params.id]
+      );
+      await client.query('COMMIT');
+      res.json({ ok: true });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Something went wrong on our end.' });

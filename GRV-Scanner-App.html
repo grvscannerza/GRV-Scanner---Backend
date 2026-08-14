@@ -1305,18 +1305,18 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     </div>
     <div class="im-sup-sel">
       <div class="im-sup-lbl">Supplier</div>
-      <select class="styled-select" style="min-width:220px;"><option>Unilever SA</option><option>Fresh Produce Co</option><option>Nestlé SA</option><option>Tiger Brands</option></select>
+      <select class="styled-select" id="imSupplierFilter" style="min-width:220px;" onchange="onItemMasterSupplierFilterChange(this.value)"><option value="">All Suppliers</option></select>
     </div>
     <div class="im-stats">
-      <div class="ims"><div class="ims-v">47</div><div class="ims-l">Total Items</div></div>
-      <div class="ims warn"><div class="ims-v">3</div><div class="ims-l">Price Increases</div></div>
-      <div class="ims blue"><div class="ims-v">R92,400</div><div class="ims-l">Total Spend</div></div>
-      <div class="ims green"><div class="ims-v">44</div><div class="ims-l">Auto-Matched Last Scan</div></div>
+      <div class="ims"><div class="ims-v" id="im-total-items">-</div><div class="ims-l">Total Items</div></div>
+      <div class="ims warn"><div class="ims-v" id="im-price-increases">-</div><div class="ims-l">Price Increases</div></div>
+      <div class="ims blue"><div class="ims-v" id="im-total-spend">-</div><div class="ims-l">Total Spend</div></div>
+      <div class="ims green"><div class="ims-v" id="im-auto-matched">-</div><div class="ims-l">Auto-Matched Last Scan</div></div>
     </div>
     <div class="toolbar-row">
-      <input class="search-input" placeholder="Search by name or code..."/>
+      <input class="search-input" id="imSearchInput" placeholder="Search by name or code..." oninput="searchItemMaster(this)"/>
       <div class="filter-btn active" onclick="filterItemMaster('all',this)">All Items</div>
-      <div class="filter-btn" style="border-color:rgba(245,158,11,0.4);color:var(--warn);" onclick="filterItemMaster('alerts',this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Price Alerts (3)</div>
+      <div class="filter-btn" style="border-color:rgba(245,158,11,0.4);color:var(--warn);" onclick="filterItemMaster('alerts',this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Price Alerts (<span id="im-alerts-count">0</span>)</div>
       <div class="filter-btn" onclick="filterItemMaster('new',this)">New Items</div>
     </div>
     <div class="im-table-card">
@@ -1738,6 +1738,20 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
 </div>
 
 <!-- Duplicate -->
+<div class="modal-overlay" id="supplierDeleteImpactModal">
+  <div class="modal-box" style="max-width:440px;">
+    <div class="modal-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="modal-title" id="supplierDeleteImpactTitle">Delete Supplier</div>
+    <div class="modal-body">This supplier still has real data linked to it. Deleting it will also permanently remove:</div>
+    <div id="supplierDeleteImpactList" style="text-align:left;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 16px;margin:14px 0;font-size:13px;color:var(--text-body);"></div>
+    <div class="modal-body" style="color:var(--danger);font-weight:600;">This cannot be undone.</div>
+    <div class="dup-actions" style="margin-top:16px;">
+      <button class="dup-proceed" onclick="closeModal('supplierDeleteImpactModal')">Cancel</button>
+      <button class="dup-cancel" style="background:var(--danger-dim);" id="supplierDeleteImpactConfirmBtn" onclick="confirmCascadeDeleteSupplier()">Yes, Delete Everything</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="priceIncreasesModal">
   <div class="modal-box" style="max-width:520px;">
     <div class="modal-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
@@ -2640,7 +2654,7 @@ function showPage(id, tabEl) {
   if (id === 'pending' && authToken) loadPendingScans();
   if (id === 'daily' && authToken) { loadSummary('today'); loadDailyPriceAlerts(); loadDailyReportBizInfo(); }
   if (id === 'suppliers' && authToken) loadSuppliersFromServer();
-  if (id === 'itemmaster' && authToken) loadItemMasterFromServer();
+  if (id === 'itemmaster' && authToken) { loadItemMasterFromServer(); populateItemMasterSupplierFilter(); loadAutoMatchedLastScan(); }
   if (id === 'users' && authToken) loadUsersFromServer();
 
   const isLogin = id === 'login';
@@ -4035,15 +4049,59 @@ async function saveSupplier() {
   }
 }
 
+let pendingCascadeDeleteSupplierId = null;
+
 async function deleteSupplier(id) {
   const s = suppliers.find(x => x.id === id);
   if (!s) return;
   if (!confirm(`Remove ${s.name} from your suppliers? This cannot be undone.`)) return;
+
   try {
     await apiFetch(`/suppliers/${id}`, { method: 'DELETE' });
     await loadSuppliersFromServer();
   } catch (err) {
+    if (err.data?.needsConfirmation) {
+      await showSupplierDeleteImpact(id, s.name);
+      return;
+    }
     alert(err.message);
+  }
+}
+
+async function showSupplierDeleteImpact(id, name) {
+  pendingCascadeDeleteSupplierId = id;
+  document.getElementById('supplierDeleteImpactTitle').textContent = `Delete ${name}?`;
+  const listEl = document.getElementById('supplierDeleteImpactList');
+  listEl.innerHTML = 'Loading...';
+  document.getElementById('supplierDeleteImpactModal').classList.add('open');
+
+  try {
+    const impact = await apiFetch(`/suppliers/${id}/deletion-impact`);
+    const rows = [];
+    if (impact.itemCount > 0) rows.push(`<strong>${impact.itemCount}</strong> item${impact.itemCount === 1 ? '' : 's'} in Item Master`);
+    if (impact.scanCount > 0) rows.push(`<strong>${impact.scanCount}</strong> scan${impact.scanCount === 1 ? '' : 's'} (${fmtRand(impact.totalScanValue)} total)`);
+    if (impact.priceHistoryCount > 0) rows.push(`<strong>${impact.priceHistoryCount}</strong> price history record${impact.priceHistoryCount === 1 ? '' : 's'}`);
+    listEl.innerHTML = rows.map(r => `<div style="padding:4px 0;">${r}</div>`).join('');
+  } catch (err) {
+    listEl.innerHTML = `<span style="color:var(--danger);">${err.message}</span>`;
+  }
+}
+
+async function confirmCascadeDeleteSupplier() {
+  const id = pendingCascadeDeleteSupplierId;
+  if (!id) return;
+  const btn = document.getElementById('supplierDeleteImpactConfirmBtn');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Deleting...';
+  try {
+    await apiFetch(`/suppliers/${id}?confirmCascade=true`, { method: 'DELETE' });
+    closeModal('supplierDeleteImpactModal');
+    await loadSuppliersFromServer();
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+    pendingCascadeDeleteSupplierId = null;
   }
 }
 
@@ -4134,10 +4192,64 @@ async function loadDepartmentsCache() {
   }
 }
 
+let currentItemMasterSupplierId = '';
+
 function renderItemMaster() {
   const tbody = document.getElementById('itemMasterBody');
   if (!tbody) return;
-  tbody.innerHTML = itemMasterCache.map(itemMasterRowHTML).join('');
+  const filtered = currentItemMasterSupplierId
+    ? itemMasterCache.filter(it => String(it.supplier_id) === currentItemMasterSupplierId)
+    : itemMasterCache;
+  tbody.innerHTML = filtered.map(itemMasterRowHTML).join('');
+
+  const totalItemsEl = document.getElementById('im-total-items');
+  const priceIncEl = document.getElementById('im-price-increases');
+  const totalSpendEl = document.getElementById('im-total-spend');
+  const alertsCountEl = document.getElementById('im-alerts-count');
+  if (totalItemsEl) totalItemsEl.textContent = filtered.length;
+  const priceIncreaseCount = filtered.filter(it => it.change_pct != null && it.change_pct > 0).length;
+  if (priceIncEl) priceIncEl.textContent = priceIncreaseCount;
+  if (alertsCountEl) alertsCountEl.textContent = priceIncreaseCount;
+  const totalSpend = filtered.reduce((sum, it) => sum + Number(it.current_price || 0), 0);
+  if (totalSpendEl) totalSpendEl.textContent = fmtRand(totalSpend);
+}
+
+function populateItemMasterSupplierFilter() {
+  const sel = document.getElementById('imSupplierFilter');
+  if (!sel) return;
+  const previousValue = sel.value;
+  sel.innerHTML = '<option value="">All Suppliers</option>' +
+    suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  if (suppliers.some(s => String(s.id) === previousValue)) sel.value = previousValue;
+}
+
+function onItemMasterSupplierFilterChange(supplierId) {
+  currentItemMasterSupplierId = supplierId;
+  renderItemMaster();
+}
+
+function searchItemMaster(el) {
+  const q = el.value.trim().toLowerCase();
+  document.querySelectorAll('#page-itemmaster .im-table tbody tr').forEach(row => {
+    const code = (row.querySelector('.code-cell')?.textContent || '').toLowerCase();
+    const name = (row.querySelector('.nm-main')?.textContent || '').toLowerCase();
+    row.style.display = (code.includes(q) || name.includes(q)) ? '' : 'none';
+  });
+}
+
+async function loadAutoMatchedLastScan() {
+  const el = document.getElementById('im-auto-matched');
+  if (!el) return;
+  try {
+    const scans = await apiFetch('/scans');
+    if (!scans.length) { el.textContent = '-'; return; }
+    const lastScan = scans[0]; // already ordered most-recent-first
+    const lineItems = await apiFetch(`/scans/${lastScan.id}/line-items`);
+    const matchedCount = lineItems.filter(li => li.flag !== 'new').length;
+    el.textContent = `${matchedCount}/${lineItems.length}`;
+  } catch (err) {
+    el.textContent = '-';
+  }
 }
 
 async function loadItemMasterFromServer() {
