@@ -2083,6 +2083,21 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
   </div>
 </div>
 
+<div class="modal-overlay" id="itemModal">
+  <div class="modal-box user-box">
+    <div class="modal-title" style="text-align:left;margin-bottom:18px;" id="itemModalTitle">Add Item</div>
+    <div class="sup-modal-grid">
+      <div class="tb-field"><label>Code / SKU <span class="req">*</span></label><input id="im-code"/></div>
+      <div class="tb-field"><label>Product Name <span class="req">*</span></label><input id="im-name"/></div>
+      <div class="tb-field"><label>Unit</label><input id="im-unit" placeholder="each"/></div>
+      <div class="tb-field"><label>Current Price (R) <span class="req">*</span></label><input id="im-price" type="number" step="0.01" min="0"/></div>
+      <div class="tb-field full"><label>Supplier</label><select id="im-supplier" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;"><option value="">- No supplier -</option></select></div>
+      <div class="tb-field full"><label>VAT Rate</label><select id="im-vatrate" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;"><option value="">- Follow supplier's default -</option></select></div>
+    </div>
+    <div class="um-actions"><button class="m-cancel" onclick="closeModal('itemModal')">Cancel</button><button class="m-save" onclick="saveItemMaster()">Save Item</button></div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════
 // ROLE SWITCHING
@@ -4275,43 +4290,78 @@ function filterItemMaster(type, el) {
   });
 }
 
-async function addItemMasterRow() {
-  const code = prompt('Product code / SKU:');
-  if (!code) return;
-  const name = prompt('Product name:');
-  if (!name) return;
-  const price = parseFloat(prompt('Current price (R):', '0'));
-  if (isNaN(price)) { alert('Please enter a valid price.'); return; }
+let editingItemId = null;
+
+function openItemModal(id) {
+  editingItemId = id || null;
+  const titleEl = document.getElementById('itemModalTitle');
+
+  const supSel = document.getElementById('im-supplier');
+  supSel.innerHTML = '<option value="">- No supplier -</option>' +
+    suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+  const vatSel = document.getElementById('im-vatrate');
+  vatSel.innerHTML = '<option value="">- Follow supplier\'s default -</option>' +
+    vatRatePresetsCache.map(r => `<option value="${r.rate}">${r.label} (${r.rate}%)</option>`).join('');
+
+  if (id) {
+    const item = itemMasterCache.find(i => i.id === id);
+    if (!item) return;
+    titleEl.textContent = 'Edit Item';
+    document.getElementById('im-code').value = item.code;
+    document.getElementById('im-name').value = item.name;
+    document.getElementById('im-unit').value = item.unit || '';
+    document.getElementById('im-price').value = item.current_price;
+    supSel.value = item.supplier_id || '';
+    vatSel.value = (item.vat_rate === null || item.vat_rate === undefined) ? '' : item.vat_rate;
+  } else {
+    titleEl.textContent = 'Add Item';
+    document.getElementById('im-code').value = '';
+    document.getElementById('im-name').value = '';
+    document.getElementById('im-unit').value = '';
+    document.getElementById('im-price').value = '';
+    supSel.value = '';
+    vatSel.value = '';
+  }
+  document.getElementById('itemModal').classList.add('open');
+}
+
+async function saveItemMaster() {
+  const code = document.getElementById('im-code').value.trim();
+  const name = document.getElementById('im-name').value.trim();
+  if (!code || !name) { alert('Please enter both a code and a product name.'); return; }
+  const price = parseFloat(document.getElementById('im-price').value);
+  if (isNaN(price) || price < 0) { alert('Please enter a valid price.'); return; }
+  const vatRateVal = document.getElementById('im-vatrate').value;
+
+  const data = {
+    code,
+    name,
+    unit: document.getElementById('im-unit').value.trim() || 'each',
+    currentPrice: price,
+    supplierId: document.getElementById('im-supplier').value || null,
+    vatRate: vatRateVal === '' ? null : parseFloat(vatRateVal),
+  };
 
   try {
-    await apiFetch('/item-master', {
-      method: 'POST',
-      body: JSON.stringify({ code, name, unit: 'each', currentPrice: price }),
-    });
+    if (editingItemId) {
+      await apiFetch(`/item-master/${editingItemId}`, { method: 'PUT', body: JSON.stringify(data) });
+    } else {
+      await apiFetch('/item-master', { method: 'POST', body: JSON.stringify(data) });
+    }
+    closeModal('itemModal');
     await loadItemMasterFromServer();
-    alert(`${name} added to Item Master.`);
   } catch (err) {
     alert(err.message);
   }
 }
 
-async function editItemMasterRow(id) {
-  const item = itemMasterCache.find(i => i.id === id);
-  if (!item) return;
-  const name = prompt('Product name:', item.name);
-  if (!name) return;
-  const price = parseFloat(prompt('Current price (R):', item.current_price));
-  if (isNaN(price)) { alert('Please enter a valid price.'); return; }
+function addItemMasterRow() {
+  openItemModal();
+}
 
-  try {
-    await apiFetch(`/item-master/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ code: item.code, name, unit: item.unit, currentPrice: price, supplierId: item.supplier_id }),
-    });
-    await loadItemMasterFromServer();
-  } catch (err) {
-    alert(err.message);
-  }
+function editItemMasterRow(id) {
+  openItemModal(id);
 }
 
 async function deleteItemMasterRow(id) {
