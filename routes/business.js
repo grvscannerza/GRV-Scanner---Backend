@@ -173,6 +173,7 @@ router.get('/plan', requireRole('admin', 'developer'), async (req, res) => {
       subscriptionStatus: row ? row.subscription_status : 'inactive',
       scansThisMonth: scansResult.rows[0].n,
       scanLimit: features.scanLimit,
+      staffLimit: features.staffLimit,
       gracePeriodDaysLeft,
     });
   } catch (err) {

@@ -1676,19 +1676,12 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     <!-- Plan info + slots -->
     <div class="users-plan-info">
       <div class="upi-left">
-        <div class="upi-plan">Professional Plan - 1 Admin + up to 5 Staff users</div>
-        <div class="upi-meta">3 of 5 staff slots used &nbsp;·&nbsp; 2 slots remaining &nbsp;·&nbsp; <span style="color:var(--accent);cursor:pointer;" onclick="showPage('billing', null)">Upgrade for more <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/></svg></span></div>
+        <div class="upi-plan" id="upiPlanText">Loading...</div>
+        <div class="upi-meta" id="upiMetaText">Loading...</div>
       </div>
       <div class="upi-right">
-        <div class="user-slots">
-          <div class="slot admin" title="Admin - John Dlamini">JD</div>
-          <div class="slot filled" title="Staff - Sarah M">SM</div>
-          <div class="slot filled" title="Staff - Bongani N">BN</div>
-          <div class="slot filled" title="Staff - Thandi K">TK</div>
-          <div class="slot empty" title="Empty slot">+</div>
-          <div class="slot empty" title="Empty slot">+</div>
-        </div>
-        <div class="slots-label">6 total slots</div>
+        <div class="user-slots" id="userSlotsContainer"></div>
+        <div class="slots-label" id="userSlotsLabel">-</div>
       </div>
     </div>
 
@@ -3534,7 +3527,7 @@ async function loadUsersFromServer() {
   }
 }
 
-function renderUsersTable() {
+async function renderUsersTable() {
   const tbody = document.getElementById('usersTableBody');
   if (!tbody) return;
   // Keep the first row (John Dlamini, admin - account owner), replace everything after it
@@ -3543,12 +3536,56 @@ function renderUsersTable() {
   if (adminRow) tbody.appendChild(adminRow);
   staffUsers.forEach(u => { tbody.insertAdjacentHTML('beforeend', staffRowHTML(u)); });
 
-  // Keep the plan usage summary in sync
+  // Everything below is now built entirely from real data - the plan name,
+  // the real staff cap (Starter=0, Professional=5, Enterprise=unlimited),
+  // and the avatar row itself, which used to be permanently hardcoded to
+  // 3 fake staff members regardless of who was actually on the account.
+  let planInfo;
+  try {
+    planInfo = await apiFetch('/business/plan');
+  } catch (err) {
+    console.error('Failed to load plan info for user slots:', err.message);
+    return;
+  }
+
   const used = staffUsers.length;
-  const cap = 5;
-  const metaEl = document.querySelector('.upi-meta');
+  const cap = planInfo.staffLimit; // null = unlimited (Enterprise)
+  const planLabel = (PLAN_INFO[planInfo.plan]?.label || planInfo.plan);
+
+  const planTextEl = document.getElementById('upiPlanText');
+  if (planTextEl) {
+    planTextEl.textContent = cap === null
+      ? `${planLabel} Plan - 1 Admin + Unlimited Staff users`
+      : cap === 0
+      ? `${planLabel} Plan - 1 Admin only`
+      : `${planLabel} Plan - 1 Admin + up to ${cap} Staff users`;
+  }
+
+  const metaEl = document.getElementById('upiMetaText');
   if (metaEl) {
-    metaEl.innerHTML = `${used} of ${cap} staff slots used &nbsp;&middot;&nbsp; ${Math.max(cap - used, 0)} slots remaining &nbsp;&middot;&nbsp; <span style="color:var(--accent);cursor:pointer;" onclick="showPage('billing', null)">Upgrade for more <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/></svg></span>`;
+    metaEl.innerHTML = cap === null
+      ? `${used} staff user${used === 1 ? '' : 's'} &nbsp;&middot;&nbsp; Unlimited on your plan`
+      : `${used} of ${cap} staff slots used &nbsp;&middot;&nbsp; ${Math.max(cap - used, 0)} slots remaining &nbsp;&middot;&nbsp; <span style="color:var(--accent);cursor:pointer;" onclick="showPage('billing', null)">Upgrade for more <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/></svg></span>`;
+  }
+
+  // Real avatar row: the real admin, then every real staff member, then
+  // empty slots only for a capped plan that genuinely has room left.
+  const slotsContainer = document.getElementById('userSlotsContainer');
+  const slotsLabel = document.getElementById('userSlotsLabel');
+  if (slotsContainer) {
+    const initials = name => (name || '').trim().split(/\s+/).map(p => p[0]).join('').toUpperCase().slice(0, 2) || '?';
+    const adminName = document.getElementById('userName')?.textContent?.trim() || 'Admin';
+    let html = `<div class="slot admin" title="Admin - ${adminName}">${initials(adminName)}</div>`;
+    staffUsers.forEach(u => {
+      const staffName = `${u.fname || ''} ${u.lname || ''}`.trim();
+      html += `<div class="slot filled" title="Staff - ${staffName}">${initials(staffName)}</div>`;
+    });
+    const emptySlots = cap === null ? 0 : Math.max(cap - used, 0);
+    for (let i = 0; i < emptySlots; i++) {
+      html += `<div class="slot empty" title="Empty slot">+</div>`;
+    }
+    slotsContainer.innerHTML = html;
+    if (slotsLabel) slotsLabel.textContent = cap === null ? `${used + 1} staff members` : `${cap + 1} total slots`;
   }
 }
 
