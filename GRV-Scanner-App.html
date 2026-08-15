@@ -2305,7 +2305,7 @@ async function establishSession(u, isRestoring) {
 
   if (u.role === 'admin' || u.role === 'developer') {
     currentUser = null;
-    currentAdminInfo = u.role === 'admin' ? { firstName: u.firstName, lastName: u.lastName, email: u.email, username: u.username } : null;
+    currentAdminInfo = (u.role === 'admin' || u.role === 'developer') ? { firstName: u.firstName, lastName: u.lastName, email: u.email, username: u.username } : null;
     applyRoleUI('admin', u.role === 'developer' ? u.username : `${u.firstName} ${u.lastName}`, (u.firstName?.[0] || u.username[0]).toUpperCase() + (u.lastName?.[0] || u.username[1] || '').toUpperCase());
     await loadUsersFromServer();
     await loadSuppliersFromServer();
