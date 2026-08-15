@@ -1755,7 +1755,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     <div class="modal-body">This will permanently delete this entire business and everything in it:</div>
     <div id="businessDeleteImpactList" style="text-align:left;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 16px;margin:14px 0;font-size:13px;color:var(--text-body);"></div>
     <div class="modal-body" style="color:var(--danger);font-weight:600;">This cannot be undone. Type the business name below to confirm.</div>
-    <input id="businessDeleteConfirmInput" placeholder="Type the business name exactly" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;margin:10px 0;outline:none;" oninput="document.getElementById('businessDeleteImpactConfirmBtn').disabled = this.value !== document.getElementById('businessDeleteImpactConfirmBtn').dataset.expectedName;"/>
+    <input id="businessDeleteConfirmInput" placeholder="Type the business name exactly" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;margin:10px 0;outline:none;" oninput="document.getElementById('businessDeleteImpactConfirmBtn').disabled = normalizeQuotes(this.value.trim()) !== normalizeQuotes(document.getElementById('businessDeleteImpactConfirmBtn').dataset.expectedName || '');"/>
     <div class="dup-actions" style="margin-top:6px;">
       <button class="dup-proceed" onclick="closeModal('businessDeleteImpactModal')">Cancel</button>
       <button class="dup-cancel" style="background:var(--danger-dim);" id="businessDeleteImpactConfirmBtn" disabled onclick="confirmCascadeDeleteBusiness()">Yes, Delete This Business</button>
@@ -4174,6 +4174,13 @@ async function confirmCascadeDeleteSupplier() {
     btn.disabled = false; btn.textContent = original;
     pendingCascadeDeleteSupplierId = null;
   }
+}
+
+// A browser or OS can silently auto-correct a typed straight apostrophe (')
+// into a curly one (') or vice versa - without this, that alone would block
+// the confirmation match with zero visible error, looking like "nothing happens".
+function normalizeQuotes(str) {
+  return (str || '').replace(/[\u2018\u2019\u02BC]/g, "'").replace(/[\u201C\u201D]/g, '"');
 }
 
 let pendingCascadeDeleteBusinessId = null;
