@@ -158,4 +158,23 @@ router.post('/me/change-pin', requireUsersAccess, async (req, res) => {
   }
 });
 
+// The main GET / above deliberately excludes admin/developer, so this fills
+// the real gap - works for whoever is currently logged in, admin or staff.
+router.get('/me/stats', async (req, res) => {
+  try {
+    const scanResult = await pool.query(
+      `SELECT COUNT(*)::int AS n FROM scans WHERE scanned_by = $1 AND TO_CHAR(scanned_at, 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')`,
+      [req.user.userId]
+    );
+    const userResult = await pool.query('SELECT last_active_at FROM users WHERE id = $1', [req.user.userId]);
+    res.json({
+      scanCount: scanResult.rows[0].n,
+      lastActiveAt: userResult.rows[0]?.last_active_at || null,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 module.exports = router;

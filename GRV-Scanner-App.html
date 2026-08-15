@@ -1127,6 +1127,11 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
           <div class="setting-row"><label class="setting-label">Confirm PIN</label><input class="setting-input" id="sec-confirm-pin" type="password" placeholder="Confirm new PIN"/></div>
           <button class="save-btn" onclick="updateOwnPin(this)">Update PIN</button>
         </div>
+        <div id="sec-danger-zone" style="display:none;margin-top:36px;padding-top:24px;border-top:1px solid var(--border);">
+          <div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:6px;">Danger Zone</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:14px;max-width:420px;">Permanently delete your business account and all its data. This cannot be undone.</div>
+          <button onclick="openDeleteAccountModal()" style="background:none;border:1px solid rgba(255,107,107,0.4);color:var(--danger);border-radius:var(--radius);padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Delete My Account</button>
+        </div>
       </div>
       <div id="s-vat" style="display:none;">
         <div class="settings-title">VAT Rates</div>
@@ -1700,11 +1705,11 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Scans This Month</th><th>Last Active</th><th>Permissions</th><th style="text-align:right;">Actions</th></tr></thead>
         <tbody id="usersTableBody">
           <tr>
-            <td><div class="user-info"><div class="user-av admin">JD</div><div><div class="user-name">John Dlamini</div><div class="user-email">john@johnsrestaurant.co.za</div></div></div></td>
+            <td><div class="user-info"><div class="user-av admin" id="adminRowAvatar">--</div><div><div class="user-name" id="adminRowName">Loading...</div><div class="user-email" id="adminRowEmail">Loading...</div></div></div></td>
             <td><div class="role-pill admin"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M3 18h18l-1.4-8-4.6 3-3-6-3 6-4.6-3z"/></svg> Admin</div></td>
             <td><div class="status-pill active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="12" cy="12" r="10" fill="currentColor"/></svg> Active</div></td>
-            <td style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);">187</td>
-            <td style="font-size:12px;color:var(--muted);">Today, 09:14</td>
+            <td style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);" id="adminRowScans">-</td>
+            <td style="font-size:12px;color:var(--muted);" id="adminRowLastActive">-</td>
             <td><div class="perms-list"><div class="perm-tag yes">Scan</div><div class="perm-tag yes">Suppliers</div><div class="perm-tag yes">Insights</div><div class="perm-tag yes">Settings</div><div class="perm-tag yes">Billing</div><div class="perm-tag yes">Users</div></div></td>
             <td><div class="user-actions"><div style="font-size:11px;color:var(--muted);">Account owner</div></div></td>
           </tr>
@@ -1744,6 +1749,25 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     <div class="dup-actions" style="margin-top:16px;">
       <button class="dup-proceed" onclick="closeModal('supplierDeleteImpactModal')">Cancel</button>
       <button class="dup-cancel" style="background:var(--danger-dim);" id="supplierDeleteImpactConfirmBtn" onclick="confirmCascadeDeleteSupplier()">Yes, Delete Everything</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="deleteAccountModal">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="modal-title" id="deleteAccountTitle">Delete My Account</div>
+    <div class="modal-body">This will permanently delete your entire GRV Scanner account and everything in it:</div>
+    <div id="deleteAccountList" style="text-align:left;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 16px;margin:14px 0;font-size:13px;color:var(--text-body);"></div>
+    <div id="deleteAccountSubNotice" style="display:none;font-size:12px;color:var(--warn);margin-bottom:10px;">Your active subscription will also be cancelled - you will not be billed again.</div>
+    <div class="modal-body" style="color:var(--danger);font-weight:600;">This cannot be undone.</div>
+    <label style="display:flex;align-items:center;gap:8px;margin:14px 0;font-size:13px;color:var(--text-body);cursor:pointer;">
+      <input type="checkbox" id="deleteAccountConfirmCheckbox" style="width:16px;height:16px;cursor:pointer;" onchange="document.getElementById('deleteAccountConfirmBtn').disabled = !this.checked;"/>
+      I understand this permanently deletes my account and all its data
+    </label>
+    <div class="dup-actions" style="margin-top:6px;">
+      <button class="dup-proceed" onclick="closeModal('deleteAccountModal')">Cancel</button>
+      <button class="dup-cancel" style="background:var(--danger-dim);" id="deleteAccountConfirmBtn" disabled onclick="confirmDeleteOwnAccount()">Yes, Delete My Account</button>
     </div>
   </div>
 </div>
@@ -2138,6 +2162,7 @@ function weekdayName(d) {
 
 let currentRole = 'admin';
 let currentUser = null; // the actual logged-in staff record, populated from the server after login
+let currentAdminInfo = null; // the real logged-in admin's own info - currentUser is intentionally null for admin sessions, this fills that gap
 let isDeveloperSession = false; // true only for the christossouris developer/owner login - controls VIEW AS switcher visibility
 let currentSubscriptionStatus = 'active'; // gates real feature access - set from the login/session-restore response
 
@@ -2280,6 +2305,7 @@ async function establishSession(u, isRestoring) {
 
   if (u.role === 'admin' || u.role === 'developer') {
     currentUser = null;
+    currentAdminInfo = u.role === 'admin' ? { firstName: u.firstName, lastName: u.lastName, email: u.email, username: u.username } : null;
     applyRoleUI('admin', u.role === 'developer' ? u.username : `${u.firstName} ${u.lastName}`, (u.firstName?.[0] || u.username[0]).toUpperCase() + (u.lastName?.[0] || u.username[1] || '').toUpperCase());
     await loadUsersFromServer();
     await loadSuppliersFromServer();
@@ -2736,6 +2762,10 @@ function showSetting(el, secId) {
     const isAdmin = currentRole === 'admin' || (currentRole === 'processor' && currentUser?.perms?.users);
     document.getElementById('sec-pin-form').style.display = isAdmin ? 'block' : 'none';
     document.getElementById('sec-admin-only-msg').style.display = isAdmin ? 'none' : 'block';
+    // Deleting the whole account is strictly for the real account admin -
+    // unlike PIN management, a processor with "users" permission does not
+    // get this, matching the backend's own strict admin-only rule.
+    document.getElementById('sec-danger-zone').style.display = currentRole === 'admin' ? 'block' : 'none';
   }
   if (secId === 's-vat') loadVatRates();
   if (secId === 's-dept') loadDepartments();
@@ -3549,11 +3579,38 @@ async function loadUsersFromServer() {
 async function renderUsersTable() {
   const tbody = document.getElementById('usersTableBody');
   if (!tbody) return;
-  // Keep the first row (John Dlamini, admin - account owner), replace everything after it
+  // Keep the first row structure (the admin account owner's row) and populate
+  // it with real data - it used to be permanently hardcoded to "John Dlamini",
+  // regardless of who was actually logged in.
   const adminRow = tbody.querySelector('tr');
   tbody.innerHTML = '';
   if (adminRow) tbody.appendChild(adminRow);
   staffUsers.forEach(u => { tbody.insertAdjacentHTML('beforeend', staffRowHTML(u)); });
+
+  if (currentAdminInfo) {
+    const fullName = `${currentAdminInfo.firstName} ${currentAdminInfo.lastName}`;
+    const initials = (currentAdminInfo.firstName[0] + currentAdminInfo.lastName[0]).toUpperCase();
+    const nameEl = document.getElementById('adminRowName');
+    const emailEl = document.getElementById('adminRowEmail');
+    const avatarEl = document.getElementById('adminRowAvatar');
+    if (nameEl) nameEl.textContent = fullName;
+    if (emailEl) emailEl.textContent = currentAdminInfo.email || currentAdminInfo.username;
+    if (avatarEl) avatarEl.textContent = initials;
+
+    try {
+      const myStats = await apiFetch('/users/me/stats');
+      const scansEl = document.getElementById('adminRowScans');
+      const lastActiveEl = document.getElementById('adminRowLastActive');
+      if (scansEl) scansEl.textContent = myStats.scanCount;
+      if (lastActiveEl) {
+        lastActiveEl.textContent = myStats.lastActiveAt
+          ? (sameDay(new Date(myStats.lastActiveAt), APP_TODAY) ? `Today, ${new Date(myStats.lastActiveAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : fmtDDMMYY(new Date(myStats.lastActiveAt)))
+          : 'Never';
+      }
+    } catch (err) {
+      console.error('Failed to load real admin stats:', err.message);
+    }
+  }
 
   // Everything below is now built entirely from real data - the plan name,
   // the real staff cap (Starter=0, Professional=5, Enterprise=unlimited),
@@ -4211,6 +4268,49 @@ async function deleteBusinessEntirely(id) {
     listEl.innerHTML = rows.map(r => `<div style="padding:4px 0;">${r}</div>`).join('');
   } catch (err) {
     listEl.innerHTML = `<span style="color:var(--danger);">${err.message}</span>`;
+  }
+}
+
+async function openDeleteAccountModal() {
+  const listEl = document.getElementById('deleteAccountList');
+  const checkbox = document.getElementById('deleteAccountConfirmCheckbox');
+  const confirmBtn = document.getElementById('deleteAccountConfirmBtn');
+  const subNotice = document.getElementById('deleteAccountSubNotice');
+  checkbox.checked = false;
+  confirmBtn.disabled = true;
+  listEl.innerHTML = 'Loading...';
+  subNotice.style.display = 'none';
+  document.getElementById('deleteAccountModal').classList.add('open');
+
+  try {
+    const impact = await apiFetch('/business/deletion-impact');
+    const rows = [];
+    rows.push(`<strong>${impact.userCount}</strong> user${impact.userCount === 1 ? '' : 's'} (you + any staff)`);
+    if (impact.supplierCount > 0) rows.push(`<strong>${impact.supplierCount}</strong> supplier${impact.supplierCount === 1 ? '' : 's'}`);
+    if (impact.itemCount > 0) rows.push(`<strong>${impact.itemCount}</strong> item${impact.itemCount === 1 ? '' : 's'} in Item Master`);
+    if (impact.scanCount > 0) rows.push(`<strong>${impact.scanCount}</strong> scan${impact.scanCount === 1 ? '' : 's'} (${fmtRand(impact.totalScanValue)} total)`);
+    listEl.innerHTML = rows.map(r => `<div style="padding:4px 0;">${r}</div>`).join('');
+    if (impact.hasActiveSubscription) subNotice.style.display = 'block';
+  } catch (err) {
+    listEl.innerHTML = `<span style="color:var(--danger);">${err.message}</span>`;
+  }
+}
+
+async function confirmDeleteOwnAccount() {
+  const btn = document.getElementById('deleteAccountConfirmBtn');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Deleting...';
+  try {
+    await apiFetch('/business?confirmCascade=true', { method: 'DELETE' });
+    // The account is genuinely gone - there is nothing left to show, so log
+    // out cleanly rather than leave the person looking at a stale session.
+    alert('Your account has been permanently deleted.');
+    logout();
+  } catch (err) {
+    alert(err.message);
+    btn.disabled = false;
+  } finally {
+    btn.textContent = original;
   }
 }
 
@@ -5671,7 +5771,7 @@ async function loadClientsList() {
             <div style="font-size:10px;color:${statusStyles[c.subscription_status] || 'var(--muted)'};text-transform:capitalize;">${c.subscription_status.replace('_',' ')}</div>
           </div>
           <div style="font-size:11px;color:var(--muted);">${fmtDDMMYY(new Date(c.created_at))}</div>
-          <button onclick="deleteBusinessEntirely(${c.id})" style="background:none;border:1px solid rgba(255,107,107,0.35);color:var(--danger);border-radius:6px;padding:5px 9px;cursor:pointer;" title="Delete this business entirely"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+          ${c.name === 'GRV Scanner (Platform)' ? '' : `<button onclick="deleteBusinessEntirely(${c.id})" style="background:none;border:1px solid rgba(255,107,107,0.35);color:var(--danger);border-radius:6px;padding:5px 9px;cursor:pointer;" title="Delete this business entirely"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>`}
         </div>
       </div>
     `).join('') || '<div style="font-size:12px;color:var(--muted);padding:16px;">No clients yet.</div>';
