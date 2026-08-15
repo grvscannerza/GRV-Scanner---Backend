@@ -127,23 +127,40 @@ router.patch('/:id/deactivate', requireUsersAccess, async (req, res) => {
 
 // Self-service PIN change - admin, or a processor granted "Full Access - Manage
 // Users & PINs". Other staff PINs are managed via the Reset PIN flow instead.
+// Can also optionally update the person's own username at the same time.
 router.post('/me/change-pin', requireUsersAccess, async (req, res) => {
-  const { currentPin, newPin } = req.body || {};
+  const { currentPin, newPin, newUsername } = req.body || {};
   if (!currentPin || !newPin) return res.status(400).json({ error: 'Current and new PIN are required.' });
 
   const isDeveloper = req.user.role === 'developer';
   if (!isDeveloper && !/^\d{4}$/.test(String(newPin))) {
     return res.status(400).json({ error: 'PIN must be exactly 4 digits.' });
   }
+  if (isDeveloper && !/^\d{6,10}$/.test(String(newPin))) {
+    return res.status(400).json({ error: 'PIN must be 6-10 digits.' });
+  }
+
+  const cleanedUsername = newUsername ? newUsername.toLowerCase().trim() : null;
+  if (cleanedUsername && !/^[a-z0-9._-]{3,30}$/.test(cleanedUsername)) {
+    return res.status(400).json({ error: 'Username must be 3-30 characters (letters, numbers, dots, dashes, underscores only).' });
+  }
 
   try {
-    const { rows } = await pool.query('SELECT pin_hash FROM users WHERE id = $1', [req.user.userId]);
+    const { rows } = await pool.query('SELECT pin_hash, username FROM users WHERE id = $1', [req.user.userId]);
     const user = rows[0];
     if (!user || !bcrypt.compareSync(String(currentPin), user.pin_hash)) {
       return res.status(401).json({ error: 'Current PIN is incorrect.' });
     }
 
-    await pool.query('UPDATE users SET pin_hash = $1 WHERE id = $2', [bcrypt.hashSync(String(newPin), 10), req.user.userId]);
+    if (cleanedUsername && cleanedUsername !== user.username) {
+      const existing = await pool.query('SELECT id FROM users WHERE username = $1 AND id != $2', [cleanedUsername, req.user.userId]);
+      if (existing.rows[0]) {
+        return res.status(400).json({ error: 'That username is already taken.' });
+      }
+      await pool.query('UPDATE users SET pin_hash = $1, username = $2 WHERE id = $3', [bcrypt.hashSync(String(newPin), 10), cleanedUsername, req.user.userId]);
+    } else {
+      await pool.query('UPDATE users SET pin_hash = $1 WHERE id = $2', [bcrypt.hashSync(String(newPin), 10), req.user.userId]);
+    }
 
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id)
@@ -151,7 +168,7 @@ router.post('/me/change-pin', requireUsersAccess, async (req, res) => {
       [req.user.businessId, req.user.userId, req.user.userId]
     );
 
-    res.json({ ok: true });
+    res.json({ ok: true, username: cleanedUsername || user.username });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Something went wrong on our end.' });

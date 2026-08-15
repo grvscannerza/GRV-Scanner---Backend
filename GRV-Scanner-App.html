@@ -1125,6 +1125,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
           <div class="setting-row"><label class="setting-label">Current PIN</label><input class="setting-input" id="sec-current-pin" type="password" placeholder="Enter current PIN"/></div>
           <div class="setting-row"><label class="setting-label">New PIN</label><input class="setting-input" id="sec-new-pin" type="password" placeholder="Enter new PIN"/></div>
           <div class="setting-row"><label class="setting-label">Confirm PIN</label><input class="setting-input" id="sec-confirm-pin" type="password" placeholder="Confirm new PIN"/></div>
+          <div class="setting-row"><label class="setting-label">New Username <span style="text-transform:none;font-weight:400;color:var(--muted);">(optional)</span></label><input class="setting-input" id="sec-new-username" type="text" placeholder="Leave blank to keep your current username"/></div>
           <button class="save-btn" onclick="updateOwnPin(this)">Update PIN</button>
         </div>
         <div id="sec-danger-zone" style="display:none;margin-top:36px;padding-top:24px;border-top:1px solid var(--border);">
@@ -3736,6 +3737,7 @@ async function updateOwnPin(btn) {
   const currentPin = document.getElementById('sec-current-pin').value;
   const newPin = document.getElementById('sec-new-pin').value;
   const confirmPin = document.getElementById('sec-confirm-pin').value;
+  const newUsername = document.getElementById('sec-new-username').value.trim();
 
   if (!currentPin || !newPin) {
     errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return;
@@ -3748,14 +3750,20 @@ async function updateOwnPin(btn) {
   btn.disabled = true;
   btn.textContent = 'Updating...';
   try {
-    await apiFetch('/users/me/change-pin', {
+    const result = await apiFetch('/users/me/change-pin', {
       method: 'POST',
-      body: JSON.stringify({ currentPin, newPin }),
+      body: JSON.stringify({ currentPin, newPin, newUsername: newUsername || undefined }),
     });
     document.getElementById('sec-current-pin').value = '';
     document.getElementById('sec-new-pin').value = '';
     document.getElementById('sec-confirm-pin').value = '';
-    btn.textContent = 'Updated';
+    document.getElementById('sec-new-username').value = '';
+    if (newUsername) {
+      btn.textContent = 'Updated';
+      alert(`Your username is now "${result.username}". Please log out and log back in using your new username.`);
+    } else {
+      btn.textContent = 'Updated';
+    }
   } catch (err) {
     errEl.textContent = err.message;
     errEl.style.display = 'block';
