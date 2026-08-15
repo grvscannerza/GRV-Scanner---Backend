@@ -1754,8 +1754,11 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     <div class="modal-title" id="businessDeleteImpactTitle">Delete Business</div>
     <div class="modal-body">This will permanently delete this entire business and everything in it:</div>
     <div id="businessDeleteImpactList" style="text-align:left;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 16px;margin:14px 0;font-size:13px;color:var(--text-body);"></div>
-    <div class="modal-body" style="color:var(--danger);font-weight:600;">This cannot be undone. Type the business name below to confirm.</div>
-    <input id="businessDeleteConfirmInput" placeholder="Type the business name exactly" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;margin:10px 0;outline:none;" oninput="document.getElementById('businessDeleteImpactConfirmBtn').disabled = normalizeQuotes(this.value.trim()) !== normalizeQuotes(document.getElementById('businessDeleteImpactConfirmBtn').dataset.expectedName || '');"/>
+    <div class="modal-body" style="color:var(--danger);font-weight:600;">This cannot be undone.</div>
+    <label style="display:flex;align-items:center;gap:8px;margin:14px 0;font-size:13px;color:var(--text-body);cursor:pointer;">
+      <input type="checkbox" id="businessDeleteConfirmCheckbox" style="width:16px;height:16px;cursor:pointer;" onchange="document.getElementById('businessDeleteImpactConfirmBtn').disabled = !this.checked;"/>
+      I understand this permanently deletes everything listed above
+    </label>
     <div class="dup-actions" style="margin-top:6px;">
       <button class="dup-proceed" onclick="closeModal('businessDeleteImpactModal')">Cancel</button>
       <button class="dup-cancel" style="background:var(--danger-dim);" id="businessDeleteImpactConfirmBtn" disabled onclick="confirmCascadeDeleteBusiness()">Yes, Delete This Business</button>
@@ -4189,9 +4192,9 @@ async function deleteBusinessEntirely(id) {
   pendingCascadeDeleteBusinessId = id;
   const titleEl = document.getElementById('businessDeleteImpactTitle');
   const listEl = document.getElementById('businessDeleteImpactList');
-  const confirmInput = document.getElementById('businessDeleteConfirmInput');
+  const confirmCheckbox = document.getElementById('businessDeleteConfirmCheckbox');
   const confirmBtn = document.getElementById('businessDeleteImpactConfirmBtn');
-  confirmInput.value = '';
+  confirmCheckbox.checked = false;
   confirmBtn.disabled = true;
   listEl.innerHTML = 'Loading...';
   document.getElementById('businessDeleteImpactModal').classList.add('open');
@@ -4199,8 +4202,6 @@ async function deleteBusinessEntirely(id) {
   try {
     const impact = await apiFetch(`/dev/businesses/${id}/deletion-impact`);
     titleEl.textContent = `Delete "${impact.businessName}"?`;
-    confirmBtn.dataset.expectedName = impact.businessName;
-    confirmInput.placeholder = `Type "${impact.businessName}" exactly`;
     const rows = [];
     rows.push(`<strong>${impact.userCount}</strong> user${impact.userCount === 1 ? '' : 's'} (admin + staff)`);
     if (impact.supplierCount > 0) rows.push(`<strong>${impact.supplierCount}</strong> supplier${impact.supplierCount === 1 ? '' : 's'}`);
