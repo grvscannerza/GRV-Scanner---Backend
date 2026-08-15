@@ -214,4 +214,89 @@ router.get('/invoices/:id/pdf', async (req, res) => {
   }
 });
 
+// Shows exactly what's inside a business before it's deleted entirely - this
+// is a serious, irreversible action (removing a whole customer/test business,
+// not just one record), so the real counts need to be genuinely accurate.
+router.get('/businesses/:id/deletion-impact', async (req, res) => {
+  try {
+    const bizResult = await pool.query('SELECT id, name FROM businesses WHERE id = $1', [req.params.id]);
+    if (!bizResult.rows[0]) return res.status(404).json({ error: 'Business not found.' });
+
+    const hasDeveloperResult = await pool.query(`SELECT COUNT(*)::int AS n FROM users WHERE business_id = $1 AND role = 'developer'`, [req.params.id]);
+    if (hasDeveloperResult.rows[0].n > 0) {
+      return res.status(403).json({ error: 'This business has a developer account attached to it and cannot be deleted through this tool.' });
+    }
+
+    const userCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM users WHERE business_id = $1', [req.params.id]);
+    const supplierCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM suppliers WHERE business_id = $1', [req.params.id]);
+    const itemCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM item_master WHERE business_id = $1', [req.params.id]);
+    const scanCountResult = await pool.query('SELECT COUNT(*)::int AS n, COALESCE(SUM(total),0)::float AS "totalValue" FROM scans WHERE business_id = $1', [req.params.id]);
+    const invoiceCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM invoices WHERE business_id = $1', [req.params.id]);
+
+    res.json({
+      businessName: bizResult.rows[0].name,
+      userCount: userCountResult.rows[0].n,
+      supplierCount: supplierCountResult.rows[0].n,
+      itemCount: itemCountResult.rows[0].n,
+      scanCount: scanCountResult.rows[0].n,
+      totalScanValue: scanCountResult.rows[0].totalValue,
+      billingInvoiceCount: invoiceCountResult.rows[0].n,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+router.delete('/businesses/:id', async (req, res) => {
+  const confirmCascade = req.query.confirmCascade === 'true';
+  if (!confirmCascade) {
+    return res.status(400).json({ error: 'This requires explicit confirmation - see /deletion-impact first.' });
+  }
+
+  try {
+    const bizResult = await pool.query('SELECT id, name FROM businesses WHERE id = $1', [req.params.id]);
+    if (!bizResult.rows[0]) return res.status(404).json({ error: 'Business not found.' });
+
+    // Hard safety check - this tool can never be used to delete the business
+    // a developer account itself belongs to.
+    const hasDeveloperResult = await pool.query(`SELECT COUNT(*)::int AS n FROM users WHERE business_id = $1 AND role = 'developer'`, [req.params.id]);
+    if (hasDeveloperResult.rows[0].n > 0) {
+      return res.status(403).json({ error: 'This business has a developer account attached to it and cannot be deleted through this tool.' });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      // Delete order matters - leaf tables (things referenced BY other
+      // tables) first, working back to the business itself.
+      await client.query(`DELETE FROM item_price_history WHERE item_id IN (SELECT id FROM item_master WHERE business_id = $1)`, [req.params.id]);
+      await client.query(`DELETE FROM item_price_history WHERE scan_id IN (SELECT id FROM scans WHERE business_id = $1)`, [req.params.id]);
+      await client.query('DELETE FROM item_master WHERE business_id = $1', [req.params.id]);
+      await client.query('DELETE FROM scan_line_items WHERE scan_id IN (SELECT id FROM scans WHERE business_id = $1)', [req.params.id]);
+      await client.query('DELETE FROM scans WHERE business_id = $1', [req.params.id]);
+      await client.query('DELETE FROM invoices WHERE business_id = $1', [req.params.id]);
+      await client.query('DELETE FROM audit_log WHERE business_id = $1', [req.params.id]);
+      await client.query('DELETE FROM suppliers WHERE business_id = $1', [req.params.id]);
+      await client.query('DELETE FROM business_settings WHERE business_id = $1', [req.params.id]);
+      await client.query('DELETE FROM users WHERE business_id = $1', [req.params.id]);
+      const deleteResult = await client.query('DELETE FROM businesses WHERE id = $1', [req.params.id]);
+      if (deleteResult.rowCount === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: 'Business not found.' });
+      }
+      await client.query('COMMIT');
+      res.json({ ok: true });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 module.exports = router;

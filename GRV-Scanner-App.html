@@ -1748,6 +1748,22 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
   </div>
 </div>
 
+<div class="modal-overlay" id="businessDeleteImpactModal">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="modal-title" id="businessDeleteImpactTitle">Delete Business</div>
+    <div class="modal-body">This will permanently delete this entire business and everything in it:</div>
+    <div id="businessDeleteImpactList" style="text-align:left;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 16px;margin:14px 0;font-size:13px;color:var(--text-body);"></div>
+    <div class="modal-body" style="color:var(--danger);font-weight:600;">This cannot be undone. Type the business name below to confirm.</div>
+    <input id="businessDeleteConfirmInput" placeholder="Type the business name exactly" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px 12px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;margin:10px 0;outline:none;" oninput="document.getElementById('businessDeleteImpactConfirmBtn').disabled = this.value !== document.getElementById('businessDeleteImpactConfirmBtn').dataset.expectedName;"/>
+    <div class="dup-actions" style="margin-top:6px;">
+      <button class="dup-proceed" onclick="closeModal('businessDeleteImpactModal')">Cancel</button>
+      <button class="dup-cancel" style="background:var(--danger-dim);" id="businessDeleteImpactConfirmBtn" disabled onclick="confirmCascadeDeleteBusiness()">Yes, Delete This Business</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="modal-overlay" id="priceIncreasesModal">
   <div class="modal-box" style="max-width:520px;">
     <div class="modal-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
@@ -4160,6 +4176,55 @@ async function confirmCascadeDeleteSupplier() {
   }
 }
 
+let pendingCascadeDeleteBusinessId = null;
+
+async function deleteBusinessEntirely(id) {
+  pendingCascadeDeleteBusinessId = id;
+  const titleEl = document.getElementById('businessDeleteImpactTitle');
+  const listEl = document.getElementById('businessDeleteImpactList');
+  const confirmInput = document.getElementById('businessDeleteConfirmInput');
+  const confirmBtn = document.getElementById('businessDeleteImpactConfirmBtn');
+  confirmInput.value = '';
+  confirmBtn.disabled = true;
+  listEl.innerHTML = 'Loading...';
+  document.getElementById('businessDeleteImpactModal').classList.add('open');
+
+  try {
+    const impact = await apiFetch(`/dev/businesses/${id}/deletion-impact`);
+    titleEl.textContent = `Delete "${impact.businessName}"?`;
+    confirmBtn.dataset.expectedName = impact.businessName;
+    confirmInput.placeholder = `Type "${impact.businessName}" exactly`;
+    const rows = [];
+    rows.push(`<strong>${impact.userCount}</strong> user${impact.userCount === 1 ? '' : 's'} (admin + staff)`);
+    if (impact.supplierCount > 0) rows.push(`<strong>${impact.supplierCount}</strong> supplier${impact.supplierCount === 1 ? '' : 's'}`);
+    if (impact.itemCount > 0) rows.push(`<strong>${impact.itemCount}</strong> item${impact.itemCount === 1 ? '' : 's'} in Item Master`);
+    if (impact.scanCount > 0) rows.push(`<strong>${impact.scanCount}</strong> scan${impact.scanCount === 1 ? '' : 's'} (${fmtRand(impact.totalScanValue)} total)`);
+    if (impact.billingInvoiceCount > 0) rows.push(`<strong>${impact.billingInvoiceCount}</strong> billing invoice${impact.billingInvoiceCount === 1 ? '' : 's'}`);
+    listEl.innerHTML = rows.map(r => `<div style="padding:4px 0;">${r}</div>`).join('');
+  } catch (err) {
+    listEl.innerHTML = `<span style="color:var(--danger);">${err.message}</span>`;
+  }
+}
+
+async function confirmCascadeDeleteBusiness() {
+  const id = pendingCascadeDeleteBusinessId;
+  if (!id) return;
+  const btn = document.getElementById('businessDeleteImpactConfirmBtn');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Deleting...';
+  try {
+    await apiFetch(`/dev/businesses/${id}?confirmCascade=true`, { method: 'DELETE' });
+    closeModal('businessDeleteImpactModal');
+    await loadClientsList();
+  } catch (err) {
+    alert(err.message);
+    btn.disabled = false;
+  } finally {
+    btn.textContent = original;
+    pendingCascadeDeleteBusinessId = null;
+  }
+}
+
 let currentSupplierVatFilter = 'all';
 let currentSupplierDeptFilter = '';
 
@@ -5598,6 +5663,7 @@ async function loadClientsList() {
             <div style="font-size:10px;color:${statusStyles[c.subscription_status] || 'var(--muted)'};text-transform:capitalize;">${c.subscription_status.replace('_',' ')}</div>
           </div>
           <div style="font-size:11px;color:var(--muted);">${fmtDDMMYY(new Date(c.created_at))}</div>
+          <button onclick="deleteBusinessEntirely(${c.id})" style="background:none;border:1px solid rgba(255,107,107,0.35);color:var(--danger);border-radius:6px;padding:5px 9px;cursor:pointer;" title="Delete this business entirely"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
         </div>
       </div>
     `).join('') || '<div style="font-size:12px;color:var(--muted);padding:16px;">No clients yet.</div>';
