@@ -227,6 +227,7 @@ nav{display:flex;gap:2px;background:var(--card-header);border-bottom:2px solid v
 /* "Type box format" - the label sits fixed inside the box (top-left) and
    never disappears; typed text appears below it in the same bordered box. */
 .tb-field{position:relative;margin-bottom:14px;}
+.tb-field.narrow{max-width:400px;}
 .tb-field.full{grid-column:1/-1;}
 .tb-field label{position:absolute;top:7px;left:14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;pointer-events:none;}
 .tb-field label .req{color:#ff6b6b;}
@@ -1108,11 +1109,11 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <div class="settings-title">Business Details</div>
         <div class="settings-sub">Your real company details - these appear on every invoice GRV Scanner sends you.</div>
         <div id="biz-error" style="display:none;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:12px;max-width:400px;"></div>
-        <div class="setting-row"><label class="setting-label">Company Name</label><input class="setting-input" id="biz-name" placeholder="e.g. John's Restaurant (Pty) Ltd"/></div>
-        <div class="setting-row"><label class="setting-label">Address</label><input class="setting-input" id="biz-address" placeholder="Street, city, postal code"/></div>
-        <div class="setting-row"><label class="setting-label">Contact Number</label><input class="setting-input" id="biz-phone" placeholder="e.g. 011 123 4567"/></div>
-        <div class="setting-row"><label class="setting-label">Email Address</label><input class="setting-input" id="biz-email" type="email" placeholder="e.g. accounts@yourbusiness.co.za"/></div>
-        <div class="setting-row"><label class="setting-label">VAT Number</label><input class="setting-input" id="biz-vat" placeholder="e.g. 4123456789"/></div>
+        <div class="tb-field narrow"><label>Company Name</label><input id="biz-name"/></div>
+        <div class="tb-field narrow"><label>Address</label><input id="biz-address"/></div>
+        <div class="tb-field narrow"><label>Contact Number</label><input id="biz-phone"/></div>
+        <div class="tb-field narrow"><label>Email Address</label><input id="biz-email" type="email"/></div>
+        <div class="tb-field narrow"><label>VAT Number</label><input id="biz-vat"/></div>
         <div class="setting-row"><label class="setting-label">Accounting System</label><select class="styled-select" style="max-width:400px;"><option>Sage</option><option>Pastel</option><option selected>Xero</option><option>QuickBooks</option><option>Other</option></select><div class="setting-hint">Tailors export column order for your system.</div></div>
         <button class="save-btn" onclick="saveBusinessProfile(this)">Save Changes</button>
       </div>
@@ -1122,10 +1123,10 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <div id="sec-admin-only-msg" style="display:none;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px 16px;font-size:13px;color:var(--muted-light);max-width:420px;">Only the account admin can change their own PIN here. If you need your PIN reset, ask your admin - they can do this from the Users page.</div>
         <div id="sec-pin-form">
           <div id="sec-error" style="display:none;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:12px;max-width:400px;"></div>
-          <div class="setting-row"><label class="setting-label">Current PIN</label><input class="setting-input" id="sec-current-pin" type="password" placeholder="Enter current PIN"/></div>
-          <div class="setting-row"><label class="setting-label">New PIN</label><input class="setting-input" id="sec-new-pin" type="password" placeholder="Enter new PIN"/></div>
-          <div class="setting-row"><label class="setting-label">Confirm PIN</label><input class="setting-input" id="sec-confirm-pin" type="password" placeholder="Confirm new PIN"/></div>
-          <div class="setting-row"><label class="setting-label">New Username <span style="text-transform:none;font-weight:400;color:var(--muted);">(optional)</span></label><input class="setting-input" id="sec-new-username" type="text" placeholder="Leave blank to keep your current username"/></div>
+          <div class="tb-field narrow"><label>Current PIN</label><input id="sec-current-pin" type="password"/></div>
+          <div class="tb-field narrow"><label>New PIN</label><input id="sec-new-pin" type="password"/></div>
+          <div class="tb-field narrow"><label>Confirm PIN</label><input id="sec-confirm-pin" type="password"/></div>
+          <div class="tb-field narrow"><label>New Username <span style="text-transform:none;font-weight:400;color:var(--muted);">(optional)</span></label><input id="sec-new-username" type="text"/></div>
           <button class="save-btn" onclick="updateOwnPin(this)">Update PIN</button>
         </div>
         <div id="sec-danger-zone" style="display:none;margin-top:36px;padding-top:24px;border-top:1px solid var(--border);">
