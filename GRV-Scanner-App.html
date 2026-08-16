@@ -2619,8 +2619,8 @@ function logout() {
 function switchRole(role) {
   if (!isDeveloperSession) return; // VIEW AS is developer-only; real customer logins can't switch roles
   currentUser = null;
-  const displayName = role === 'admin' ? 'christossouris' : role === 'processor' ? 'Sarah Mokoena' : 'Bongani Nkosi';
-  const initials     = role === 'admin' ? 'CS' : role === 'processor' ? 'SM' : 'BN';
+  const displayName = role === 'admin' ? 'christossouris' : role === 'processor' ? 'Processor Preview' : 'Dispatch Preview';
+  const initials     = role === 'admin' ? 'CS' : role === 'processor' ? 'PP' : 'DP';
   applyRoleUI(role, displayName, initials);
 
   // Admin goes home
