@@ -783,7 +783,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
           <div class="dash-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
           <div class="dash-btn-text">
             <div class="dash-btn-title">Billing & Subscription</div>
-            <div class="dash-btn-sub">Professional Plan &nbsp;·&nbsp; 312 / 600 scans used this month &nbsp;·&nbsp; Renews 1 August 2025</div>
+            <div class="dash-btn-sub" id="homeBillingSummary">Loading...</div>
           </div>
         </div>
         <div class="dash-btn-arrow">›</div>
@@ -2198,6 +2198,27 @@ async function apiFetch(path, options = {}) {
 // local cache for rendering, not the source of truth. The server is the source of truth.
 let staffUsers = [];
 
+async function loadHomeBillingSummary() {
+  const el = document.getElementById('homeBillingSummary');
+  if (!el || currentRole !== 'admin') return;
+  try {
+    const planInfo = await apiFetch('/business/plan');
+    const planLabel = (PLAN_INFO[planInfo.plan]?.label || planInfo.plan);
+    const scansText = planInfo.scanLimit === null
+      ? `${planInfo.scansThisMonth} scans this month`
+      : `${planInfo.scansThisMonth} / ${planInfo.scanLimit} scans used this month`;
+    const renewsText = planInfo.renewsAt
+      ? `Renews ${fmtDDMMYY(new Date(planInfo.renewsAt))}`
+      : (planInfo.subscriptionStatus === 'active' || planInfo.subscriptionStatus === 'past_due')
+        ? 'Renewal date unavailable'
+        : 'No active subscription';
+    el.textContent = `${planLabel} Plan \u00b7 ${scansText} \u00b7 ${renewsText}`;
+  } catch (err) {
+    el.textContent = 'Could not load billing info';
+    console.error('Failed to load home billing summary:', err.message);
+  }
+}
+
 function updateHomeTiles() {
   document.querySelectorAll('.dash-btn[data-roles]').forEach(btn => {
     const roles = btn.getAttribute('data-roles').split(',');
@@ -2256,6 +2277,7 @@ function applyRoleUI(role, displayName, initials) {
   document.getElementById('staffNotice').className = 'staff-notice';
 
   updateHomeTiles();
+  loadHomeBillingSummary();
 }
 
 // Safe localStorage wrappers - localStorage can throw or be unavailable in some
@@ -2747,7 +2769,7 @@ function showPage(id, tabEl) {
   if (id === 'mybusiness' && authToken) { loadClientsList(); loadMyBusinessInsights(); const monthInput = document.getElementById('mbInvoiceMonth'); const nowMonth = new Date().toISOString().slice(0,7); if (monthInput) { monthInput.value = nowMonth; loadDevInvoices(nowMonth); } }
 
   // Ensure tiles match current role whenever home is shown
-  if (id === 'home') updateHomeTiles();
+  if (id === 'home') { updateHomeTiles(); loadHomeBillingSummary(); }
 }
 
 // ══════════════════════════════════════
