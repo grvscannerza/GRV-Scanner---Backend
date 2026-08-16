@@ -2278,6 +2278,7 @@ function applyRoleUI(role, displayName, initials) {
 
   updateHomeTiles();
   loadHomeBillingSummary();
+  applyRealDates(); // re-run now that userName holds the real logged-in person's name, not the pre-login placeholder
 }
 
 // Safe localStorage wrappers - localStorage can throw or be unavailable in some
@@ -5245,8 +5246,8 @@ function applyRealDates() {
   const timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
   const greetingTitleEl = document.getElementById('homeGreetingTitle');
   if (greetingTitleEl) {
-    const svg = greetingTitleEl.querySelector('svg');
-    greetingTitleEl.childNodes[0].textContent = `Good ${timeOfDay}, John `;
+    const realFirstName = (document.getElementById('userName')?.textContent || '').trim().split(' ')[0] || 'there';
+    greetingTitleEl.childNodes[0].textContent = `Good ${timeOfDay}, ${realFirstName} `;
   }
 }
 
