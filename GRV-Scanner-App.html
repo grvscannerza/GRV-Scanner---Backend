@@ -2238,7 +2238,7 @@ function updateHomeTiles() {
   // role/permission system (a regular admin should never see this, even
   // though they share the same currentRole value as a developer session).
   const myBusinessTile = document.getElementById('db-mybusiness');
-  if (myBusinessTile) myBusinessTile.style.display = isDeveloperSession ? '' : 'none';
+  if (myBusinessTile) myBusinessTile.style.display = (isDeveloperSession && currentRole === 'admin') ? '' : 'none';
 }
 
 function applyRoleUI(role, displayName, initials) {
