@@ -2,6 +2,7 @@ const express = require('express');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { pool } = require('../db');
 const { getPlanFeatures } = require('./planFeatures');
+const { paystackConfigured, paystackFetch } = require('./billing');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -151,7 +152,7 @@ router.put('/settings', requireRole('admin', 'developer'), async (req, res) => {
 
 router.get('/plan', requireRole('admin', 'developer'), async (req, res) => {
   try {
-    const bizResult = await pool.query('SELECT plan, subscription_status, past_due_since FROM businesses WHERE id = $1', [req.user.businessId]);
+    const bizResult = await pool.query('SELECT plan, subscription_status, past_due_since, paystack_subscription_code FROM businesses WHERE id = $1', [req.user.businessId]);
     const row = bizResult.rows[0];
 
     const scansResult = await pool.query(`
@@ -166,6 +167,20 @@ router.get('/plan', requireRole('admin', 'developer'), async (req, res) => {
       gracePeriodDaysLeft = remainingMs > 0 ? Math.ceil(remainingMs / (24 * 60 * 60 * 1000)) : 0;
     }
 
+    // The real renewal date only exists on Paystack's side - fetched live
+    // rather than stored locally, so it's never a stale/guessed value.
+    // Fails gracefully (null) rather than breaking the whole dashboard if
+    // Paystack is briefly unreachable.
+    let renewsAt = null;
+    if (row?.paystack_subscription_code && paystackConfigured()) {
+      try {
+        const subResult = await paystackFetch(`/subscription/${row.paystack_subscription_code}`);
+        renewsAt = subResult.data?.next_payment_date || null;
+      } catch (err) {
+        console.error('Failed to fetch real renewal date from Paystack:', err.message);
+      }
+    }
+
     const { features } = await getPlanFeatures(req.user.businessId);
 
     res.json({
@@ -175,7 +190,92 @@ router.get('/plan', requireRole('admin', 'developer'), async (req, res) => {
       scanLimit: features.scanLimit,
       staffLimit: features.staffLimit,
       gracePeriodDaysLeft,
+      renewsAt,
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+// Self-service account deletion - deliberately scoped to req.user.businessId
+// only, never a URL parameter, so there is no way for an admin to target any
+// business other than their own, however the request is crafted.
+router.get('/deletion-impact', requireRole('admin'), async (req, res) => {
+  try {
+    const bizId = req.user.businessId;
+    const userCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM users WHERE business_id = $1', [bizId]);
+    const supplierCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM suppliers WHERE business_id = $1', [bizId]);
+    const itemCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM item_master WHERE business_id = $1', [bizId]);
+    const scanCountResult = await pool.query('SELECT COUNT(*)::int AS n, COALESCE(SUM(total),0)::float AS "totalValue" FROM scans WHERE business_id = $1', [bizId]);
+    const bizResult = await pool.query('SELECT name, subscription_status FROM businesses WHERE id = $1', [bizId]);
+
+    res.json({
+      businessName: bizResult.rows[0]?.name,
+      hasActiveSubscription: bizResult.rows[0]?.subscription_status === 'active' || bizResult.rows[0]?.subscription_status === 'past_due',
+      userCount: userCountResult.rows[0].n,
+      supplierCount: supplierCountResult.rows[0].n,
+      itemCount: itemCountResult.rows[0].n,
+      scanCount: scanCountResult.rows[0].n,
+      totalScanValue: scanCountResult.rows[0].totalValue,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+router.delete('/', requireRole('admin'), async (req, res) => {
+  if (req.query.confirmCascade !== 'true') {
+    return res.status(400).json({ error: 'This requires explicit confirmation - see /deletion-impact first.' });
+  }
+  const bizId = req.user.businessId;
+
+  try {
+    // Cancel any real, active Paystack subscription first, so the person
+    // is never billed again after deleting their account - deleting the
+    // data alone would leave the subscription still running otherwise.
+    if (paystackConfigured()) {
+      const bizResult = await pool.query(
+        'SELECT paystack_subscription_code, paystack_email_token FROM businesses WHERE id = $1',
+        [bizId]
+      );
+      const biz = bizResult.rows[0];
+      if (biz?.paystack_subscription_code && biz?.paystack_email_token) {
+        try {
+          await paystackFetch('/subscription/disable', {
+            method: 'POST',
+            body: JSON.stringify({ code: biz.paystack_subscription_code, token: biz.paystack_email_token }),
+          });
+        } catch (payErr) {
+          console.error('Failed to cancel Paystack subscription during account deletion:', payErr);
+          return res.status(500).json({ error: 'Could not cancel your active subscription, so your account was not deleted. Please try again or contact support.' });
+        }
+      }
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(`DELETE FROM item_price_history WHERE item_id IN (SELECT id FROM item_master WHERE business_id = $1)`, [bizId]);
+      await client.query(`DELETE FROM item_price_history WHERE scan_id IN (SELECT id FROM scans WHERE business_id = $1)`, [bizId]);
+      await client.query('DELETE FROM item_master WHERE business_id = $1', [bizId]);
+      await client.query('DELETE FROM scan_line_items WHERE scan_id IN (SELECT id FROM scans WHERE business_id = $1)', [bizId]);
+      await client.query('DELETE FROM scans WHERE business_id = $1', [bizId]);
+      await client.query('DELETE FROM invoices WHERE business_id = $1', [bizId]);
+      await client.query('DELETE FROM audit_log WHERE business_id = $1', [bizId]);
+      await client.query('DELETE FROM suppliers WHERE business_id = $1', [bizId]);
+      await client.query('DELETE FROM business_settings WHERE business_id = $1', [bizId]);
+      await client.query('DELETE FROM users WHERE business_id = $1', [bizId]);
+      await client.query('DELETE FROM businesses WHERE id = $1', [bizId]);
+      await client.query('COMMIT');
+      res.json({ ok: true });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Something went wrong on our end.' });
