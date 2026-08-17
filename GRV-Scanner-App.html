@@ -2131,9 +2131,11 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div class="tb-field"><label>Current Price (R) <span class="req">*</span></label><input id="im-price" type="number" step="0.01" min="0"/></div>
       <div class="tb-field full"><label>Supplier</label><select id="im-supplier" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;"><option value="">- No supplier -</option></select></div>
       <div class="tb-field full"><label>VAT Rate</label><select id="im-vatrate" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;"><option value="">- Follow supplier's default -</option></select></div>
-      <div class="tb-field"><label>Track As <span style="text-transform:none;font-weight:400;color:var(--muted);">(optional)</span></label><input id="im-track-unit" placeholder="e.g. Tots"/></div>
-      <div class="tb-field"><label>1 Unit Converts To</label><input id="im-track-conversion" type="number" step="0.01" min="0" placeholder="e.g. 30"/></div>
-      <div class="tb-field full" style="margin-top:-6px;"><div style="font-size:11px;color:var(--muted);line-height:1.5;">If your stock system tracks this differently to how it's invoiced - e.g. a 750ml bottle counted as 30 tots - set that here. The invoice quantity and price are never affected; this just shows the converted amount alongside it as a reference.</div></div>
+      <div id="im-track-fields" style="display:contents;">
+        <div class="tb-field"><label>Track As <span style="text-transform:none;font-weight:400;color:var(--muted);">(optional)</span></label><input id="im-track-unit" placeholder="e.g. Tots"/></div>
+        <div class="tb-field"><label>1 Unit Converts To</label><input id="im-track-conversion" type="number" step="0.01" min="0" placeholder="e.g. 30"/></div>
+        <div class="tb-field full" style="margin-top:-6px;"><div style="font-size:11px;color:var(--muted);line-height:1.5;">If your stock system tracks this differently to how it's invoiced - e.g. a 750ml bottle counted as 30 tots - set that here. The invoice quantity and price are never affected; this just shows the converted amount alongside it as a reference.</div></div>
+      </div>
     </div>
     <div class="um-actions"><button class="m-cancel" onclick="closeModal('itemModal')">Cancel</button><button class="m-save" onclick="saveItemMaster()">Save Item</button></div>
   </div>
@@ -4569,6 +4571,8 @@ function openItemModal(id) {
   vatSel.innerHTML = '<option value="">- Follow supplier\'s default -</option>' +
     vatRatePresetsCache.map(r => `<option value="${r.rate}">${r.label} (${r.rate}%)</option>`).join('');
 
+  const trackFieldsWrap = document.getElementById('im-track-fields');
+
   if (id) {
     const item = itemMasterCache.find(i => i.id === id);
     if (!item) return;
@@ -4581,6 +4585,7 @@ function openItemModal(id) {
     vatSel.value = (item.vat_rate === null || item.vat_rate === undefined) ? '' : item.vat_rate;
     document.getElementById('im-track-unit').value = item.track_unit || '';
     document.getElementById('im-track-conversion').value = item.track_conversion || '';
+    trackFieldsWrap.style.display = 'contents';
   } else {
     titleEl.textContent = 'Add Item';
     document.getElementById('im-code').value = '';
@@ -4591,6 +4596,7 @@ function openItemModal(id) {
     vatSel.value = '';
     document.getElementById('im-track-unit').value = '';
     document.getElementById('im-track-conversion').value = '';
+    trackFieldsWrap.style.display = 'none';
   }
   document.getElementById('itemModal').classList.add('open');
 }
