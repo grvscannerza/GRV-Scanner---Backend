@@ -2131,6 +2131,9 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div class="tb-field"><label>Current Price (R) <span class="req">*</span></label><input id="im-price" type="number" step="0.01" min="0"/></div>
       <div class="tb-field full"><label>Supplier</label><select id="im-supplier" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;"><option value="">- No supplier -</option></select></div>
       <div class="tb-field full"><label>VAT Rate</label><select id="im-vatrate" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;"><option value="">- Follow supplier's default -</option></select></div>
+      <div class="tb-field"><label>Track As <span style="text-transform:none;font-weight:400;color:var(--muted);">(optional)</span></label><input id="im-track-unit" placeholder="e.g. Tots"/></div>
+      <div class="tb-field"><label>1 Unit Converts To</label><input id="im-track-conversion" type="number" step="0.01" min="0" placeholder="e.g. 30"/></div>
+      <div class="tb-field full" style="margin-top:-6px;"><div style="font-size:11px;color:var(--muted);line-height:1.5;">If your stock system tracks this differently to how it's invoiced - e.g. a 750ml bottle counted as 30 tots - set that here. The invoice quantity and price are never affected; this just shows the converted amount alongside it as a reference.</div></div>
     </div>
     <div class="um-actions"><button class="m-cancel" onclick="closeModal('itemModal')">Cancel</button><button class="m-save" onclick="saveItemMaster()">Save Item</button></div>
   </div>
@@ -3126,7 +3129,13 @@ async function doScan() {
         fp = priceChangeIconHTML('down') + ' -' + pct + '%';
         priceChangeCount++;
       }
-      return { desc: String(it.desc || 'Unknown item'), code, qty, unit: String(it.unit || 'each'), up, lp, flag, fp, vatRate: rowVatRate };
+      // If this product has a remembered stock conversion (e.g. a 750ml
+      // bottle tracked as 30 tots), compute the converted amount for THIS
+      // invoiced quantity - purely a reference figure, never affects VAT/totals.
+      const trackInfo = (known && known.track_unit && typeof known.track_conversion === 'number')
+        ? { unit: known.track_unit, converted: qty * known.track_conversion }
+        : null;
+      return { desc: String(it.desc || 'Unknown item'), code, qty, unit: String(it.unit || 'each'), up, lp, flag, fp, vatRate: rowVatRate, trackInfo };
     });
 
     const tbody = document.getElementById('scanBody');
@@ -3172,10 +3181,12 @@ function makeScanRow(r,i) {
   if (r.flag==='up') tr.classList.add('pu');
   if (r.flag==='new') tr.classList.add('ni');
   const fc = r.flag==='up'?'flag-up':r.flag==='new'?'flag-new':'flag-ok';
+  if (r.trackInfo) { tr.dataset.trackUnit = r.trackInfo.unit; tr.dataset.trackRatio = r.trackInfo.converted / r.qty; }
+  const trackHtml = r.trackInfo ? `<div class="track-conv" style="font-size:10px;color:var(--accent2);margin-top:2px;">\u2248 ${formatConvertedQty(r.trackInfo.converted)} ${r.trackInfo.unit}</div>` : '';
   tr.innerHTML=`<td>${i+1}</td>
     <td class="ed"><input value="${r.desc}" oninput="recalcRow(this)"/></td>
     <td class="ed"><input value="${r.code}"/></td>
-    <td class="ed"><input class="n" value="${r.qty}" oninput="recalcRow(this)"/></td>
+    <td class="ed"><input class="n" value="${r.qty}" oninput="recalcRow(this)"/>${trackHtml}</td>
     <td class="ed"><input value="${r.unit}"/></td>
     <td class="ed"><input class="n" value="${r.up.toFixed(2)}" oninput="recalcRow(this)"/></td>
     <td class="lp">${r.lp}</td>
@@ -3187,6 +3198,17 @@ function makeScanRow(r,i) {
   return tr;
 }
 
+function formatConvertedQty(n) {
+  const rounded = Math.round(n * 100) / 100;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+function updateRowTrackDisplay(tr, qty) {
+  const el = tr.querySelector('.track-conv');
+  if (!el || !tr.dataset.trackRatio) return;
+  el.textContent = `\u2248 ${formatConvertedQty(qty * parseFloat(tr.dataset.trackRatio))} ${tr.dataset.trackUnit}`;
+}
+
 function recalcRow(inp) {
   const tr=inp.closest('tr');
   const inp2=tr.querySelectorAll('input');
@@ -3196,6 +3218,7 @@ function recalcRow(inp) {
   const sub=qty*up, vat=sub*rowVatRate;
   tr.querySelector('[data-vat]').textContent='R'+vat.toFixed(2);
   tr.querySelector('[data-total]').textContent='R'+(sub+vat).toFixed(2);
+  updateRowTrackDisplay(tr, qty);
   recalcAll();
 }
 
@@ -4556,6 +4579,8 @@ function openItemModal(id) {
     document.getElementById('im-price').value = item.current_price;
     supSel.value = item.supplier_id || '';
     vatSel.value = (item.vat_rate === null || item.vat_rate === undefined) ? '' : item.vat_rate;
+    document.getElementById('im-track-unit').value = item.track_unit || '';
+    document.getElementById('im-track-conversion').value = item.track_conversion || '';
   } else {
     titleEl.textContent = 'Add Item';
     document.getElementById('im-code').value = '';
@@ -4564,6 +4589,8 @@ function openItemModal(id) {
     document.getElementById('im-price').value = '';
     supSel.value = '';
     vatSel.value = '';
+    document.getElementById('im-track-unit').value = '';
+    document.getElementById('im-track-conversion').value = '';
   }
   document.getElementById('itemModal').classList.add('open');
 }
@@ -4575,6 +4602,9 @@ async function saveItemMaster() {
   const price = parseFloat(document.getElementById('im-price').value);
   if (isNaN(price) || price < 0) { alert('Please enter a valid price.'); return; }
   const vatRateVal = document.getElementById('im-vatrate').value;
+  const trackUnit = document.getElementById('im-track-unit').value.trim();
+  const trackConversion = document.getElementById('im-track-conversion').value;
+  if (trackUnit && !trackConversion) { alert('Please enter how many units this converts to (e.g. 30).'); return; }
 
   const data = {
     code,
@@ -4583,6 +4613,8 @@ async function saveItemMaster() {
     currentPrice: price,
     supplierId: document.getElementById('im-supplier').value || null,
     vatRate: vatRateVal === '' ? null : parseFloat(vatRateVal),
+    trackUnit: trackUnit || null,
+    trackConversion: trackConversion === '' ? null : parseFloat(trackConversion),
   };
 
   try {

@@ -45,18 +45,26 @@ router.get('/', requireRole('admin', 'processor', 'developer'), async (req, res)
 });
 
 router.post('/', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const { code, name, unit, currentPrice, supplierId, vatRate } = req.body || {};
+  const { code, name, unit, currentPrice, supplierId, vatRate, trackUnit, trackConversion } = req.body || {};
   if (!code || !name) return res.status(400).json({ error: 'Code and name are required.' });
   const rate = (vatRate === null || vatRate === undefined || vatRate === '') ? null : parseFloat(vatRate);
   if (rate !== null && (isNaN(rate) || rate < 0 || rate > 100)) {
     return res.status(400).json({ error: 'VAT rate must be between 0 and 100.' });
   }
+  const trackUnitClean = (trackUnit && trackUnit.trim()) ? trackUnit.trim() : null;
+  const trackConversionClean = (trackConversion === null || trackConversion === undefined || trackConversion === '') ? null : parseFloat(trackConversion);
+  if (trackConversionClean !== null && (isNaN(trackConversionClean) || trackConversionClean <= 0)) {
+    return res.status(400).json({ error: 'Stock conversion must be a positive number.' });
+  }
+  if (trackUnitClean && trackConversionClean === null) {
+    return res.status(400).json({ error: 'Please enter how many units this converts to.' });
+  }
 
   try {
     const insertResult = await pool.query(`
-      INSERT INTO item_master (business_id, code, name, unit, current_price, vat_rate, supplier_id, last_ordered_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING id
-    `, [req.user.businessId, code, name, unit || 'each', currentPrice || 0, rate, supplierId || null]);
+      INSERT INTO item_master (business_id, code, name, unit, current_price, vat_rate, track_unit, track_conversion, supplier_id, last_ordered_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING id
+    `, [req.user.businessId, code, name, unit || 'each', currentPrice || 0, rate, trackUnitClean, trackConversionClean, supplierId || null]);
     const newId = insertResult.rows[0].id;
 
     await pool.query(`INSERT INTO item_price_history (item_id, price, source) VALUES ($1, $2, 'manual')`, [newId, currentPrice || 0]);
@@ -75,11 +83,19 @@ router.post('/', requireRole('admin', 'processor', 'developer'), async (req, res
 });
 
 router.put('/:id', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const { code, name, unit, currentPrice, supplierId, vatRate } = req.body || {};
+  const { code, name, unit, currentPrice, supplierId, vatRate, trackUnit, trackConversion } = req.body || {};
   if (!code || !name) return res.status(400).json({ error: 'Code and name are required.' });
   const rate = (vatRate === null || vatRate === undefined || vatRate === '') ? null : parseFloat(vatRate);
   if (rate !== null && (isNaN(rate) || rate < 0 || rate > 100)) {
     return res.status(400).json({ error: 'VAT rate must be between 0 and 100.' });
+  }
+  const trackUnitClean = (trackUnit && trackUnit.trim()) ? trackUnit.trim() : null;
+  const trackConversionClean = (trackConversion === null || trackConversion === undefined || trackConversion === '') ? null : parseFloat(trackConversion);
+  if (trackConversionClean !== null && (isNaN(trackConversionClean) || trackConversionClean <= 0)) {
+    return res.status(400).json({ error: 'Stock conversion must be a positive number.' });
+  }
+  if (trackUnitClean && trackConversionClean === null) {
+    return res.status(400).json({ error: 'Please enter how many units this converts to.' });
   }
 
   try {
@@ -91,9 +107,9 @@ router.put('/:id', requireRole('admin', 'processor', 'developer'), async (req, r
     if (!existing) return res.status(404).json({ error: 'Item not found.' });
 
     const result = await pool.query(`
-      UPDATE item_master SET code=$1, name=$2, unit=$3, current_price=$4, vat_rate=$5, supplier_id=$6
-      WHERE id=$7 AND business_id=$8
-    `, [code, name, unit || 'each', currentPrice || 0, rate, supplierId || null, req.params.id, req.user.businessId]);
+      UPDATE item_master SET code=$1, name=$2, unit=$3, current_price=$4, vat_rate=$5, track_unit=$6, track_conversion=$7, supplier_id=$8
+      WHERE id=$9 AND business_id=$10
+    `, [code, name, unit || 'each', currentPrice || 0, rate, trackUnitClean, trackConversionClean, supplierId || null, req.params.id, req.user.businessId]);
 
     if (result.rowCount === 0) return res.status(404).json({ error: 'Item not found.' });
 

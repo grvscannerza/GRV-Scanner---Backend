@@ -71,6 +71,13 @@ CREATE TABLE IF NOT EXISTS item_master (
   -- single supplier can sell both VAT-able and VAT-exempt items (e.g. basic
   -- zero-rated foodstuffs alongside standard-rated goods).
   vat_rate        REAL,
+  -- Optional per-item stock conversion, for businesses that track stock in a
+  -- different unit than how it's actually invoiced (e.g. a 750ml liquor
+  -- bottle tracked as 30 tots on their own stock system). NULL means no
+  -- conversion is set - the invoiced quantity/price used for VAT and totals
+  -- is never affected by this, it's purely an additional reference figure.
+  track_unit      TEXT,
+  track_conversion REAL,
   supplier_id     INTEGER REFERENCES suppliers(id),
   last_ordered_at TIMESTAMPTZ,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -165,6 +172,8 @@ ALTER TABLE businesses ADD COLUMN IF NOT EXISTS departments TEXT NOT NULL DEFAUL
 ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFAULT 15;
 ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS department TEXT;
 ALTER TABLE item_master ADD COLUMN IF NOT EXISTS vat_rate REAL;
+ALTER TABLE item_master ADD COLUMN IF NOT EXISTS track_unit TEXT;
+ALTER TABLE item_master ADD COLUMN IF NOT EXISTS track_conversion REAL;
 ALTER TABLE scan_line_items ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFAULT 15;
 -- Backfill: a supplier already marked 'exempt' under the old system should
 -- carry that forward as an actual 0% rate, not silently become 15%. Only
