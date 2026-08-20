@@ -2973,6 +2973,36 @@ function onSupChange(sel) {
 let uploadedImageBase64 = null;
 let uploadedImageMediaType = null;
 
+// Claude's vision API downscales large images internally anyway, so sending
+// a full-resolution phone photo (often 3-8MB) provides no real benefit and
+// risks the upload itself failing before it even reaches the API - this is
+// exactly what caused "Failed to fetch" for a large real invoice photo.
+// Resizing client-side keeps the upload small, fast, and reliable.
+function compressImageDataUrl(dataUrl, maxDimension) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = function () {
+      let { width, height } = img;
+      if (width <= maxDimension && height <= maxDimension) {
+        // Already small enough - no need to re-encode and lose quality for nothing
+        resolve(dataUrl);
+        return;
+      }
+      const scale = maxDimension / Math.max(width, height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => reject(new Error('Could not load the image for compression.'));
+    img.src = dataUrl;
+  });
+}
+
 function removeUploadedFile(event) {
   event.stopPropagation(); // otherwise this click would bubble up to the drop zone and reopen the file picker
   uploadedImageBase64 = null;
@@ -2987,7 +3017,7 @@ function removeUploadedFile(event) {
   updateScanBtnState();
 }
 
-function onInvoiceFileSelected(files) {
+async function onInvoiceFileSelected(files) {
   if (!files || !files.length) return;
   const file = files[0];
   if (!/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(file.type)) {
@@ -2995,8 +3025,16 @@ function onInvoiceFileSelected(files) {
     return;
   }
   const reader = new FileReader();
-  reader.onload = function(e) {
-    const dataUrl = e.target.result; // data:image/png;base64,XXXX or data:application/pdf;base64,XXXX
+  reader.onload = async function(e) {
+    let dataUrl = e.target.result; // data:image/png;base64,XXXX or data:application/pdf;base64,XXXX
+    const isPdfFile = file.type === 'application/pdf';
+    if (!isPdfFile) {
+      try {
+        dataUrl = await compressImageDataUrl(dataUrl, 1568);
+      } catch (err) {
+        console.error('Image compression failed, using the original file:', err.message);
+      }
+    }
     const commaIdx = dataUrl.indexOf(',');
     uploadedImageMediaType = dataUrl.substring(5, dataUrl.indexOf(';'));
     uploadedImageBase64 = dataUrl.substring(commaIdx + 1);
