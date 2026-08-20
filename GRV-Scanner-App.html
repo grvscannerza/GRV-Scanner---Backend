@@ -439,7 +439,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
 .im-pill{background:var(--surface2);border:1px solid var(--border-light);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--muted-light);}
 .im-pill strong{color:#fff;}
 .im-pill.warn{border-color:rgba(245,158,11,0.4);color:var(--warn);}
-.im-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;}
+.im-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;}
 .ims{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;border-top:3px solid var(--accent);}
 .ims.warn{border-top-color:var(--warn);}
 .ims.blue{border-top-color:var(--accent2);}
@@ -1323,7 +1323,6 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     <div class="im-stats">
       <div class="ims"><div class="ims-v" id="im-total-items">-</div><div class="ims-l">Total Items</div></div>
       <div class="ims warn"><div class="ims-v" id="im-price-increases">-</div><div class="ims-l">Price Increases</div></div>
-      <div class="ims blue"><div class="ims-v" id="im-total-spend">-</div><div class="ims-l">Total Spend</div></div>
       <div class="ims green"><div class="ims-v" id="im-auto-matched">-</div><div class="ims-l">Auto-Matched Last Scan</div></div>
     </div>
     <div class="toolbar-row">
@@ -4492,14 +4491,11 @@ function renderItemMaster() {
 
   const totalItemsEl = document.getElementById('im-total-items');
   const priceIncEl = document.getElementById('im-price-increases');
-  const totalSpendEl = document.getElementById('im-total-spend');
   const alertsCountEl = document.getElementById('im-alerts-count');
   if (totalItemsEl) totalItemsEl.textContent = filtered.length;
   const priceIncreaseCount = filtered.filter(it => it.change_pct != null && it.change_pct > 0).length;
   if (priceIncEl) priceIncEl.textContent = priceIncreaseCount;
   if (alertsCountEl) alertsCountEl.textContent = priceIncreaseCount;
-  const totalSpend = filtered.reduce((sum, it) => sum + Number(it.current_price || 0), 0);
-  if (totalSpendEl) totalSpendEl.textContent = fmtRand(totalSpend);
 }
 
 function populateItemMasterSupplierFilter() {
