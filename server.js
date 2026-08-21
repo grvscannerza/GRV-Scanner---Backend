@@ -19,7 +19,11 @@ const app = express();
 const billing = require('./routes/billing');
 app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), billing.webhookHandler);
 
-app.use(express.json());
+// Default 100kb is far too small for a base64-encoded invoice photo (even
+// compressed client-side, this can easily be a few hundred KB) - without
+// raising this, every scan gets silently rejected before reaching any route
+// at all, showing only a generic error with no useful detail.
+app.use(express.json({ limit: '15mb' }));
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }));
 
 app.use('/api/auth', require('./routes/auth'));
@@ -48,6 +52,9 @@ app.get('/', (req, res, next) => {
 // Catch-all error handler - never leak internal error details to the client.
 app.use((err, req, res, next) => {
   console.error(err);
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'That file is too large. Please try a smaller photo or a lower-resolution scan.' });
+  }
   res.status(500).json({ error: 'Something went wrong on our end.' });
 });
 
