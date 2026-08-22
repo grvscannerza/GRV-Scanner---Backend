@@ -224,4 +224,74 @@ router.patch('/:id/reject', requireRole('admin', 'processor', 'developer'), asyn
   }
 });
 
+// AI invoice extraction happens here, server-side, rather than the browser
+// calling Anthropic directly - a real API key can never be safely exposed to
+// client-side JS, and Anthropic's API doesn't support being called directly
+// from an arbitrary browser origin anyway (no CORS allowance for that).
+router.post('/extract', requireRole('admin', 'processor', 'dispatch', 'developer'), async (req, res) => {
+  const { mediaType, base64Data } = req.body || {};
+  if (!mediaType || !base64Data) {
+    return res.status(400).json({ error: 'Missing file data.' });
+  }
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(500).json({ error: 'Invoice scanning is not configured on this server yet. Contact support.' });
+  }
+
+  try {
+    const isPdf = mediaType === 'application/pdf';
+    const fileContentBlock = isPdf
+      ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Data } }
+      : { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } };
+
+    const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        messages: [{
+          role: 'user',
+          content: [
+            fileContentBlock,
+            { type: 'text', text: 'This is a photo or PDF of a supplier invoice or delivery note (GRV). Extract the invoice/document number and every line item. Respond with ONLY a raw JSON object, no markdown code fences, no prose before or after. The object must have exactly two fields: "invoiceNumber" (string, the invoice/GRV/document number as printed - if none is visible, use an empty string) and "items" (array). Each element of "items" must have exactly these fields: "desc" (string, product description), "code" (string, product code/SKU as printed on the invoice, or a short uppercase code you invent from the description if none is printed), "qty" (number), "unit" (string, e.g. "each", "box", "kg"), "up" (number, unit price in Rand, no currency symbol). If a field is not visible on the invoice, make a reasonable estimate rather than omitting it. Do not include VAT, totals, or header/footer rows in items - only product line items.' }
+          ]
+        }]
+      }),
+    });
+
+    if (!anthropicResponse.ok) {
+      const errData = await anthropicResponse.json().catch(() => ({}));
+      console.error('Anthropic API error:', anthropicResponse.status, errData);
+      return res.status(502).json({ error: `Invoice extraction failed (${anthropicResponse.status}). Please try again.` });
+    }
+
+    const data = await anthropicResponse.json();
+    const textBlock = (data.content || []).find(b => b.type === 'text');
+    if (!textBlock) {
+      return res.status(502).json({ error: 'No readable content came back from invoice extraction.' });
+    }
+
+    let jsonText = textBlock.text.trim();
+    // Strip markdown code fences if the model wrapped its JSON in them anyway
+    jsonText = jsonText.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (parseErr) {
+      console.error('Could not parse extraction response as JSON:', jsonText.slice(0, 500));
+      return res.status(502).json({ error: 'Could not read the invoice - the extraction result was not valid.' });
+    }
+
+    res.json(parsed);
+  } catch (err) {
+    console.error('Invoice extraction error:', err);
+    res.status(500).json({ error: 'Something went wrong while extracting the invoice. Please try again.' });
+  }
+});
+
 module.exports = router;
