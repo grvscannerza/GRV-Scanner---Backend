@@ -644,7 +644,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
 </div>
 
 <!-- HEADER -->
-<header>
+<header id="appHeader">
   <div style="display:flex;align-items:center;gap:14px;">
     <div class="logo">GRV<span>scanner</span></div>
   </div>
@@ -2398,6 +2398,8 @@ function updateHomeTiles() {
 }
 
 function applyRoleUI(role, displayName, initials) {
+  document.getElementById('appHeader').style.display = '';
+  document.getElementById('mainNav').style.display = '';
   currentRole = role;
   const isAdmin     = role === 'admin';
   const isProcessor = role === 'processor';
@@ -2554,6 +2556,17 @@ function showPublicPage(id) {
   if (target) target.classList.add('active');
   window.scrollTo(0, 0);
   if (id === 'plans-public') loadPublicPlansTable();
+
+  // The marketing pages (landing, story, plans, contact) already have their
+  // own complete header built in - the app's own header/nav bar would just
+  // duplicate it. Only the real login screen needs the app's own header.
+  const isRealLoginPage = id === 'login';
+  document.getElementById('appHeader').style.display = isRealLoginPage ? '' : 'none';
+  document.getElementById('mainNav').style.display = isRealLoginPage ? '' : 'none';
+  if (isRealLoginPage) {
+    document.getElementById('tab-login').style.display = '';
+    document.getElementById('tab-login').classList.add('active');
+  }
 }
 
 async function loadPublicPlansTable() {
@@ -6601,8 +6614,13 @@ async function loadInsights() {
 }
 
 // ── On load - set correct initial nav state ──
-document.getElementById('tab-login').style.display = '';
-document.getElementById('tab-login').classList.add('active');
+// The public landing page is the default now, not the login screen directly,
+// so this tab (and the bar it sits in) should start hidden - showPublicPage()
+// correctly shows it only once someone actually clicks through to Log In.
+document.getElementById('appHeader').style.display = 'none';
+document.getElementById('mainNav').style.display = 'none';
+document.getElementById('tab-login').style.display = 'none';
+document.getElementById('tab-login').classList.remove('active');
 document.getElementById('tab-home').style.display = 'none';
 document.getElementById('nav-breadcrumb').style.display = 'none';
 document.getElementById('nav-pending-badge').style.display = 'none';
