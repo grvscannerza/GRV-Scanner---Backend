@@ -6036,6 +6036,42 @@ function showDeleteConfirm() {
 // MODALS
 // ══════════════════════════════════════
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ══════════════════════════════════════
+// GLOBAL ENTER KEY HANDLING
+// ══════════════════════════════════════
+// Pressing Enter in any real text field should trigger that form's primary
+// action - matching what people expect everywhere else on the web. Rather
+// than wiring every single field by hand (easy to miss one), this finds the
+// correct primary button for whichever form/modal is actually open right now.
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter') return;
+  const target = e.target;
+  if (!target || !(target.tagName === 'INPUT' || target.tagName === 'SELECT')) return;
+  // A real INPUT already covers text/password/email/tel/number - textareas
+  // are deliberately excluded, since Enter there means "new line", not submit.
+
+  // Deliberately excluded entirely - these confirm irreversible actions
+  // (approve a scan, delete a supplier/business/account), and should only
+  // ever be triggered by a real, deliberate click, never an accidental Enter.
+  const excludedContainers = ['#approvalModal', '#warnModal', '#deleteModal', '#supplierDeleteImpactModal', '#deleteAccountModal', '#businessDeleteImpactModal'];
+  if (excludedContainers.some(sel => target.closest(sel))) return;
+
+  // Find whichever modal or page is actually open/active right now, and
+  // look for its real primary action button within that specific context.
+  const container = target.closest('.modal-overlay.open') || target.closest('.page.active');
+  if (!container) return;
+
+  const candidates = [...container.querySelectorAll('.login-submit, .m-save, .save-btn, .pub-cta-primary')]
+    .filter(btn => btn.offsetParent !== null && !btn.disabled)
+    .filter(btn => btn.textContent.trim().toUpperCase() !== 'BACK');
+
+  if (candidates.length > 0) {
+    e.preventDefault();
+    candidates[0].click();
+  }
+});
+
 let selectedVatType = 'vat';
 function selVat(el,type) { document.querySelectorAll('.vat-opt').forEach(o=>{o.classList.remove('sv','se');}); el.classList.add(type==='vat'?'sv':'se'); selectedVatType = type; }
 ['warnModal','dupModal','userModal','supModal','invoiceModal','deleteModal','resetPwModal','resetDoneModal'].forEach(id=>{
