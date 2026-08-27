@@ -266,7 +266,8 @@ router.post('/extract', requireRole('admin', 'processor', 'dispatch', 'developer
     if (!anthropicResponse.ok) {
       const errData = await anthropicResponse.json().catch(() => ({}));
       console.error('Anthropic API error:', anthropicResponse.status, errData);
-      return res.status(502).json({ error: `Invoice extraction failed (${anthropicResponse.status}). Please try again.` });
+      const realMessage = errData?.error?.message;
+      return res.status(502).json({ error: realMessage ? `Invoice extraction failed: ${realMessage}` : `Invoice extraction failed (${anthropicResponse.status}). Please try again.` });
     }
 
     const data = await anthropicResponse.json();
