@@ -180,3 +180,14 @@ ALTER TABLE scan_line_items ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFA
 -- touches rows still sitting at the fresh-column default, so this can't
 -- clobber a rate someone has already deliberately set through the new system.
 UPDATE suppliers SET vat_rate = 0 WHERE vat_type = 'exempt' AND vat_rate = 15;
+
+-- Public marketing site contact form submissions - genuinely stored, not
+-- silently discarded, since there's no email-sending service configured.
+CREATE TABLE IF NOT EXISTS contact_submissions (
+  id           SERIAL PRIMARY KEY,
+  name         TEXT NOT NULL,
+  phone        TEXT NOT NULL,
+  email        TEXT NOT NULL,
+  message      TEXT NOT NULL,
+  submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

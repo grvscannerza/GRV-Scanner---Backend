@@ -299,4 +299,17 @@ router.delete('/businesses/:id', async (req, res) => {
   }
 });
 
+// Public contact form submissions - visible only to the developer, since
+// there's no per-business scoping for these (they come from the public
+// marketing site, before anyone has an account).
+router.get('/contact-submissions', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM contact_submissions ORDER BY submitted_at DESC');
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 module.exports = router;

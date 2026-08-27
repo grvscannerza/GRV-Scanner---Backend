@@ -238,6 +238,45 @@ nav{display:flex;gap:2px;background:var(--card-header);border-bottom:2px solid v
 .info-icon:hover .info-tooltip{visibility:visible;opacity:1;}
 .tb-field label{position:absolute;top:7px;left:14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;pointer-events:none;}
 .tb-field label .req{color:#ff6b6b;}
+
+/* ══ Public marketing site ══ */
+.pub-header{background:#000;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.pub-logo{font-size:22px;font-weight:900;letter-spacing:2px;font-family:'Inter',sans-serif;}
+.pub-logo span:first-child{color:#c8f135;}
+.pub-logo span:last-child{color:#fff;}
+.pub-nav{display:flex;align-items:center;flex-wrap:wrap;}
+.pub-nav-link{color:#8faac3;font-size:14px;font-weight:500;cursor:pointer;transition:color 0.15s;margin-right:28px;}
+.pub-nav-link:hover{color:#fff;}
+.pub-login-btn{background:transparent;border:1px solid #1e3a5f;color:#fff;padding:9px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+.pub-login-btn:hover{border-color:#c8f135;color:#c8f135;}
+.pub-hero{max-width:720px;margin:80px auto 60px;padding:0 32px;text-align:center;}
+.pub-hero-title{font-size:44px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.15;margin-bottom:20px;}
+.pub-hero-sub{font-size:17px;color:#8faac3;line-height:1.6;margin-bottom:36px;}
+.pub-hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.pub-cta-primary{background:#c8f135;color:#000;border:none;padding:14px 30px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+.pub-cta-primary:hover{opacity:0.9;}
+.pub-cta-secondary{background:transparent;border:1px solid #1e3a5f;color:#fff;padding:14px 30px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+.pub-cta-secondary:hover{border-color:#c8f135;color:#c8f135;}
+.pub-features{max-width:1080px;margin:0 auto 80px;padding:0 32px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.pub-feature-card{background:#112240;border:1px solid #1e3a5f;border-radius:14px;padding:26px 22px;}
+.pub-feature-icon{margin-bottom:16px;}
+.pub-feature-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;}
+.pub-feature-desc{font-size:13px;color:#8faac3;line-height:1.6;}
+.pub-footer{text-align:center;padding:28px 0;color:#5a7291;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:1px;}
+.pub-content{max-width:900px;margin:0 auto;padding:60px 32px 40px;width:100%;}
+.pub-page-title{font-size:32px;font-weight:900;color:#fff;letter-spacing:-0.5px;margin-bottom:8px;}
+.pub-page-sub{font-size:14px;color:#8faac3;margin-bottom:28px;}
+.pub-story-text p{font-size:15px;color:#c3d3e5;line-height:1.8;margin-bottom:20px;max-width:680px;}
+.pub-plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px;}
+.pub-plan-col{background:#112240;border:1px solid #1e3a5f;border-radius:14px;padding:26px 22px;}
+.pub-plan-col.popular{border-color:#c8f135;position:relative;}
+.pub-plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#c8f135;color:#000;font-size:10px;font-weight:800;letter-spacing:0.5px;padding:3px 12px;border-radius:20px;text-transform:uppercase;}
+.pub-plan-name{font-size:18px;font-weight:800;color:#fff;text-align:center;margin-bottom:4px;}
+.pub-plan-price{font-size:28px;font-weight:900;color:#c8f135;text-align:center;font-family:'DM Mono',monospace;margin-bottom:20px;}
+.pub-plan-price span{font-size:13px;color:#8faac3;font-weight:400;font-family:'Inter',sans-serif;}
+.pub-plan-row{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-top:1px solid #1e3a5f;font-size:13px;color:#c3d3e5;}
+.pub-plan-row:first-of-type{border-top:none;}
+.pub-plan-check{flex-shrink:0;margin-top:1px;}
 .tb-field input{width:100%;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;}
 .tb-field input:focus{border-color:var(--accent);}
 .login-submit{width:100%;padding:13px;background:var(--accent);color:#0a1628;border:none;border-radius:var(--radius);font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(200,241,53,0.3);transition:opacity 0.2s;font-family:'Inter',sans-serif;margin-top:4px;}
@@ -815,7 +854,113 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
 </div>
 
 <!-- ══════ PAGE: LOGIN ══════ -->
-<div class="page active" id="page-login">
+<!-- ══════ PUBLIC MARKETING SITE ══════ -->
+<div class="page active" id="page-landing">
+  <div class="pub-header">
+    <div class="pub-logo"><span>GRV</span><span>SCANNER</span></div>
+    <div class="pub-nav">
+      <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
+      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
+      <button class="pub-login-btn" onclick="showPublicPage('login')">Log in</button>
+    </div>
+  </div>
+  <div class="pub-hero">
+    <div class="pub-hero-title">Stop typing invoices by hand.</div>
+    <div class="pub-hero-sub">Scan any supplier invoice, get real line items in seconds. Powered by AI, built for South African businesses.</div>
+    <div class="pub-hero-actions">
+      <button class="pub-cta-primary" onclick="showPublicPage('login')">Get Started</button>
+      <button class="pub-cta-secondary" onclick="showPublicPage('plans-public')">See Plans</button>
+    </div>
+  </div>
+  <div class="pub-features">
+    <div class="pub-feature-card">
+      <div class="pub-feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="pub-feature-title">Save Time</div>
+      <div class="pub-feature-desc">No more manually typing line items. Scan an invoice, review it, done - in seconds, not minutes.</div>
+    </div>
+    <div class="pub-feature-card">
+      <div class="pub-feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+      <div class="pub-feature-title">Save Money</div>
+      <div class="pub-feature-desc">Catch price increases and duplicate invoices automatically, before they quietly cost you.</div>
+    </div>
+    <div class="pub-feature-card">
+      <div class="pub-feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <div class="pub-feature-title">Work Efficiently</div>
+      <div class="pub-feature-desc">One clear system for suppliers, pricing, and stock - instead of scattered spreadsheets and paper.</div>
+    </div>
+    <div class="pub-feature-card">
+      <div class="pub-feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 014 4c0 1.5-.8 2.8-2 3.5V12h2a2 2 0 012 2v2a2 2 0 01-2 2h-1v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2H8a2 2 0 01-2-2v-2a2 2 0 012-2h2V9.5C8.8 8.8 8 7.5 8 6a4 4 0 014-4z"/></svg></div>
+      <div class="pub-feature-title">Powered by AI</div>
+      <div class="pub-feature-desc">Real AI reads the invoice for you - handwriting, stamps, and all - and turns it into clean, usable data.</div>
+    </div>
+  </div>
+  <div class="pub-footer">GRVSCANNER.CO.ZA</div>
+</div>
+
+<div class="page" id="page-story">
+  <div class="pub-header">
+    <div class="pub-logo"><span>GRV</span><span>SCANNER</span></div>
+    <div class="pub-nav">
+      <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
+      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
+      <button class="pub-login-btn" onclick="showPublicPage('login')">Log in</button>
+    </div>
+  </div>
+  <div class="pub-content">
+    <div class="pub-page-title">Our Story</div>
+    <div class="pub-story-text">
+      <p>GRV Scanner started with a simple, everyday frustration: hours spent manually typing supplier invoices into spreadsheets, line by line, invoice by invoice - time that should have gone into actually running the business.</p>
+      <p>We built GRV Scanner to solve that one problem properly. Point your phone at an invoice, and AI reads it for you - the supplier, the items, the prices, the VAT - turning a stack of paper into clean, usable data in seconds.</p>
+      <p>Today, GRV Scanner helps South African businesses track suppliers, catch price increases before they add up, and keep their stock and spending under control - without the manual admin that used to eat up every afternoon.</p>
+    </div>
+  </div>
+  <div class="pub-footer">GRVSCANNER.CO.ZA</div>
+</div>
+
+<div class="page" id="page-plans-public">
+  <div class="pub-header">
+    <div class="pub-logo"><span>GRV</span><span>SCANNER</span></div>
+    <div class="pub-nav">
+      <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
+      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
+      <button class="pub-login-btn" onclick="showPublicPage('login')">Log in</button>
+    </div>
+  </div>
+  <div class="pub-content">
+    <div class="pub-page-title">Plans</div>
+    <div id="pubPlansTable">Loading...</div>
+  </div>
+  <div class="pub-footer">GRVSCANNER.CO.ZA</div>
+</div>
+
+<div class="page" id="page-contact-public">
+  <div class="pub-header">
+    <div class="pub-logo"><span>GRV</span><span>SCANNER</span></div>
+    <div class="pub-nav">
+      <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
+      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
+      <button class="pub-login-btn" onclick="showPublicPage('login')">Log in</button>
+    </div>
+  </div>
+  <div class="pub-content" style="max-width:520px;">
+    <div class="pub-page-title">Contact Us</div>
+    <div class="pub-page-sub">Have a question? Send us a message and we'll get back to you.</div>
+    <div id="pubContactSuccess" style="display:none;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:var(--success);border-radius:var(--radius);padding:12px 16px;font-size:13px;margin-bottom:16px;">Thanks - your message has been sent. We'll be in touch soon.</div>
+    <div id="pubContactError" style="display:none;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:12px 16px;font-size:13px;margin-bottom:16px;"></div>
+    <div class="tb-field"><label>Name <span class="req">*</span></label><input id="pub-contact-name"/></div>
+    <div class="tb-field"><label>Cellphone Number <span class="req">*</span></label><input id="pub-contact-phone" type="tel"/></div>
+    <div class="tb-field"><label>Email Address <span class="req">*</span></label><input id="pub-contact-email" type="email"/></div>
+    <div class="tb-field"><label>Your Query <span class="req">*</span></label><textarea id="pub-contact-message" rows="5" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:22px 14px 8px;color:var(--text-body);font-size:13px;font-family:'Inter',sans-serif;outline:none;resize:vertical;"></textarea></div>
+    <button class="pub-cta-primary" style="width:100%;margin-top:8px;" onclick="submitPublicContactForm(this)">Send Message</button>
+  </div>
+  <div class="pub-footer">GRVSCANNER.CO.ZA</div>
+</div>
+
+<div class="page" id="page-login">
   <div class="login-left">
     <div class="login-logo">GRV<span>scanner</span></div>
     <div class="login-tagline">Stop typing invoices.<br>Start scanning them.</div>
@@ -2397,6 +2542,94 @@ async function restoreSession() {
     safeStorageRemove('grv_last_page');
     resetHeaderToLoggedOutState();
     return false;
+  }
+}
+
+// ══════════════════════════════════════
+// PUBLIC MARKETING SITE
+// ══════════════════════════════════════
+function showPublicPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById(`page-${id}`);
+  if (target) target.classList.add('active');
+  window.scrollTo(0, 0);
+  if (id === 'plans-public') loadPublicPlansTable();
+}
+
+async function loadPublicPlansTable() {
+  const el = document.getElementById('pubPlansTable');
+  if (!el) return;
+  try {
+    const features = await (await fetch(`${API_BASE}/public/plan-features`)).json();
+    const plans = [
+      { key: 'starter', name: 'Starter', price: 649 },
+      { key: 'professional', name: 'Professional', price: 1199, popular: true },
+      { key: 'enterprise', name: 'Enterprise', price: 2999 },
+    ];
+    const checkSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pub-plan-check"><polyline points="20 6 9 17 4 12"/></svg>';
+    const crossSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5a7291" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pub-plan-check"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+    el.innerHTML = `<div class="pub-plans-grid">` + plans.map(p => {
+      const f = features[p.key];
+      const rows = [
+        `${f.scanLimit} scans per month`,
+        f.staffLimit === 0 ? 'Admin account only' : f.staffLimit === null ? 'Unlimited staff accounts' : `Up to ${f.staffLimit} staff accounts`,
+        f.historyLimitDays === null ? 'Unlimited scan history' : `${f.historyLimitDays}-day scan history`,
+        f.duplicateDetection ? [true, 'Duplicate invoice detection'] : [false, 'Duplicate invoice detection'],
+        f.priceIncreaseDetection ? [true, 'Price increase alerts'] : [false, 'Price increase alerts'],
+        f.fullInsights ? [true, 'Full insights & analytics'] : [false, 'Full insights & analytics'],
+      ];
+      const rowsHtml = rows.map(r => {
+        const [has, label] = Array.isArray(r) ? r : [true, r];
+        return `<div class="pub-plan-row">${has ? checkSvg : crossSvg}<span>${label}</span></div>`;
+      }).join('');
+      return `<div class="pub-plan-col ${p.popular ? 'popular' : ''}">${p.popular ? '<div class="pub-plan-badge">Most Popular</div>' : ''}<div class="pub-plan-name">${p.name}</div><div class="pub-plan-price">R${p.price.toLocaleString()}<span>/mo</span></div>${rowsHtml}</div>`;
+    }).join('') + `</div>`;
+  } catch (err) {
+    el.innerHTML = '<div style="color:var(--danger);">Could not load plan details right now.</div>';
+  }
+}
+
+async function submitPublicContactForm(btn) {
+  const errEl = document.getElementById('pubContactError');
+  const successEl = document.getElementById('pubContactSuccess');
+  errEl.style.display = 'none';
+  successEl.style.display = 'none';
+
+  const name = document.getElementById('pub-contact-name').value.trim();
+  const phone = document.getElementById('pub-contact-phone').value.trim();
+  const email = document.getElementById('pub-contact-email').value.trim();
+  const message = document.getElementById('pub-contact-message').value.trim();
+
+  if (!name || !phone || !email || !message) {
+    errEl.textContent = 'Please fill in every field.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  try {
+    const response = await fetch(`${API_BASE}/public/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, email, message }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Could not send your message. Please try again.');
+
+    successEl.style.display = 'block';
+    document.getElementById('pub-contact-name').value = '';
+    document.getElementById('pub-contact-phone').value = '';
+    document.getElementById('pub-contact-email').value = '';
+    document.getElementById('pub-contact-message').value = '';
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
   }
 }
 

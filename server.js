@@ -26,6 +26,35 @@ app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), bill
 app.use(express.json({ limit: '15mb' }));
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }));
 
+// Public marketing page needs this too, but visitors aren't logged in yet -
+// this is the ONLY place plan numbers should ever be read for that page, so
+// it can never say something different from what the app actually delivers.
+app.get('/api/public/plan-features', (req, res) => {
+  const { PLAN_FEATURES } = require('./routes/planFeatures');
+  res.json(PLAN_FEATURES);
+});
+
+app.post('/api/public/contact', async (req, res) => {
+  const { name, phone, email, message } = req.body || {};
+  if (!name?.trim() || !phone?.trim() || !email?.trim() || !message?.trim()) {
+    return res.status(400).json({ error: 'Please fill in every field.' });
+  }
+  if (!email.includes('@')) {
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
+  }
+  try {
+    const { pool } = require('./db');
+    await pool.query(
+      'INSERT INTO contact_submissions (name, phone, email, message) VALUES ($1, $2, $3, $4)',
+      [name.trim(), phone.trim(), email.trim(), message.trim()]
+    );
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/signup', require('./routes/signup'));
 app.use('/api/users', require('./routes/users'));
