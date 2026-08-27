@@ -646,9 +646,14 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
 <!-- HEADER -->
 <header id="appHeader">
   <div style="display:flex;align-items:center;gap:14px;">
-    <div class="logo">GRV<span>scanner</span></div>
+    <div class="logo" id="appHeaderLogo" onclick="if (!authToken) showPublicPage('landing');" style="cursor:pointer;">GRV<span>scanner</span></div>
   </div>
   <div class="header-right">
+    <div id="loginPageNavLinks" style="display:none;align-items:center;gap:28px;">
+      <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
+      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
+    </div>
     <!-- Demo role switcher -->
     <div class="role-switcher" style="display:none;">
       <span>VIEW AS:</span>
@@ -2400,6 +2405,7 @@ function updateHomeTiles() {
 function applyRoleUI(role, displayName, initials) {
   document.getElementById('appHeader').style.display = '';
   document.getElementById('mainNav').style.display = '';
+  document.getElementById('loginPageNavLinks').style.display = 'none';
   currentRole = role;
   const isAdmin     = role === 'admin';
   const isProcessor = role === 'processor';
@@ -2559,14 +2565,13 @@ function showPublicPage(id) {
 
   // The marketing pages (landing, story, plans, contact) already have their
   // own complete header built in - the app's own header/nav bar would just
-  // duplicate it. Only the real login screen needs the app's own header.
+  // duplicate it. The real login screen needs the app's own header (for the
+  // logo), but not the old "Login" nav tab - it gets the same nav links
+  // instead, matching the rest of the public site.
   const isRealLoginPage = id === 'login';
   document.getElementById('appHeader').style.display = isRealLoginPage ? '' : 'none';
-  document.getElementById('mainNav').style.display = isRealLoginPage ? '' : 'none';
-  if (isRealLoginPage) {
-    document.getElementById('tab-login').style.display = '';
-    document.getElementById('tab-login').classList.add('active');
-  }
+  document.getElementById('mainNav').style.display = 'none';
+  document.getElementById('loginPageNavLinks').style.display = isRealLoginPage ? 'flex' : 'none';
 }
 
 async function loadPublicPlansTable() {
