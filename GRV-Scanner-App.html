@@ -301,6 +301,33 @@ nav{display:flex;gap:2px;background:var(--card-header);border-bottom:2px solid v
 .pub-vis-item{display:flex;align-items:flex-start;padding:13px 0;border-top:1px solid rgba(255,255,255,0.07);font-size:14px;color:#dbe7f3;line-height:1.55;}
 .pub-vis-item:first-of-type{border-top:none;padding-top:4px;}
 .pub-vis-item svg{flex-shrink:0;margin-top:2px;margin-right:14px;}
+
+.pub-whofor{max-width:1080px;margin:0 auto 90px;padding:0 32px;}
+.pub-whofor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:32px;}
+.pub-whofor-item{background:#112240;border:1px solid #1e3a5f;border-radius:12px;padding:22px 16px;text-align:center;font-size:13px;color:#c3d3e5;font-weight:500;}
+.pub-whofor-item svg{display:block;margin:0 auto 12px;}
+
+.pub-compare{max-width:1080px;margin:0 auto 90px;padding:0 32px;}
+.pub-compare-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;margin-top:32px;}
+.pub-compare-col{border-radius:16px;padding:28px 30px;}
+.pub-compare-col.old{background:rgba(255,107,107,0.05);border:1px solid rgba(255,107,107,0.2);}
+.pub-compare-col.new{background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.2);}
+.pub-compare-heading{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#8faac3;margin-bottom:18px;}
+.pub-compare-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;font-size:14px;color:#dbe7f3;line-height:1.5;}
+.pub-compare-row svg{flex-shrink:0;margin-top:2px;}
+
+.pub-faq{max-width:760px;margin:0 auto 90px;padding:0 32px;}
+.pub-faq-list{margin-top:32px;}
+.pub-faq-item{border-bottom:1px solid #1e3a5f;}
+.pub-faq-q{display:flex;justify-content:space-between;align-items:center;padding:20px 4px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;}
+.pub-faq-arrow{color:#c8f135;font-size:20px;font-weight:400;flex-shrink:0;margin-left:16px;transition:transform 0.2s;}
+.pub-faq-item.open .pub-faq-arrow{transform:rotate(45deg);}
+.pub-faq-a{display:none;padding:0 4px 20px;font-size:14px;color:#8faac3;line-height:1.6;max-width:640px;}
+.pub-faq-item.open .pub-faq-a{display:block;}
+
+.pub-closing{max-width:640px;margin:0 auto 70px;padding:56px 32px;text-align:center;background:linear-gradient(160deg,rgba(200,241,53,0.07),rgba(125,211,252,0.03));border:1px solid rgba(200,241,53,0.2);border-radius:20px;}
+.pub-closing-title{font-size:30px;font-weight:800;color:#fff;letter-spacing:-0.5px;margin-bottom:10px;}
+.pub-closing-sub{font-size:14px;color:#8faac3;margin-bottom:26px;}
 .pub-content{max-width:900px;margin:0 auto;padding:60px 32px 40px;width:100%;}
 .pub-page-title{font-size:32px;font-weight:900;color:#fff;letter-spacing:-0.5px;margin-bottom:8px;}
 .pub-page-sub{font-size:14px;color:#8faac3;margin-bottom:28px;}
@@ -1006,6 +1033,81 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div class="pub-vis-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Export to CSV or Excel any time - your data is always yours to take with you</span></div>
     </div>
   </div>
+
+  <div class="pub-whofor">
+    <div class="pub-page-title" style="text-align:center;font-size:26px;">Built for anyone who deals with invoices</div>
+    <div class="pub-whofor-grid">
+      <div class="pub-whofor-item">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2l1.5 1.5L6 2l1.5 1.5L9 2l1.5 1.5L12 2l1.5 1.5L15 2l1.5 1.5L18 2l1.5 1.5L21 2v18a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
+        <span>Restaurants and grill houses</span>
+      </div>
+      <div class="pub-whofor-item">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v4H3zM5 7v13h14V7M9 21V11h6v10"/></svg>
+        <span>Retail and supermarkets</span>
+      </div>
+      <div class="pub-whofor-item">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <span>Anyone with a dispatch or receiving process</span>
+      </div>
+      <div class="pub-whofor-item">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>One-person businesses doing it all themselves</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pub-compare">
+    <div class="pub-page-title" style="text-align:center;">The old way vs. GRV Scanner</div>
+    <div class="pub-compare-grid">
+      <div class="pub-compare-col old">
+        <div class="pub-compare-heading">The old way</div>
+        <div class="pub-compare-row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span>Someone retypes every invoice line by hand</span></div>
+        <div class="pub-compare-row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span>Price increases go unnoticed for months</span></div>
+        <div class="pub-compare-row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span>Paper invoices pile up, get lost, or get damaged</span></div>
+        <div class="pub-compare-row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span>No real answer to "what did we spend last month?"</span></div>
+      </div>
+      <div class="pub-compare-col new">
+        <div class="pub-compare-heading">With GRV Scanner</div>
+        <div class="pub-compare-row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>A photo on a phone, done in seconds</span></div>
+        <div class="pub-compare-row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Flagged automatically, the moment it happens</span></div>
+        <div class="pub-compare-row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Every invoice, searchable, forever</span></div>
+        <div class="pub-compare-row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>A real answer, broken down by supplier or department</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pub-faq">
+    <div class="pub-page-title" style="text-align:center;">Common questions</div>
+    <div class="pub-faq-list">
+      <div class="pub-faq-item">
+        <div class="pub-faq-q" onclick="toggleFaq(this)">What if the invoice is handwritten or a bit messy?<span class="pub-faq-arrow">+</span></div>
+        <div class="pub-faq-a">AI reads it regardless - handwriting, stamps, creases, whatever's actually on the page. If anything's genuinely unclear, your processor can correct it before approving.</div>
+      </div>
+      <div class="pub-faq-item">
+        <div class="pub-faq-q" onclick="toggleFaq(this)">Do I need to change how my staff currently work?<span class="pub-faq-arrow">+</span></div>
+        <div class="pub-faq-a">Barely. Dispatch keeps doing exactly what they do now, they just photograph the invoice instead of filing it. Nothing else about receiving changes.</div>
+      </div>
+      <div class="pub-faq-item">
+        <div class="pub-faq-q" onclick="toggleFaq(this)">I'm a small business and do everything myself - does this still work?<span class="pub-faq-arrow">+</span></div>
+        <div class="pub-faq-a">Yes. One person can scan, review, and approve their own invoices - there's no requirement to have separate dispatch and processor staff.</div>
+      </div>
+      <div class="pub-faq-item">
+        <div class="pub-faq-q" onclick="toggleFaq(this)">What if the AI gets something wrong?<span class="pub-faq-arrow">+</span></div>
+        <div class="pub-faq-a">Nothing is final until your processor reviews and approves it. Anything can be corrected before it becomes part of your real records.</div>
+      </div>
+      <div class="pub-faq-item">
+        <div class="pub-faq-q" onclick="toggleFaq(this)">Can I get my data out if I ever want to leave?<span class="pub-faq-arrow">+</span></div>
+        <div class="pub-faq-a">Yes, any time - export your full history to CSV or Excel whenever you like. It's your data.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pub-closing">
+    <div class="pub-closing-title">Ready to stop typing invoices?</div>
+    <div class="pub-closing-sub">Get set up in minutes. No credit card needed to see how it works.</div>
+    <button class="pub-cta-primary" onclick="showPublicPage('login')" style="padding:15px 34px;font-size:16px;">Get Started</button>
+  </div>
+
   <div class="pub-footer">GRVSCANNER.CO.ZA</div>
 </div>
 
@@ -2665,6 +2767,14 @@ async function restoreSession() {
 // ══════════════════════════════════════
 // PUBLIC MARKETING SITE
 // ══════════════════════════════════════
+function toggleFaq(el) {
+  const item = el.closest('.pub-faq-item');
+  const wasOpen = item.classList.contains('open');
+  // Only one FAQ answer open at a time - closing the others keeps the list tidy
+  document.querySelectorAll('.pub-faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+
 function showPublicPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById(`page-${id}`);
