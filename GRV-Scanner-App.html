@@ -283,13 +283,21 @@ nav{display:flex;gap:2px;background:var(--card-header);border-bottom:2px solid v
 .pub-feature-desc{font-size:13px;color:#8faac3;line-height:1.6;}
 .pub-footer{text-align:center;padding:28px 0;color:#5a7291;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:1px;}
 .pub-howitworks{max-width:1080px;margin:0 auto 90px;padding:0 32px;}
-.pub-flow{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:36px;margin-top:44px;}
-.pub-flow-line{position:absolute;top:22px;left:calc(16.66% + 10px);right:calc(16.66% + 10px);height:1px;background:linear-gradient(90deg,rgba(200,241,53,0.5),rgba(200,241,53,0.15));z-index:0;}
-.pub-flow-step{position:relative;z-index:1;}
+.pub-flow{position:relative;display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:start;margin-top:50px;column-gap:8px;}
+.pub-flow-step{position:relative;}
+.pub-flow-step-2{margin-top:70px;}
+.pub-flow-step-3{margin-top:140px;}
+.pub-flow-connector{align-self:center;opacity:0.8;}
+.pub-flow-connector:first-of-type{margin-top:35px;}
+.pub-flow-connector:last-of-type{margin-top:105px;}
 .pub-flow-node{width:44px;height:44px;border-radius:50%;background:#0a1628;border:1.5px solid #c8f135;color:#c8f135;font-family:'DM Mono',monospace;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
 .pub-flow-icon{margin-bottom:12px;}
 .pub-flow-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;}
 .pub-flow-desc{font-size:13px;color:#8faac3;line-height:1.6;max-width:280px;}
+.pub-visibility{max-width:1080px;margin:0 auto 90px;padding:0 32px;display:grid;grid-template-columns:1fr 1fr;column-gap:60px;}
+.pub-vis-item{display:flex;align-items:flex-start;padding:11px 0;border-top:1px solid #1e3a5f;font-size:14px;color:#c3d3e5;line-height:1.55;}
+.pub-vis-item:first-of-type{border-top:none;}
+.pub-vis-item svg{flex-shrink:0;margin-top:2px;margin-right:12px;}
 .pub-content{max-width:900px;margin:0 auto;padding:60px 32px 40px;width:100%;}
 .pub-page-title{font-size:32px;font-weight:900;color:#fff;letter-spacing:-0.5px;margin-bottom:8px;}
 .pub-page-sub{font-size:14px;color:#8faac3;margin-bottom:28px;}
@@ -954,25 +962,45 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     <div class="pub-page-title" style="text-align:center;">How it works</div>
     <div class="pub-page-sub" style="text-align:center;">From delivery to approved record, in three steps.</div>
     <div class="pub-flow">
-      <div class="pub-flow-line"></div>
-      <div class="pub-flow-step">
+      <div class="pub-flow-step pub-flow-step-1">
         <div class="pub-flow-node">1</div>
         <div class="pub-flow-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
         <div class="pub-flow-title">Dispatch scans the invoice</div>
         <div class="pub-flow-desc">When a delivery arrives, dispatch takes a photo on their phone - no typing, no paperwork to file.</div>
       </div>
-      <div class="pub-flow-step">
+      <div class="pub-flow-connector"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#1e3a5f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 9 17 17 9 17"/></svg></div>
+      <div class="pub-flow-step pub-flow-step-2">
         <div class="pub-flow-node">2</div>
         <div class="pub-flow-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
         <div class="pub-flow-title">It uploads, AI reads it</div>
         <div class="pub-flow-desc">The photo uploads instantly - AI extracts the supplier, every item, and the price, ready in seconds.</div>
       </div>
-      <div class="pub-flow-step">
+      <div class="pub-flow-connector"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#1e3a5f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 9 17 17 9 17"/></svg></div>
+      <div class="pub-flow-step pub-flow-step-3">
         <div class="pub-flow-node">3</div>
         <div class="pub-flow-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
         <div class="pub-flow-title">Processor approves or edits</div>
         <div class="pub-flow-desc">Your processor reviews it, fixes anything that needs it, then approves - locking it in as a clean record.</div>
       </div>
+    </div>
+  </div>
+
+  <div class="pub-visibility">
+    <div class="pub-visibility-col">
+      <div class="pub-page-title" style="font-size:26px;">See everything</div>
+      <div class="pub-page-sub" style="margin-bottom:22px;">Real data, updated the moment a scan is approved.</div>
+      <div class="pub-vis-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Exactly what you're spending, broken down by supplier or department</span></div>
+      <div class="pub-vis-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>A full price history for every product, so a quiet increase never slips past you</span></div>
+      <div class="pub-vis-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Daily summaries and monthly insights, without building a single spreadsheet</span></div>
+      <div class="pub-vis-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Every invoice ever scanned, searchable, never a paper record lost again</span></div>
+    </div>
+    <div class="pub-visibility-col">
+      <div class="pub-page-title" style="font-size:26px;">Stay in control</div>
+      <div class="pub-page-sub" style="margin-bottom:22px;">Nothing changes your records without you deciding it should.</div>
+      <div class="pub-vis-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Nothing is locked in until a processor reviews and approves it</span></div>
+      <div class="pub-vis-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Decide exactly who can scan, who can approve, and who can see what</span></div>
+      <div class="pub-vis-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Your own VAT rates, set per supplier or per product - not a fixed default</span></div>
+      <div class="pub-vis-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Export to CSV or Excel any time - your data is always yours to take with you</span></div>
     </div>
   </div>
   <div class="pub-footer">GRVSCANNER.CO.ZA</div>
