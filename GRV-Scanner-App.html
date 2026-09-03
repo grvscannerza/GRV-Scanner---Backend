@@ -252,27 +252,44 @@ nav{display:flex;gap:2px;background:var(--card-header);border-bottom:2px solid v
 .pub-nav-link:hover{color:#fff;}
 .pub-login-btn{background:transparent;border:1px solid #1e3a5f;color:#fff;padding:9px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
 .pub-login-btn:hover{border-color:#c8f135;color:#c8f135;}
-.pub-hero{max-width:720px;margin:80px auto 60px;padding:0 32px;text-align:center;}
-.pub-hero-title{font-size:44px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.15;margin-bottom:20px;}
-.pub-hero-sub{font-size:17px;color:#8faac3;line-height:1.6;margin-bottom:36px;}
-.pub-hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.pub-hero{max-width:1100px;margin:70px auto 90px;padding:0 40px;display:flex;align-items:center;}
+.pub-hero-left{flex:1;min-width:320px;margin-right:60px;}
+.pub-hero-title{font-size:52px;font-weight:800;color:#fff;letter-spacing:-1.5px;line-height:1.08;margin-bottom:22px;}
+.pub-hero-sub{font-size:16px;color:#8faac3;line-height:1.65;margin-bottom:32px;max-width:440px;}
+.pub-hero-actions{display:flex;gap:14px;flex-wrap:wrap;}
+.pub-hero-right{flex:1;min-width:280px;display:flex;align-items:center;justify-content:center;}
+.pub-invoice-mock{background:#f4f1e8;border-radius:6px;padding:22px 18px;width:150px;transform:rotate(-4deg);box-shadow:0 20px 50px rgba(0,0,0,0.45);margin-right:18px;}
+.pub-invoice-mock-line{height:7px;background:#0a1628;opacity:0.15;border-radius:2px;margin-bottom:11px;}
+.pub-invoice-mock-line:last-child{margin-bottom:0;}
+.pub-arrow{flex-shrink:0;opacity:0.85;margin-right:18px;}
+.pub-data-mock{background:#0d1f3c;border:1px solid #1e3a5f;border-radius:10px;padding:16px 18px;width:220px;transform:rotate(2deg);box-shadow:0 20px 50px rgba(0,0,0,0.45);}
+.pub-data-row{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#c3d3e5;padding:7px 0;border-bottom:1px solid rgba(30,58,95,0.6);}
+.pub-data-row:last-child{border-bottom:none;}
+.pub-data-row.total{color:#c8f135;font-weight:700;}
+.pub-data-num{font-family:'DM Mono',monospace;color:#7dd3fc;flex-shrink:0;}
+.pub-data-row.total .pub-data-num{color:#c8f135;}
 .pub-cta-primary{background:#c8f135;color:#000;border:none;padding:14px 30px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
 .pub-cta-primary:hover{opacity:0.9;}
 .pub-cta-secondary{background:transparent;border:1px solid #1e3a5f;color:#fff;padding:14px 30px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
 .pub-cta-secondary:hover{border-color:#c8f135;color:#c8f135;}
-.pub-features{max-width:1080px;margin:0 auto 80px;padding:0 32px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.pub-features{max-width:1080px;margin:0 auto 20px;padding:0 32px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.pub-ai-band{max-width:1080px;margin:0 auto 90px;padding:36px 40px;display:flex;align-items:center;background:linear-gradient(135deg,rgba(200,241,53,0.09),rgba(125,211,252,0.05));border:1px solid rgba(200,241,53,0.25);border-radius:16px;}
+.pub-ai-band-icon{flex-shrink:0;margin-right:28px;}
+.pub-ai-band-title{font-size:19px;font-weight:700;color:#fff;margin-bottom:8px;}
+.pub-ai-band-desc{font-size:14px;color:#b8cfe4;line-height:1.65;max-width:640px;}
 .pub-feature-card{background:#112240;border:1px solid #1e3a5f;border-radius:14px;padding:26px 22px;}
 .pub-feature-icon{margin-bottom:16px;}
 .pub-feature-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;}
 .pub-feature-desc{font-size:13px;color:#8faac3;line-height:1.6;}
 .pub-footer{text-align:center;padding:28px 0;color:#5a7291;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:1px;}
-.pub-howitworks{max-width:1080px;margin:0 auto 80px;padding:0 32px;}
-.pub-steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:32px;}
-.pub-step-card{background:#112240;border:1px solid #1e3a5f;border-radius:14px;padding:28px 24px;text-align:center;position:relative;}
-.pub-step-num{display:inline-block;background:rgba(200,241,53,0.12);color:#c8f135;font-size:11px;font-weight:800;letter-spacing:1px;padding:4px 14px;border-radius:20px;font-family:'DM Mono',monospace;margin-bottom:16px;}
-.pub-step-icon{margin-bottom:14px;}
-.pub-step-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:10px;}
-.pub-step-desc{font-size:13px;color:#8faac3;line-height:1.6;}
+.pub-howitworks{max-width:1080px;margin:0 auto 90px;padding:0 32px;}
+.pub-flow{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:36px;margin-top:44px;}
+.pub-flow-line{position:absolute;top:22px;left:calc(16.66% + 10px);right:calc(16.66% + 10px);height:1px;background:linear-gradient(90deg,rgba(200,241,53,0.5),rgba(200,241,53,0.15));z-index:0;}
+.pub-flow-step{position:relative;z-index:1;}
+.pub-flow-node{width:44px;height:44px;border-radius:50%;background:#0a1628;border:1.5px solid #c8f135;color:#c8f135;font-family:'DM Mono',monospace;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.pub-flow-icon{margin-bottom:12px;}
+.pub-flow-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;}
+.pub-flow-desc{font-size:13px;color:#8faac3;line-height:1.6;max-width:280px;}
 .pub-content{max-width:900px;margin:0 auto;padding:60px 32px 40px;width:100%;}
 .pub-page-title{font-size:32px;font-weight:900;color:#fff;letter-spacing:-0.5px;margin-bottom:8px;}
 .pub-page-sub{font-size:14px;color:#8faac3;margin-bottom:28px;}
@@ -881,57 +898,80 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     </div>
   </div>
   <div class="pub-hero">
-    <div class="pub-hero-title">Stop typing invoices by hand.</div>
-    <div class="pub-hero-sub">Scan any supplier invoice, get real line items in seconds. Powered by AI, built for South African businesses.</div>
-    <div class="pub-hero-actions">
-      <button class="pub-cta-primary" onclick="showPublicPage('login')">Get Started</button>
-      <button class="pub-cta-secondary" onclick="showPublicPage('plans-public')">See Plans</button>
+    <div class="pub-hero-left">
+      <div class="pub-hero-title">Turn a stack of<br/>invoices into<br/>clean data.</div>
+      <div class="pub-hero-sub">Point your phone at a supplier invoice. AI reads every line - supplier, items, prices, VAT - and hands you back a record you can trust, in seconds.</div>
+      <div class="pub-hero-actions">
+        <button class="pub-cta-primary" onclick="showPublicPage('login')">Get Started</button>
+        <button class="pub-cta-secondary" onclick="showPublicPage('plans-public')">See Plans</button>
+      </div>
+    </div>
+    <div class="pub-hero-right">
+      <div class="pub-invoice-mock">
+        <div class="pub-invoice-mock-line" style="width:60%;"></div>
+        <div class="pub-invoice-mock-line" style="width:85%;"></div>
+        <div class="pub-invoice-mock-line" style="width:40%;"></div>
+        <div class="pub-invoice-mock-line" style="width:70%;"></div>
+        <div class="pub-invoice-mock-line" style="width:55%;"></div>
+        <div class="pub-invoice-mock-line" style="width:75%;"></div>
+      </div>
+      <div class="pub-arrow"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+      <div class="pub-data-mock">
+        <div class="pub-data-row"><span>Sunlight Dishwashing Liquid</span><span class="pub-data-num">R18.50</span></div>
+        <div class="pub-data-row"><span>Cheddar Sliced 1kg</span><span class="pub-data-num">R149.95</span></div>
+        <div class="pub-data-row"><span>Yoghurt Fab 5kg</span><span class="pub-data-num">R269.95</span></div>
+        <div class="pub-data-row total"><span>VAT (15%)</span><span class="pub-data-num">R65.16</span></div>
+      </div>
     </div>
   </div>
   <div class="pub-features">
     <div class="pub-feature-card">
-      <div class="pub-feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <div class="pub-feature-title">Save Time</div>
+      <div class="pub-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="pub-feature-title">Save time</div>
       <div class="pub-feature-desc">No more manually typing line items. Scan an invoice, review it, done - in seconds, not minutes.</div>
     </div>
     <div class="pub-feature-card">
-      <div class="pub-feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
-      <div class="pub-feature-title">Save Money</div>
+      <div class="pub-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+      <div class="pub-feature-title">Save money</div>
       <div class="pub-feature-desc">Catch price increases and duplicate invoices automatically, before they quietly cost you.</div>
     </div>
     <div class="pub-feature-card">
-      <div class="pub-feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-      <div class="pub-feature-title">Work Efficiently</div>
+      <div class="pub-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <div class="pub-feature-title">Work efficiently</div>
       <div class="pub-feature-desc">One clear system for suppliers, pricing, and stock - instead of scattered spreadsheets and paper.</div>
     </div>
-    <div class="pub-feature-card">
-      <div class="pub-feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 014 4c0 1.5-.8 2.8-2 3.5V12h2a2 2 0 012 2v2a2 2 0 01-2 2h-1v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2H8a2 2 0 01-2-2v-2a2 2 0 012-2h2V9.5C8.8 8.8 8 7.5 8 6a4 4 0 014-4z"/></svg></div>
-      <div class="pub-feature-title">Powered by AI</div>
-      <div class="pub-feature-desc">Real AI reads the invoice for you - handwriting, stamps, and all - and turns it into clean, usable data.</div>
+  </div>
+
+  <div class="pub-ai-band">
+    <div class="pub-ai-band-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 014 4c0 1.5-.8 2.8-2 3.5V12h2a2 2 0 012 2v2a2 2 0 01-2 2h-1v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2H8a2 2 0 01-2-2v-2a2 2 0 012-2h2V9.5C8.8 8.8 8 7.5 8 6a4 4 0 014-4z"/></svg></div>
+    <div>
+      <div class="pub-ai-band-title">Powered by real AI, not templates</div>
+      <div class="pub-ai-band-desc">Handwriting, stamps, coffee stains - it doesn't matter. The same AI reading this page reads your invoices, and turns whatever's on the page into clean, structured data you can trust.</div>
     </div>
   </div>
 
   <div class="pub-howitworks">
-    <div class="pub-page-title" style="text-align:center;">How It Works</div>
+    <div class="pub-page-title" style="text-align:center;">How it works</div>
     <div class="pub-page-sub" style="text-align:center;">From delivery to approved record, in three steps.</div>
-    <div class="pub-steps-grid">
-      <div class="pub-step-card">
-        <div class="pub-step-num">Step 1</div>
-        <div class="pub-step-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
-        <div class="pub-step-title">Dispatch Scans the Invoice</div>
-        <div class="pub-step-desc">When a delivery arrives, dispatch simply takes a photo of the invoice on their phone - no typing, no paperwork to file.</div>
+    <div class="pub-flow">
+      <div class="pub-flow-line"></div>
+      <div class="pub-flow-step">
+        <div class="pub-flow-node">1</div>
+        <div class="pub-flow-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+        <div class="pub-flow-title">Dispatch scans the invoice</div>
+        <div class="pub-flow-desc">When a delivery arrives, dispatch takes a photo on their phone - no typing, no paperwork to file.</div>
       </div>
-      <div class="pub-step-card">
-        <div class="pub-step-num">Step 2</div>
-        <div class="pub-step-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-        <div class="pub-step-title">It Uploads and AI Reads It</div>
-        <div class="pub-step-desc">The photo uploads instantly, and AI extracts the supplier, every line item, and the price - ready for review in seconds.</div>
+      <div class="pub-flow-step">
+        <div class="pub-flow-node">2</div>
+        <div class="pub-flow-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+        <div class="pub-flow-title">It uploads, AI reads it</div>
+        <div class="pub-flow-desc">The photo uploads instantly - AI extracts the supplier, every item, and the price, ready in seconds.</div>
       </div>
-      <div class="pub-step-card">
-        <div class="pub-step-num">Step 3</div>
-        <div class="pub-step-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
-        <div class="pub-step-title">Processor Approves or Edits</div>
-        <div class="pub-step-desc">Your processor reviews the extracted invoice, corrects anything that needs it, then approves - locking it in as a clean, accurate record.</div>
+      <div class="pub-flow-step">
+        <div class="pub-flow-node">3</div>
+        <div class="pub-flow-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+        <div class="pub-flow-title">Processor approves or edits</div>
+        <div class="pub-flow-desc">Your processor reviews it, fixes anything that needs it, then approves - locking it in as a clean record.</div>
       </div>
     </div>
   </div>
