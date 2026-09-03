@@ -715,7 +715,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
 <!-- NAV -->
 <nav id="mainNav" style="justify-content:center;padding:0 20px;gap:0;position:relative;">
   <!-- Login page only -->
-  <div class="nav-tab active" id="tab-login" onclick="showPage('login',this)" style="display:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1.5"/></svg> Login</div>
+  <div class="nav-tab active" id="tab-login" onclick="showPublicPage('login')" style="display:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1.5"/></svg> Login</div>
   <!-- Home - always visible after login -->
   <div class="nav-tab" id="tab-home" onclick="showPage('home',this)" style="display:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-7H9v7H4a1 1 0 01-1-1z"/></svg> Home</div>
   <!-- Breadcrumb - shown below as a sub-label, not overlapping -->
@@ -1128,7 +1128,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <div class="tb-field"><label>Create a 4-Digit PIN <span class="req">*</span></label><input id="su-pin" type="password" inputmode="numeric" maxlength="4"/></div>
         <div class="tb-field"><label>Confirm PIN <span class="req">*</span></label><input id="su-pin2" type="password" inputmode="numeric" maxlength="4"/></div>
         <button class="login-submit" onclick="goToSignupStep2()">CONTINUE</button>
-        <div class="login-switch">Already have an account? <a onclick="showPage('login', null)" style="cursor:pointer;">Sign in</a></div>
+        <div class="login-switch">Already have an account? <a onclick="showPublicPage('login')" style="cursor:pointer;">Sign in</a></div>
       </div>
 
       <!-- STEP 2: Company Details -->
@@ -2982,7 +2982,7 @@ function logout() {
   if (idEl) idEl.value = '';
   if (secretEl) secretEl.value = '';
   if (errEl) errEl.style.display = 'none';
-  showPage('login', null);
+  showPublicPage('login');
 }
 
 function switchRole(role) {
