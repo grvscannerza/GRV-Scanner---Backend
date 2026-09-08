@@ -199,26 +199,29 @@ nav{display:flex;gap:2px;background:var(--card-header);border-bottom:2px solid v
 /* Gloss sheen overlay */
 .dash-btn::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(to bottom,rgba(255,255,255,0.15),rgba(255,255,255,0));border-radius:16px 16px 0 0;pointer-events:none;z-index:2;}
 .home-powered{margin-top:28px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;}
-#page-login{flex-direction:row;}
-.login-left{width:44%;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px;overflow:hidden;position:relative;}
-.login-left::before{content:'';position:absolute;top:-80px;left:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(200,241,53,0.06) 0%,transparent 70%);pointer-events:none;}
-.login-logo{font-size:48px;font-weight:900;color:#fff;letter-spacing:2px;margin-bottom:4px;}.login-logo span{color:var(--accent);font-weight:400;}
+#page-login{flex-direction:column;}
+.login-top-logo{text-align:center;padding:28px 0 4px;font-size:26px;font-weight:900;color:#fff;letter-spacing:1px;flex-shrink:0;}
+.login-top-logo span{color:var(--accent);}
+.login-split{display:flex;flex:1;min-height:0;}
+.login-left{flex:1;display:flex;align-items:center;justify-content:center;padding:48px;overflow:hidden;}
 .login-tagline{font-size:16px;color:var(--muted-light);margin-bottom:34px;text-align:center;line-height:1.6;}
-.login-feats{display:flex;flex-direction:column;gap:11px;width:100%;max-width:280px;}
+.login-feats{display:flex;flex-direction:column;gap:11px;width:100%;}
 .login-feat{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted-light);}
 .fcheck{width:18px;height:18px;border-radius:50%;background:var(--accent-dim);border:1px solid rgba(200,241,53,0.4);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--accent);font-weight:700;flex-shrink:0;}
-.login-powered{margin-top:40px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
-.login-right{flex:1;display:flex;align-items:center;justify-content:center;padding:48px;}
+.login-right{width:38%;min-width:300px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;padding:48px;overflow:hidden;}
+.login-promo-box{width:100%;max-width:320px;margin:0 auto;}
+.login-promo-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:6px;}
+.login-promo-sub{font-size:14px;color:var(--muted-light);margin-bottom:26px;line-height:1.5;}
+.login-create-account-btn{width:100%;padding:12px;background:transparent;border:1.5px solid var(--accent);color:var(--accent);border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;margin-top:22px;font-family:'Inter',sans-serif;transition:background 0.15s;}
+.login-create-account-btn:hover{background:var(--accent-dim);}
 @media(max-width:680px){
-  #page-login{flex-direction:column;overflow-y:auto;}
-  .login-left{width:100%;border-right:none;border-top:1px solid var(--border);padding:28px 20px;order:2;min-height:auto;}
-  .login-right{width:100%;padding:32px 20px;order:1;}
+  .login-split{flex-direction:column;overflow-y:auto;}
+  .login-left{width:100%;padding:28px 20px;order:1;}
+  .login-right{width:100%;min-width:0;border-left:none;border-top:1px solid var(--border);padding:32px 20px;order:2;}
   .login-form-box{max-width:100%;width:100%;}
   .login-title{font-size:22px;}
-  .login-logo{font-size:36px;}
-  .login-tagline{font-size:14px;margin-bottom:20px;}
-  .login-feats{max-width:100%;}
-  .login-powered{margin-top:24px;}
+  .login-top-logo{font-size:22px;padding:20px 0 4px;}
+  .login-promo-box{max-width:100%;}
 }
 .login-form-box{width:100%;max-width:380px;}
 .login-title{font-size:26px;font-weight:700;margin-bottom:5px;color:var(--accent);}
@@ -1182,26 +1185,31 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
 </div>
 
 <div class="page" id="page-login">
-  <div class="login-left">
-    <div class="login-logo">GRV<span>scanner</span></div>
-    <div class="login-tagline">Stop typing invoices.<br>Start scanning them.</div>
-    <div class="login-feats">
-      <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Scan any supplier invoice in seconds</div>
-      <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>AI extracts every line item automatically</div>
-      <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Export to CSV, Excel, Sage, Pastel, Xero</div>
-      <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>VAT registered and exempt suppliers</div>
-      <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Price increase alerts and duplicate detection</div>
+  <div class="login-top-logo">GRV<span>scanner</span></div>
+  <div class="login-split">
+    <div class="login-left">
+      <div class="login-form-box">
+        <div class="login-title">Login</div>
+        <div class="login-sub">If you have an account with us, please log in.</div>
+        <div id="login-error" style="display:none;background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:14px;"></div>
+        <div class="tb-field"><label>Username or Email <span class="req">*</span></label><input id="login-identifier" type="text"/></div>
+        <div class="tb-field"><label>Password <span class="req">*</span></label><input id="login-secret" type="password"/></div>
+        <button class="login-submit" onclick="attemptLogin()">SIGN IN</button>
+      </div>
     </div>
-  </div>
-  <div class="login-right">
-    <div class="login-form-box">
-      <div class="login-title">Welcome back</div>
-      <div class="login-sub">Sign in to your GRV Scanner account</div>
-      <div id="login-error" style="display:none;background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:14px;"></div>
-      <div class="tb-field"><label>Username or Email <span class="req">*</span></label><input id="login-identifier" type="text"/></div>
-      <div class="tb-field"><label>Password <span class="req">*</span></label><input id="login-secret" type="password"/></div>
-      <button class="login-submit" onclick="attemptLogin()">SIGN IN</button>
-      <div class="login-switch">Don't have an account? <a onclick="openSignupWizard()" style="cursor:pointer;">Create one free</a></div>
+    <div class="login-right">
+      <div class="login-promo-box">
+        <div class="login-promo-title">New here?</div>
+        <div class="login-promo-sub">Registration is free and easy!</div>
+        <div class="login-feats">
+          <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Scan any supplier invoice in seconds</div>
+          <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>AI extracts every line item automatically</div>
+          <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Export to CSV, Excel, Sage, Pastel, Xero</div>
+          <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>VAT registered and exempt suppliers</div>
+          <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Price increase alerts and duplicate detection</div>
+        </div>
+        <button class="login-create-account-btn" onclick="openSignupWizard()">Create an Account</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2857,13 +2865,11 @@ function showPublicPage(id) {
 
   // The marketing pages (landing, story, plans, contact) already have their
   // own complete header built in - the app's own header/nav bar would just
-  // duplicate it. The real login screen needs the app's own header (for the
-  // logo), but not the old "Login" nav tab - it gets the same nav links
-  // instead, matching the rest of the public site.
-  const isRealLoginPage = id === 'login';
-  document.getElementById('appHeader').style.display = isRealLoginPage ? '' : 'none';
+  // duplicate it - the login page now has its own centered logo and needs
+  // no nav links of its own, matching the clean layout it was redesigned to.
+  document.getElementById('appHeader').style.display = 'none';
   document.getElementById('mainNav').style.display = 'none';
-  document.getElementById('loginPageNavLinks').style.display = isRealLoginPage ? 'flex' : 'none';
+  document.getElementById('loginPageNavLinks').style.display = 'none';
 }
 
 async function loadPublicPlansTable() {
