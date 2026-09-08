@@ -2767,6 +2767,38 @@ async function restoreSession() {
 // ══════════════════════════════════════
 // PUBLIC MARKETING SITE
 // ══════════════════════════════════════
+// ══════════════════════════════════════
+// BROWSER BACK BUTTON SUPPORT
+// ══════════════════════════════════════
+// Without this, navigating between pages never touches the browser's real
+// history, so there's nothing for the back button to step through - it
+// exits the app entirely on the first press instead of going back one page.
+let isNavigatingViaHistory = false;
+let lastPushedPageId = null;
+
+function pushPageHistory(pageId, isPublic) {
+  if (isNavigatingViaHistory) return; // don't re-push while responding to a popstate event ourselves
+  if (pageId === lastPushedPageId) return; // avoid cluttering history with duplicate consecutive entries
+  lastPushedPageId = pageId;
+  try {
+    history.pushState({ pageId, isPublic }, '', '#' + pageId);
+  } catch (e) {
+    console.error('Could not push page history:', e.message);
+  }
+}
+
+window.addEventListener('popstate', function (event) {
+  if (!event.state || !event.state.pageId) return; // the very first entry has no state - nothing to navigate to
+  isNavigatingViaHistory = true;
+  lastPushedPageId = event.state.pageId;
+  if (event.state.isPublic) {
+    showPublicPage(event.state.pageId);
+  } else {
+    showPage(event.state.pageId, null);
+  }
+  isNavigatingViaHistory = false;
+});
+
 function toggleFaq(el) {
   const item = el.closest('.pub-faq-item');
   const wasOpen = item.classList.contains('open');
@@ -2776,6 +2808,7 @@ function toggleFaq(el) {
 }
 
 function showPublicPage(id) {
+  pushPageHistory(id, true);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById(`page-${id}`);
   if (target) target.classList.add('active');
@@ -3174,6 +3207,7 @@ async function prefetchDailySummaryData() {
 }
 
 function showPage(id, tabEl) {
+  pushPageHistory(id, false);
   // A real session is required for every page except login/signup itself -
   // without this, someone could land on an authenticated page's markup
   // (potentially still showing stale data from an earlier session) even
