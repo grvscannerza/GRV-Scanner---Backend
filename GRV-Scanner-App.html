@@ -240,8 +240,9 @@ nav{display:flex;gap:2px;background:var(--card-header);border-bottom:2px solid v
 .tb-field label .req{color:#ff6b6b;}
 
 /* ══ Public marketing site ══ */
-.pub-header{background:#000;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;position:sticky;top:0;z-index:100;transition:transform 0.25s ease;}
+.pub-header{background:#000;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;position:fixed;top:0;left:0;right:0;z-index:100;transition:transform 0.25s ease;}
 .pub-header.pub-header-hidden{transform:translateY(-100%);}
+.pub-page-body-spacer{height:72px;flex-shrink:0;}
 .pub-home-btn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:transparent;border:1px solid #1e3a5f;color:#fff;padding:9px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;}
 .pub-home-btn svg{margin-right:8px;}
 .pub-home-btn:hover{border-color:#c8f135;color:#c8f135;}
@@ -936,6 +937,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <button class="pub-login-btn" onclick="showPublicPage('login')">Log in</button>
     </div>
   </div>
+  <div class="pub-page-body-spacer"></div>
   <div class="pub-hero">
     <div class="pub-hero-left">
       <div class="pub-hero-title">Turn a stack of<br/>invoices into<br/>clean data.</div>
@@ -1123,6 +1125,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <button class="pub-login-btn" onclick="showPublicPage('login')">Log in</button>
     </div>
   </div>
+  <div class="pub-page-body-spacer"></div>
   <div class="pub-content">
     <div class="pub-page-title">Our Story</div>
     <div class="pub-story-text">
@@ -1145,6 +1148,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <button class="pub-login-btn" onclick="showPublicPage('login')">Log in</button>
     </div>
   </div>
+  <div class="pub-page-body-spacer"></div>
   <div class="pub-content">
     <div class="pub-page-title">Plans</div>
     <div id="pubPlansTable">Loading...</div>
@@ -1163,6 +1167,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <button class="pub-login-btn" onclick="showPublicPage('login')">Log in</button>
     </div>
   </div>
+  <div class="pub-page-body-spacer"></div>
   <div class="pub-content" style="max-width:520px;">
     <div class="pub-page-title">Contact Us</div>
     <div class="pub-page-sub">Have a question? Send us a message and we'll get back to you.</div>
@@ -2777,23 +2782,39 @@ async function restoreSession() {
 let isNavigatingViaHistory = false;
 let lastPushedPageId = null;
 
-// The actual scrolling element here is the individual .page div itself
-// (overflow-y:auto), not the window - scroll events don't bubble, so this
-// listens in the capture phase at the document level to catch them from
-// whichever page is currently scrolling.
+// The actual scrolling context varies by how tall a given page's content is -
+// short pages scroll internally within the .page div (overflow-y:auto), but
+// a long page like the landing page can make the body itself grow taller
+// than the viewport and scroll at the window level instead. This checks
+// whichever one is genuinely moving, rather than assuming just one of them.
+let lastKnownScrollTop = 0;
+
+function handlePublicHeaderScroll(scrollTop, header) {
+  if (!header) return;
+  if (scrollTop > lastKnownScrollTop && scrollTop > 80) {
+    header.classList.add('pub-header-hidden');
+  } else if (scrollTop < lastKnownScrollTop) {
+    header.classList.remove('pub-header-hidden');
+  }
+  lastKnownScrollTop = scrollTop;
+}
+
+function getActivePublicHeader() {
+  const activePage = document.querySelector('.page.active');
+  return activePage ? activePage.querySelector(':scope > .pub-header') : null;
+}
+
+window.addEventListener('scroll', function () {
+  const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  handlePublicHeaderScroll(scrollTop, getActivePublicHeader());
+});
+
 document.addEventListener('scroll', function (e) {
   const el = e.target;
-  if (!el || !el.classList || !el.classList.contains('page')) return;
+  if (!el || !el.classList || !el.classList.contains('page') || !el.classList.contains('active')) return;
   const header = el.querySelector(':scope > .pub-header');
   if (!header) return;
-  const currentScroll = el.scrollTop;
-  const lastScroll = el._lastScrollTop || 0;
-  if (currentScroll > lastScroll && currentScroll > 80) {
-    header.classList.add('pub-header-hidden'); // scrolling down past the threshold - hide it
-  } else if (currentScroll < lastScroll) {
-    header.classList.remove('pub-header-hidden'); // any upward scroll - reappear immediately
-  }
-  el._lastScrollTop = currentScroll;
+  handlePublicHeaderScroll(el.scrollTop, header);
 }, true);
 
 function pushPageHistory(pageId, isPublic) {
