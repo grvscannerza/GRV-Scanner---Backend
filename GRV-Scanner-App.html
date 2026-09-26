@@ -6932,6 +6932,24 @@ renderUsersTable();
 renderSuppliers();
 applyRealDates();
 
+// Seed the browser's real history with the page that's actually showing right
+// now (the public landing page, per the .page.active class set in the HTML).
+// Without this, the very first history entry has no state on it at all, so
+// the back-button code above ignores it (nothing to navigate to) and the
+// *next* back press exits the app completely instead of stepping to landing.
+(function seedInitialPageHistory() {
+  const activePage = document.querySelector('.page.active');
+  if (!activePage) return;
+  const pageId = activePage.id.replace(/^page-/, '');
+  const isPublic = ['landing', 'story', 'plans-public', 'contact-public', 'login'].includes(pageId);
+  lastPushedPageId = pageId;
+  try {
+    history.replaceState({ pageId, isPublic }, '', '#' + pageId);
+  } catch (e) {
+    console.error('Could not seed initial page history:', e.message);
+  }
+})();
+
 // Try to restore a session from a saved token, so refreshing the page doesn't
 // log the user out. If there's no valid saved session, the login page (already
 // set up above) stays as-is.
