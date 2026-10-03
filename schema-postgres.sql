@@ -100,7 +100,15 @@ CREATE TABLE IF NOT EXISTS scans (
   approved_by    INTEGER REFERENCES users(id),
   approved_at    TIMESTAMPTZ,
   is_duplicate   BOOLEAN NOT NULL DEFAULT false,
-  duplicate_of_scan_id INTEGER REFERENCES scans(id)
+  duplicate_of_scan_id INTEGER REFERENCES scans(id),
+  -- The actual photo/PDF that was scanned, kept so a user can always pull up
+  -- what the invoice really looked like later (not just the AI's reading of
+  -- it). Stored as base64 text rather than a file path, since there's no
+  -- object storage (e.g. S3) configured for this app - it already lives in
+  -- Postgres, so it rides along with everything else with no extra service
+  -- to set up or pay for. NULL for any scan made before this existed.
+  image_media_type TEXT,
+  image_data       TEXT
 );
 
 CREATE TABLE IF NOT EXISTS scan_line_items (
@@ -175,6 +183,8 @@ ALTER TABLE item_master ADD COLUMN IF NOT EXISTS vat_rate REAL;
 ALTER TABLE item_master ADD COLUMN IF NOT EXISTS track_unit TEXT;
 ALTER TABLE item_master ADD COLUMN IF NOT EXISTS track_conversion REAL;
 ALTER TABLE scan_line_items ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFAULT 15;
+ALTER TABLE scans ADD COLUMN IF NOT EXISTS image_media_type TEXT;
+ALTER TABLE scans ADD COLUMN IF NOT EXISTS image_data TEXT;
 -- Backfill: a supplier already marked 'exempt' under the old system should
 -- carry that forward as an actual 0% rate, not silently become 15%. Only
 -- touches rows still sitting at the fresh-column default, so this can't

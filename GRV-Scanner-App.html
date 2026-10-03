@@ -1769,7 +1769,10 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         </div>
         <div style="font-size:12px;color:var(--muted);margin-top:3px;" id="ap-meta">Scanned by Sarah Mokoena · Today at 08:42 · Unilever SA</div>
       </div>
-      <button onclick="closeModal('approvalModal')" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;color:var(--muted);cursor:pointer;font-size:14px;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+        <button onclick="viewScanImage(currentApprovalScan && currentApprovalScan.id)" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:6px 12px;color:var(--muted-light);cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> View Invoice Image</button>
+        <button onclick="closeModal('approvalModal')" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;color:var(--muted);cursor:pointer;font-size:14px;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
     </div>
 
     <!-- Admin review notice -->
@@ -1831,6 +1834,24 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;">GRV Approved & Locked</div>
     <div style="font-size:13px;color:var(--muted-light);line-height:1.6;margin-bottom:20px;" id="approvedMsg">Invoice approved and locked. The record is now permanent and the CSV export is ready.</div>
     <button onclick="closeModal('approvedModal')" style="width:100%;padding:12px;background:var(--accent);color:#0a1628;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">Done</button>
+  </div>
+</div>
+
+<!-- Original scanned invoice image/PDF - fetched on demand from whichever
+     scan was open (approval review or a locked record in Reports), never
+     loaded as part of the scan list itself since it's the heaviest part of
+     a scan's data. -->
+<div class="modal-overlay" id="scanImageModal">
+  <div class="modal-box user-box" style="width:auto;max-width:92vw;padding:0;overflow:hidden;background:#0a1628;">
+    <div style="padding:12px 16px;background:var(--card-header);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;">
+      <div style="font-size:13px;font-weight:700;color:#fff;">Original Scanned Invoice</div>
+      <button onclick="closeModal('scanImageModal')" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:5px 10px;color:var(--muted);cursor:pointer;font-size:14px;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="max-width:88vw;max-height:80vh;overflow:auto;display:flex;align-items:center;justify-content:center;padding:14px;">
+      <div id="scanImageModalLoading" style="padding:60px 80px;color:var(--muted);font-size:13px;">Loading image...</div>
+      <img id="scanImageModalImg" style="display:none;max-width:100%;max-height:76vh;border-radius:6px;"/>
+      <iframe id="scanImageModalPdf" style="display:none;width:80vw;height:76vh;border:none;border-radius:6px;background:#fff;"></iframe>
+    </div>
   </div>
 </div>
 
@@ -2424,6 +2445,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
         <div style="font-size:12px;color:var(--muted);margin-top:4px;" id="inv-meta">Scanned by Sarah Mokoena · <span id="inv-detail-date">14 Jul 2025</span> at 08:42 · Unilever SA</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+        <button style="padding:7px 13px;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);color:var(--muted-light);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;" onclick="viewScanImage(currentInvoiceModalScanId)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> View Invoice Image</button>
         <button style="padding:7px 13px;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);color:var(--muted-light);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;" onclick="closeModal('invoiceModal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="12" y1="4" x2="12" y2="18"/><polyline points="6 12 12 18 18 12"/></svg> Re-download</button>
         <button style="padding:7px 12px;background:none;border:1px solid var(--border-light);border-radius:var(--radius);color:var(--muted);font-size:13px;cursor:pointer;" onclick="closeModal('invoiceModal')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
@@ -3864,7 +3886,15 @@ async function submitScanToServer() {
   try {
     await apiFetch('/scans', {
       method: 'POST',
-      body: JSON.stringify({ supplierId, invoiceNumber, note, exclVat, vat, total, priceAlerts, lineItems }),
+      body: JSON.stringify({
+        supplierId, invoiceNumber, note, exclVat, vat, total, priceAlerts, lineItems,
+        // The already-compressed image from the upload step, saved so the
+        // original invoice can be pulled up later - not just the AI's
+        // reading of it. Omitted (undefined -> not sent) if somehow there's
+        // no image in memory at this point, so the scan still saves fine.
+        imageMediaType: uploadedImageMediaType || undefined,
+        imageBase64: uploadedImageBase64 || undefined,
+      }),
     });
   } catch (err) {
     if (err.data?.limitReached) {
@@ -6313,7 +6343,9 @@ function renderStaffScans(scans) {
   });
 }
 
+let currentInvoiceModalScanId = null;
 async function openInvoiceModal(scanId, invNum, supplier, datetime, items) {
+  currentInvoiceModalScanId = scanId;
   document.getElementById('inv-number').textContent = invNum;
   document.getElementById('inv-meta').textContent = `Scanned by ${document.getElementById('sd-name').textContent} \u00b7 ${datetime} \u00b7 ${supplier}`;
   document.getElementById('inv-supplier').textContent = supplier;
@@ -6362,6 +6394,46 @@ function showDeleteConfirm() {
 // MODALS
 // ══════════════════════════════════════
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Fetches and displays the original scanned invoice image/PDF for a scan -
+// used from both the Pending Review approval screen and the locked-record
+// view in Reports, so a user can always compare what was actually on the
+// invoice against what ended up in the line items, not just trust the AI's
+// reading of it. Real data only - no placeholder image is ever shown; a
+// scan made before this feature existed, or one whose image failed to
+// upload, says so plainly instead.
+async function viewScanImage(scanId) {
+  if (!scanId) { alert('Could not determine which scan to show the image for.'); return; }
+
+  const modal = document.getElementById('scanImageModal');
+  const loading = document.getElementById('scanImageModalLoading');
+  const imgEl = document.getElementById('scanImageModalImg');
+  const pdfEl = document.getElementById('scanImageModalPdf');
+
+  imgEl.style.display = 'none';
+  pdfEl.style.display = 'none';
+  pdfEl.src = '';
+  imgEl.src = '';
+  loading.style.display = 'block';
+  loading.textContent = 'Loading image...';
+  modal.classList.add('open');
+
+  try {
+    const result = await apiFetch(`/scans/${scanId}/image`);
+    const dataUrl = `data:${result.mediaType};base64,${result.base64}`;
+    loading.style.display = 'none';
+    if (result.mediaType === 'application/pdf') {
+      pdfEl.src = dataUrl;
+      pdfEl.style.display = 'block';
+    } else {
+      imgEl.src = dataUrl;
+      imgEl.style.display = 'block';
+    }
+  } catch (err) {
+    loading.style.display = 'block';
+    loading.textContent = (err.data && err.data.error) || 'No image was saved for this scan.';
+  }
+}
 
 // ══════════════════════════════════════
 // GLOBAL ENTER KEY HANDLING

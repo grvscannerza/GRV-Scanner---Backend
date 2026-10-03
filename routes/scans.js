@@ -47,10 +47,17 @@ router.get('/check-duplicate', requireRole('admin', 'processor', 'dispatch', 'de
 
 // Everyone who can log in can create a scan (dispatch's whole job is scanning).
 router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), async (req, res) => {
-  const { supplierId, invoiceNumber, note, exclVat, vat, total, priceAlerts, lineItems } = req.body || {};
+  const { supplierId, invoiceNumber, note, exclVat, vat, total, priceAlerts, lineItems, imageMediaType, imageBase64 } = req.body || {};
   if (!supplierId || total == null) {
     return res.status(400).json({ error: 'supplierId and total are required.' });
   }
+  // The image is optional - an older client, or a scan where the upload
+  // somehow didn't carry through, shouldn't fail the whole scan over it.
+  // Capped well above what the frontend's own compression produces (it
+  // targets ~1568px JPEGs), just as a sanity backstop against something huge
+  // getting through some other path and bloating the database.
+  const MAX_IMAGE_BASE64_CHARS = 8 * 1024 * 1024; // ~8MB of base64 text
+  const hasImage = typeof imageBase64 === 'string' && imageBase64.length > 0 && imageBase64.length <= MAX_IMAGE_BASE64_CHARS;
 
   try {
     const { features, plan } = await getPlanFeatures(req.user.businessId);
@@ -77,10 +84,11 @@ router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asy
       : null;
 
     const scanResult = await pool.query(`
-      INSERT INTO scans (business_id, supplier_id, scanned_by, invoice_number, note, excl_vat, vat, total, price_alerts, status, is_duplicate, duplicate_of_scan_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', $10, $11) RETURNING id
+      INSERT INTO scans (business_id, supplier_id, scanned_by, invoice_number, note, excl_vat, vat, total, price_alerts, status, is_duplicate, duplicate_of_scan_id, image_media_type, image_data)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', $10, $11, $12, $13) RETURNING id
     `, [req.user.businessId, supplierId, req.user.userId, invoiceNumber || null, note || null,
-        exclVat || 0, vat || 0, total, priceAlerts || 0, !!duplicateMatch, duplicateMatch ? duplicateMatch.id : null]);
+        exclVat || 0, vat || 0, total, priceAlerts || 0, !!duplicateMatch, duplicateMatch ? duplicateMatch.id : null,
+        hasImage ? (imageMediaType || 'image/jpeg') : null, hasImage ? imageBase64 : null]);
     const scanId = scanResult.rows[0].id;
 
     if (Array.isArray(lineItems) && lineItems.length) {
@@ -148,16 +156,27 @@ router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asy
 // Dispatch can see their own scans; admin/processor can see everyone's.
 router.get('/', requireRole('admin', 'processor', 'dispatch', 'developer'), async (req, res) => {
   try {
+    // Deliberately NOT selecting s.image_data here - it's base64 image text
+    // that can run into the hundreds of KB per scan, and this query returns
+    // every scan at once. Pulling that into every list load would bloat the
+    // response for no reason, since the list view never displays the image
+    // itself - has_image is enough for the UI to know whether to show a
+    // "View Invoice Image" button; the real bytes are fetched on demand via
+    // GET /:id/image only when someone actually opens that scan.
+    const listColumns = `s.id, s.business_id, s.supplier_id, s.scanned_by, s.invoice_number, s.note,
+        s.scanned_at, s.excl_vat, s.vat, s.total, s.price_alerts, s.status, s.approved_by, s.approved_at,
+        s.is_duplicate, s.duplicate_of_scan_id, (s.image_data IS NOT NULL) AS has_image,
+        sup.name AS supplier_name, u.first_name, u.last_name`;
     let result;
     if (req.user.role === 'dispatch') {
       result = await pool.query(`
-        SELECT s.*, sup.name AS supplier_name, u.first_name, u.last_name
+        SELECT ${listColumns}
         FROM scans s JOIN suppliers sup ON sup.id = s.supplier_id JOIN users u ON u.id = s.scanned_by
         WHERE s.business_id = $1 AND s.scanned_by = $2 ORDER BY s.scanned_at DESC
       `, [req.user.businessId, req.user.userId]);
     } else {
       result = await pool.query(`
-        SELECT s.*, sup.name AS supplier_name, u.first_name, u.last_name
+        SELECT ${listColumns}
         FROM scans s JOIN suppliers sup ON sup.id = s.supplier_id JOIN users u ON u.id = s.scanned_by
         WHERE s.business_id = $1 ORDER BY s.scanned_at DESC
       `, [req.user.businessId]);
@@ -175,6 +194,27 @@ router.get('/:id/line-items', requireRole('admin', 'processor', 'dispatch', 'dev
     if (!scanResult.rows[0]) return res.status(404).json({ error: 'Scan not found.' });
     const itemsResult = await pool.query('SELECT * FROM scan_line_items WHERE scan_id = $1', [req.params.id]);
     res.json(itemsResult.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+// Returns the original scanned invoice image/PDF as base64, so it can be
+// pulled up later next to the AI's reading of it - not just when the scan
+// was first done. Returned as JSON (not raw bytes) so the frontend can use
+// the same authenticated apiFetch() helper as everywhere else in the app,
+// rather than needing a separate blob-fetching code path just for this.
+router.get('/:id/image', requireRole('admin', 'processor', 'dispatch', 'developer'), async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT image_media_type, image_data FROM scans WHERE id = $1 AND business_id = $2',
+      [req.params.id, req.user.businessId]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'Scan not found.' });
+    const { image_media_type, image_data } = result.rows[0];
+    if (!image_data) return res.status(404).json({ error: 'No image was saved for this scan.' });
+    res.json({ mediaType: image_media_type || 'image/jpeg', base64: image_data });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Something went wrong on our end.' });
