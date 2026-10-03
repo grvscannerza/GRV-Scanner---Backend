@@ -24,7 +24,31 @@ app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), bill
 // raising this, every scan gets silently rejected before reaching any route
 // at all, showing only a generic error with no useful detail.
 app.use(express.json({ limit: '15mb' }));
-app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }));
+
+// ALLOWED_ORIGIN can be a comma-separated list (e.g.
+// "https://grvscanner.co.za,https://www.grvscanner.co.za") so the real
+// production domain(s) can be locked in via a Railway environment variable,
+// without a code change. Left unset, this falls back to "*" (any origin) -
+// the same open behaviour as before - so nothing breaks before that
+// variable is added. A request with no Origin header at all (server-to-server
+// calls, curl, the Paystack webhook) is always allowed, since the Origin
+// check only ever matters for requests made from inside a browser.
+const allowedOrigins = (process.env.ALLOWED_ORIGIN || '*').split(',').map(o => o.trim()).filter(Boolean);
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Deliberately callback(null, false), not an Error - an Error here would
+    // fall through to the catch-all error handler and show as a fake 500 in
+    // logs/monitoring for what is just an ordinary disallowed cross-origin
+    // request, not a real server fault. false simply skips adding the
+    // Access-Control-Allow-Origin header, which is all a browser actually
+    // checks to block the response - the request still gets a normal status
+    // code, there's just nothing in the CORS header for it to match.
+    callback(null, false);
+  },
+}));
 
 // Public marketing page needs this too, but visitors aren't logged in yet -
 // this is the ONLY place plan numbers should ever be read for that page, so

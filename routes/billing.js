@@ -260,12 +260,24 @@ router.get('/invoices/:id/pdf', requireAuth, requireRole('admin', 'developer'), 
 });
 
 async function webhookHandler(req, res) {
-  const signature = req.headers['x-paystack-signature'];
+  const signature = req.headers['x-paystack-signature'] || '';
   const secret = process.env.PAYSTACK_SECRET_KEY;
   if (!secret) return res.status(503).end();
 
   const expectedSignature = crypto.createHmac('sha512', secret).update(req.body).digest('hex');
-  if (signature !== expectedSignature) {
+
+  // Constant-time comparison, not a plain !== . A straight string compare
+  // returns as soon as it hits the first mismatched character, so how long
+  // the check takes leaks how many leading characters an attacker already
+  // guessed right - over enough attempts that's a real (if slow) way to
+  // forge a valid signature. timingSafeEqual takes the same time regardless
+  // of where the mismatch is. It requires equal-length buffers, so a
+  // malformed/wrong-length header is rejected by the length check first,
+  // before ever reaching timingSafeEqual (which would otherwise throw).
+  const signatureBuf = Buffer.from(signature, 'hex');
+  const expectedBuf = Buffer.from(expectedSignature, 'hex');
+  const validSignature = signatureBuf.length === expectedBuf.length && crypto.timingSafeEqual(signatureBuf, expectedBuf);
+  if (!validSignature) {
     return res.status(401).json({ error: 'Invalid webhook signature.' });
   }
 
@@ -312,4 +324,4 @@ async function webhookHandler(req, res) {
   res.status(200).end();
 }
 
-module.exports = { router, webhookHandler, streamInvoicePDF };
+module.exports = { router, webhookHandler, streamInvoicePDF, paystackConfigured, paystackFetch };
