@@ -1,9 +1,31 @@
 -- GRV Scanner backend schema - PostgreSQL version.
 
--- A "business" is one customer account (e.g. one restaurant). Everything else
--- belongs to exactly one business, so businesses can never see each other's data.
+-- A "group" is the billing/admin umbrella over several branches for a
+-- Multi-Branch customer. It has NO data of its own - suppliers, item master,
+-- scans and exports always stay on the branch (businesses row), never
+-- merged to the group - the group only exists to (a) hold one consolidated
+-- Paystack subscription/invoice for all its branches and (b) let a
+-- group-level Admin act across every branch in it. A single-branch Business
+-- customer has no group at all (businesses.group_id stays NULL) and bills
+-- exactly as before, branch by branch.
+CREATE TABLE IF NOT EXISTS groups (
+  id                         SERIAL PRIMARY KEY,
+  name                       TEXT NOT NULL,
+  subscription_status        TEXT NOT NULL DEFAULT 'inactive' CHECK (subscription_status IN ('inactive','active','past_due','cancelled')),
+  past_due_since             TIMESTAMPTZ,
+  paystack_customer_code     TEXT,
+  paystack_subscription_code TEXT,
+  paystack_email_token       TEXT,
+  created_at                 TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- A "business" is one branch (e.g. one restaurant location). Everything else
+-- belongs to exactly one business/branch, so branches can never see each
+-- other's data - group_id only ever grants an Admin cross-branch VIEW/ACT
+-- access (enforced in middleware/auth.js), it never merges the underlying rows.
 CREATE TABLE IF NOT EXISTS businesses (
   id                        SERIAL PRIMARY KEY,
+  group_id                  INTEGER REFERENCES groups(id),
   name                      TEXT NOT NULL,
   address                   TEXT,
   contact_number            TEXT,
@@ -17,7 +39,10 @@ CREATE TABLE IF NOT EXISTS businesses (
   -- Bar, Maintenance) - no fixed cap, since this varies a lot by business.
   -- JSON array of plain strings.
   departments               TEXT NOT NULL DEFAULT '[]',
-  plan                      TEXT NOT NULL DEFAULT 'professional',
+  -- 'business' (single branch, bills itself) or 'multi_branch' (belongs to a
+  -- group, bills via the group instead - see requireActiveSubscription).
+  -- Feature-identical: this label no longer gates what the app can do.
+  plan                      TEXT NOT NULL DEFAULT 'business',
   subscription_status       TEXT NOT NULL DEFAULT 'inactive' CHECK (subscription_status IN ('inactive','active','past_due','cancelled')),
   past_due_since            TIMESTAMPTZ,
   paystack_customer_code    TEXT,
@@ -185,6 +210,7 @@ ALTER TABLE item_master ADD COLUMN IF NOT EXISTS track_conversion REAL;
 ALTER TABLE scan_line_items ADD COLUMN IF NOT EXISTS vat_rate REAL NOT NULL DEFAULT 15;
 ALTER TABLE scans ADD COLUMN IF NOT EXISTS image_media_type TEXT;
 ALTER TABLE scans ADD COLUMN IF NOT EXISTS image_data TEXT;
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES groups(id);
 -- Backfill: a supplier already marked 'exempt' under the old system should
 -- carry that forward as an actual 0% rate, not silently become 15%. Only
 -- touches rows still sitting at the fresh-column default, so this can't
