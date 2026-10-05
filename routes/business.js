@@ -1,17 +1,18 @@
 const express = require('express');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth, requireRole, resolveActiveBranch } = require('../middleware/auth');
 const { pool } = require('../db');
 const { getPlanFeatures } = require('./planFeatures');
 const { paystackConfigured, paystackFetch } = require('./billing');
 
 const router = express.Router();
 router.use(requireAuth);
+router.use(resolveActiveBranch); // req.activeBusinessId - the branch a group Admin is currently viewing/editing
 
 router.get('/profile', requireRole('admin', 'developer'), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT name, address, contact_number, contact_email, vat_number FROM businesses WHERE id = $1',
-      [req.user.businessId]
+      [req.activeBusinessId]
     );
     if (!rows[0]) return res.status(404).json({ error: 'Business not found.' });
     res.json(rows[0]);
@@ -26,7 +27,7 @@ router.get('/profile', requireRole('admin', 'developer'), async (req, res) => {
 // own real rates. These populate the VAT dropdown when creating a supplier.
 router.get('/vat-rates', requireRole('admin', 'processor', 'developer'), async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT vat_rate_presets FROM businesses WHERE id = $1', [req.user.businessId]);
+    const { rows } = await pool.query('SELECT vat_rate_presets FROM businesses WHERE id = $1', [req.activeBusinessId]);
     if (!rows[0]) return res.status(404).json({ error: 'Business not found.' });
     res.json({ vatRates: JSON.parse(rows[0].vat_rate_presets) });
   } catch (err) {
@@ -50,7 +51,7 @@ router.put('/vat-rates', requireRole('admin', 'developer'), async (req, res) => 
     }
   }
   try {
-    await pool.query('UPDATE businesses SET vat_rate_presets = $1 WHERE id = $2', [JSON.stringify(vatRates), req.user.businessId]);
+    await pool.query('UPDATE businesses SET vat_rate_presets = $1 WHERE id = $2', [JSON.stringify(vatRates), req.activeBusinessId]);
     res.json({ ok: true, vatRates });
   } catch (err) {
     console.error(err);
@@ -60,7 +61,7 @@ router.put('/vat-rates', requireRole('admin', 'developer'), async (req, res) => 
 
 router.get('/departments', requireRole('admin', 'processor', 'dispatch', 'developer'), async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT departments FROM businesses WHERE id = $1', [req.user.businessId]);
+    const { rows } = await pool.query('SELECT departments FROM businesses WHERE id = $1', [req.activeBusinessId]);
     if (!rows[0]) return res.status(404).json({ error: 'Business not found.' });
     res.json({ departments: JSON.parse(rows[0].departments) });
   } catch (err) {
@@ -86,7 +87,7 @@ router.put('/departments', requireRole('admin', 'developer'), async (req, res) =
     cleaned.push(name);
   }
   try {
-    await pool.query('UPDATE businesses SET departments = $1 WHERE id = $2', [JSON.stringify(cleaned), req.user.businessId]);
+    await pool.query('UPDATE businesses SET departments = $1 WHERE id = $2', [JSON.stringify(cleaned), req.activeBusinessId]);
     res.json({ ok: true, departments: cleaned });
   } catch (err) {
     console.error(err);
@@ -103,12 +104,12 @@ router.put('/profile', requireRole('admin', 'developer'), async (req, res) => {
     await pool.query(`
       UPDATE businesses SET name = $1, address = $2, contact_number = $3, contact_email = $4, vat_number = $5
       WHERE id = $6
-    `, [name.trim(), address || null, contactNumber || null, contactEmail || null, vatNumber || null, req.user.businessId]);
+    `, [name.trim(), address || null, contactNumber || null, contactEmail || null, vatNumber || null, req.activeBusinessId]);
 
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type)
        VALUES ($1, $2, 'business.profile_updated', 'business')`,
-      [req.user.businessId, req.user.userId]
+      [req.activeBusinessId, req.user.userId]
     );
 
     res.json({ ok: true });
@@ -120,7 +121,7 @@ router.put('/profile', requireRole('admin', 'developer'), async (req, res) => {
 
 router.get('/settings', requireRole('admin', 'developer'), async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT settings_json FROM business_settings WHERE business_id = $1', [req.user.businessId]);
+    const { rows } = await pool.query('SELECT settings_json FROM business_settings WHERE business_id = $1', [req.activeBusinessId]);
     res.json(rows[0] ? JSON.parse(rows[0].settings_json) : {});
   } catch (err) {
     console.error(err);
@@ -135,12 +136,12 @@ router.put('/settings', requireRole('admin', 'developer'), async (req, res) => {
       INSERT INTO business_settings (business_id, settings_json, updated_at)
       VALUES ($1, $2, NOW())
       ON CONFLICT (business_id) DO UPDATE SET settings_json = EXCLUDED.settings_json, updated_at = EXCLUDED.updated_at
-    `, [req.user.businessId, JSON.stringify(settings)]);
+    `, [req.activeBusinessId, JSON.stringify(settings)]);
 
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type)
        VALUES ($1, $2, 'business.settings_updated', 'business')`,
-      [req.user.businessId, req.user.userId]
+      [req.activeBusinessId, req.user.userId]
     );
 
     res.json({ ok: true });
@@ -152,17 +153,33 @@ router.put('/settings', requireRole('admin', 'developer'), async (req, res) => {
 
 router.get('/plan', requireRole('admin', 'developer'), async (req, res) => {
   try {
-    const bizResult = await pool.query('SELECT plan, subscription_status, past_due_since, paystack_subscription_code FROM businesses WHERE id = $1', [req.user.businessId]);
+    const bizResult = await pool.query(
+      'SELECT plan, group_id, subscription_status, past_due_since, paystack_subscription_code FROM businesses WHERE id = $1',
+      [req.activeBusinessId]
+    );
     const row = bizResult.rows[0];
+
+    // Billing status is consolidated at the GROUP level for a Multi-Branch
+    // branch (one invoice for the whole group) - mirrors the same grouped/
+    // standalone split used in middleware/auth.js's requireActiveSubscription,
+    // so the Billing page never shows a status the app isn't actually using.
+    let billingRow = row;
+    if (row?.group_id) {
+      const grpResult = await pool.query(
+        'SELECT subscription_status, past_due_since, paystack_subscription_code FROM groups WHERE id = $1',
+        [row.group_id]
+      );
+      billingRow = grpResult.rows[0] || row;
+    }
 
     const scansResult = await pool.query(`
       SELECT COUNT(*)::int AS n FROM scans
       WHERE business_id = $1 AND TO_CHAR(scanned_at, 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')
-    `, [req.user.businessId]);
+    `, [req.activeBusinessId]);
 
     let gracePeriodDaysLeft = null;
-    if (row?.subscription_status === 'past_due' && row.past_due_since) {
-      const elapsedMs = Date.now() - new Date(row.past_due_since).getTime();
+    if (billingRow?.subscription_status === 'past_due' && billingRow.past_due_since) {
+      const elapsedMs = Date.now() - new Date(billingRow.past_due_since).getTime();
       const remainingMs = (3 * 24 * 60 * 60 * 1000) - elapsedMs;
       gracePeriodDaysLeft = remainingMs > 0 ? Math.ceil(remainingMs / (24 * 60 * 60 * 1000)) : 0;
     }
@@ -172,26 +189,157 @@ router.get('/plan', requireRole('admin', 'developer'), async (req, res) => {
     // Fails gracefully (null) rather than breaking the whole dashboard if
     // Paystack is briefly unreachable.
     let renewsAt = null;
-    if (row?.paystack_subscription_code && paystackConfigured()) {
+    if (billingRow?.paystack_subscription_code && paystackConfigured()) {
       try {
-        const subResult = await paystackFetch(`/subscription/${row.paystack_subscription_code}`);
+        const subResult = await paystackFetch(`/subscription/${billingRow.paystack_subscription_code}`);
         renewsAt = subResult.data?.next_payment_date || null;
       } catch (err) {
         console.error('Failed to fetch real renewal date from Paystack:', err.message);
       }
     }
 
-    const { features } = await getPlanFeatures(req.user.businessId);
+    const { features } = await getPlanFeatures(req.activeBusinessId);
 
     res.json({
-      plan: row ? row.plan : 'professional',
-      subscriptionStatus: row ? row.subscription_status : 'inactive',
+      plan: row ? row.plan : 'business',
+      grouped: !!row?.group_id,
+      subscriptionStatus: billingRow ? billingRow.subscription_status : 'inactive',
       scansThisMonth: scansResult.rows[0].n,
       scanLimit: features.scanLimit,
       staffLimit: features.staffLimit,
       gracePeriodDaysLeft,
       renewsAt,
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+// ── Multi-Branch groups ──
+// A group has no data of its own - it only (a) ties branches together for
+// billing/Admin-access purposes, and (b) tracks one consolidated Paystack
+// subscription. Suppliers, Item Master, scans and exports always stay on
+// the branch (businesses row) that created them.
+
+// The caller's group and every branch in it, for the branch switcher and the
+// group Admin screen. A non-grouped Admin just sees their one branch.
+router.get('/group', requireRole('admin', 'developer'), async (req, res) => {
+  try {
+    const ownBiz = await pool.query('SELECT group_id FROM businesses WHERE id = $1', [req.user.businessId]);
+    const groupId = ownBiz.rows[0]?.group_id;
+    if (!groupId) {
+      const { rows } = await pool.query('SELECT id, name FROM businesses WHERE id = $1', [req.user.businessId]);
+      return res.json({ grouped: false, group: null, branches: rows });
+    }
+
+    const groupResult = await pool.query('SELECT id, name, subscription_status FROM groups WHERE id = $1', [groupId]);
+    const branchesResult = await pool.query(
+      `SELECT b.id, b.name,
+              (SELECT COUNT(*)::int FROM users u WHERE u.business_id = b.id AND u.role = 'admin') AS admin_count
+       FROM businesses b WHERE b.group_id = $1 ORDER BY b.id`,
+      [groupId]
+    );
+    res.json({ grouped: true, group: groupResult.rows[0], branches: branchesResult.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+// Converts the caller's standalone branch into the first branch of a new
+// group. Nothing about the branch's own data changes - this only sets
+// group_id and switches its billing plan label to multi_branch (the actual
+// per-branch Paystack pricing/quantity logic lives in routes/billing.js).
+router.post('/group', requireRole('admin'), async (req, res) => {
+  const { groupName } = req.body || {};
+  if (!groupName || !groupName.trim()) return res.status(400).json({ error: 'A group name is required.' });
+
+  try {
+    const existing = await pool.query('SELECT group_id FROM businesses WHERE id = $1', [req.user.businessId]);
+    if (existing.rows[0]?.group_id) {
+      return res.status(400).json({ error: 'This branch already belongs to a group.' });
+    }
+
+    const groupResult = await pool.query('INSERT INTO groups (name) VALUES ($1) RETURNING id', [groupName.trim()]);
+    const groupId = groupResult.rows[0].id;
+
+    await pool.query(`UPDATE businesses SET group_id = $1, plan = 'multi_branch' WHERE id = $2`, [groupId, req.user.businessId]);
+
+    await pool.query(
+      `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id, details)
+       VALUES ($1, $2, 'group.created', 'group', $3, $4)`,
+      [req.user.businessId, req.user.userId, groupId, JSON.stringify({ groupName: groupName.trim() })]
+    );
+
+    res.status(201).json({ ok: true, groupId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+// Adds a brand-new branch to the caller's group. The new branch starts
+// empty (its own suppliers/item master/scans from scratch) - "each branch
+// stays its own account" - and needs its own Admin added via /api/users
+// once this returns its id (the creating Admin is a group Admin already,
+// so they can act on it immediately via the X-Branch-Id header).
+router.post('/group/branches', requireRole('admin'), async (req, res) => {
+  const { name } = req.body || {};
+  if (!name || !name.trim()) return res.status(400).json({ error: 'A branch name is required.' });
+
+  try {
+    const ownBiz = await pool.query('SELECT group_id FROM businesses WHERE id = $1', [req.user.businessId]);
+    const groupId = ownBiz.rows[0]?.group_id;
+    if (!groupId) return res.status(400).json({ error: 'Your branch is not part of a group yet. Create a group first.' });
+
+    const result = await pool.query(
+      `INSERT INTO businesses (name, group_id, plan, subscription_status)
+       VALUES ($1, $2, 'multi_branch', 'active') RETURNING id`,
+      [name.trim(), groupId]
+    );
+    const newBranchId = result.rows[0].id;
+
+    await pool.query(
+      `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id, details)
+       VALUES ($1, $2, 'group.branch_added', 'business', $3, $4)`,
+      [req.user.businessId, req.user.userId, newBranchId, JSON.stringify({ groupId, branchName: name.trim() })]
+    );
+
+    res.status(201).json({ ok: true, branchId: newBranchId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+// Removes a branch from the group (the branch itself and its data are NOT
+// deleted - it just reverts to a standalone Business-plan account, inactive
+// until it's billed on its own). Per the spec, if this drops the group below
+// 3 branches, the remaining branches should revert to R2,999 pricing from
+// the NEXT billing cycle - that recalculation is not yet implemented here
+// (flagged, see summary) since it depends on how the group's Paystack
+// subscription quantity/amount actually gets changed.
+router.delete('/group/branches/:id', requireRole('admin'), async (req, res) => {
+  try {
+    const ownBiz = await pool.query('SELECT group_id FROM businesses WHERE id = $1', [req.user.businessId]);
+    const groupId = ownBiz.rows[0]?.group_id;
+    if (!groupId) return res.status(400).json({ error: 'Your branch is not part of a group.' });
+
+    const result = await pool.query(
+      `UPDATE businesses SET group_id = NULL, plan = 'business', subscription_status = 'inactive'
+       WHERE id = $1 AND group_id = $2`,
+      [req.params.id, groupId]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Branch not found in your group.' });
+
+    await pool.query(
+      `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id, details)
+       VALUES ($1, $2, 'group.branch_removed', 'business', $3, $4)`,
+      [req.user.businessId, req.user.userId, req.params.id, JSON.stringify({ groupId })]
+    );
+
+    res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Something went wrong on our end.' });
@@ -287,7 +435,7 @@ router.delete('/', requireRole('admin'), async (req, res) => {
 // changing plans now goes through POST /api/billing/checkout (real payment).
 router.patch('/plan', requireRole('developer'), async (req, res) => {
   const { plan } = req.body || {};
-  if (!['starter', 'professional', 'enterprise'].includes(plan)) {
+  if (!['business', 'multi_branch'].includes(plan)) {
     return res.status(400).json({ error: 'Invalid plan.' });
   }
   try {

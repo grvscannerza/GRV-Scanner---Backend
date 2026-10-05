@@ -1,11 +1,12 @@
 const express = require('express');
-const { requireAuth, requireRole, requireActiveSubscription } = require('../middleware/auth');
+const { requireAuth, requireRole, requireActiveSubscription, resolveActiveBranch, requireProcessorPermission } = require('../middleware/auth');
 const { pool } = require('../db');
 const { getPlanFeatures } = require('./planFeatures');
 
 const router = express.Router();
 router.use(requireAuth);
 router.use(requireActiveSubscription);
+router.use(resolveActiveBranch); // req.activeBusinessId - the branch a group Admin is currently viewing/scanning for
 
 // Real duplicate detection: same business + same supplier + same invoice
 // number (trimmed, case-insensitive), matched against any scan that isn't
@@ -34,10 +35,10 @@ router.get('/check-duplicate', requireRole('admin', 'processor', 'dispatch', 'de
   const { supplierId, invoiceNumber } = req.query;
   if (!supplierId || !invoiceNumber) return res.json({ duplicate: null });
   try {
-    const { features } = await getPlanFeatures(req.user.businessId);
+    const { features } = await getPlanFeatures(req.activeBusinessId);
     if (!features.duplicateDetection) return res.json({ duplicate: null, gated: true });
 
-    const match = await findDuplicate(req.user.businessId, supplierId, invoiceNumber, null);
+    const match = await findDuplicate(req.activeBusinessId, supplierId, invoiceNumber, null);
     res.json({ duplicate: match || null });
   } catch (err) {
     console.error(err);
@@ -60,7 +61,7 @@ router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asy
   const hasImage = typeof imageBase64 === 'string' && imageBase64.length > 0 && imageBase64.length <= MAX_IMAGE_BASE64_CHARS;
 
   try {
-    const { features, plan } = await getPlanFeatures(req.user.businessId);
+    const { features, plan } = await getPlanFeatures(req.activeBusinessId);
 
     // Enforce the plan's real monthly scan cap - not just a number on the
     // Billing usage bar. Checked before creating anything.
@@ -68,7 +69,7 @@ router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asy
       const monthCountResult = await pool.query(`
         SELECT COUNT(*)::int AS n FROM scans
         WHERE business_id = $1 AND TO_CHAR(scanned_at, 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')
-      `, [req.user.businessId]);
+      `, [req.activeBusinessId]);
       if (monthCountResult.rows[0].n >= features.scanLimit) {
         return res.status(403).json({
           error: `You've reached your ${plan} plan's monthly scan limit (${features.scanLimit}). Upgrade to keep scanning this month.`,
@@ -80,13 +81,13 @@ router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asy
     // Server-side safety net - the frontend already checks and warns before
     // locking, but this catches it regardless of how the scan was submitted.
     const duplicateMatch = features.duplicateDetection
-      ? await findDuplicate(req.user.businessId, supplierId, invoiceNumber, null)
+      ? await findDuplicate(req.activeBusinessId, supplierId, invoiceNumber, null)
       : null;
 
     const scanResult = await pool.query(`
       INSERT INTO scans (business_id, supplier_id, scanned_by, invoice_number, note, excl_vat, vat, total, price_alerts, status, is_duplicate, duplicate_of_scan_id, image_media_type, image_data)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', $10, $11, $12, $13) RETURNING id
-    `, [req.user.businessId, supplierId, req.user.userId, invoiceNumber || null, note || null,
+    `, [req.activeBusinessId, supplierId, req.user.userId, invoiceNumber || null, note || null,
         exclVat || 0, vat || 0, total, priceAlerts || 0, !!duplicateMatch, duplicateMatch ? duplicateMatch.id : null,
         hasImage ? (imageMediaType || 'image/jpeg') : null, hasImage ? imageBase64 : null]);
     const scanId = scanResult.rows[0].id;
@@ -107,7 +108,7 @@ router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asy
         if (li.code) {
           const itemResult = await pool.query(
             'SELECT id, current_price, vat_rate FROM item_master WHERE business_id = $1 AND code = $2',
-            [req.user.businessId, li.code]
+            [req.activeBusinessId, li.code]
           );
           const item = itemResult.rows[0];
           if (item) {
@@ -130,7 +131,7 @@ router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asy
             const newItemResult = await pool.query(`
               INSERT INTO item_master (business_id, code, name, unit, current_price, vat_rate, supplier_id, last_ordered_at)
               VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING id
-            `, [req.user.businessId, li.code, li.desc || li.code, li.unit || 'each', li.unitPrice || 0, lineVatRate, supplierId]);
+            `, [req.activeBusinessId, li.code, li.desc || li.code, li.unit || 'each', li.unitPrice || 0, lineVatRate, supplierId]);
             await pool.query(
               `INSERT INTO item_price_history (item_id, price, source, scan_id) VALUES ($1, $2, 'scan', $3)`,
               [newItemResult.rows[0].id, li.unitPrice || 0, scanId]
@@ -143,7 +144,7 @@ router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asy
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id, details)
        VALUES ($1, $2, 'scan.created', 'scan', $3, $4)`,
-      [req.user.businessId, req.user.userId, scanId, duplicateMatch ? JSON.stringify({ duplicateOf: duplicateMatch.id }) : null]
+      [req.activeBusinessId, req.user.userId, scanId, duplicateMatch ? JSON.stringify({ duplicateOf: duplicateMatch.id }) : null]
     );
 
     res.status(201).json({ id: scanId, isDuplicate: !!duplicateMatch, duplicateOf: duplicateMatch || null });
@@ -173,13 +174,13 @@ router.get('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asyn
         SELECT ${listColumns}
         FROM scans s JOIN suppliers sup ON sup.id = s.supplier_id JOIN users u ON u.id = s.scanned_by
         WHERE s.business_id = $1 AND s.scanned_by = $2 ORDER BY s.scanned_at DESC
-      `, [req.user.businessId, req.user.userId]);
+      `, [req.activeBusinessId, req.user.userId]);
     } else {
       result = await pool.query(`
         SELECT ${listColumns}
         FROM scans s JOIN suppliers sup ON sup.id = s.supplier_id JOIN users u ON u.id = s.scanned_by
         WHERE s.business_id = $1 ORDER BY s.scanned_at DESC
-      `, [req.user.businessId]);
+      `, [req.activeBusinessId]);
     }
     res.json(result.rows);
   } catch (err) {
@@ -190,7 +191,7 @@ router.get('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asyn
 
 router.get('/:id/line-items', requireRole('admin', 'processor', 'dispatch', 'developer'), async (req, res) => {
   try {
-    const scanResult = await pool.query('SELECT id FROM scans WHERE id = $1 AND business_id = $2', [req.params.id, req.user.businessId]);
+    const scanResult = await pool.query('SELECT id FROM scans WHERE id = $1 AND business_id = $2', [req.params.id, req.activeBusinessId]);
     if (!scanResult.rows[0]) return res.status(404).json({ error: 'Scan not found.' });
     const itemsResult = await pool.query('SELECT * FROM scan_line_items WHERE scan_id = $1', [req.params.id]);
     res.json(itemsResult.rows);
@@ -209,7 +210,7 @@ router.get('/:id/image', requireRole('admin', 'processor', 'dispatch', 'develope
   try {
     const result = await pool.query(
       'SELECT image_media_type, image_data FROM scans WHERE id = $1 AND business_id = $2',
-      [req.params.id, req.user.businessId]
+      [req.params.id, req.activeBusinessId]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Scan not found.' });
     const { image_media_type, image_data } = result.rows[0];
@@ -222,18 +223,18 @@ router.get('/:id/image', requireRole('admin', 'processor', 'dispatch', 'develope
 });
 
 // Only admin/processor can approve or reject - dispatch cannot approve their own scans.
-router.patch('/:id/approve', requireRole('admin', 'processor', 'developer'), async (req, res) => {
+router.patch('/:id/approve', requireRole('admin', 'processor', 'developer'), requireProcessorPermission('approveGrvs'), async (req, res) => {
   try {
     const result = await pool.query(`
       UPDATE scans SET status='approved', approved_by=$1, approved_at=NOW()
       WHERE id=$2 AND business_id=$3 AND status='pending'
-    `, [req.user.userId, req.params.id, req.user.businessId]);
+    `, [req.user.userId, req.params.id, req.activeBusinessId]);
     if (result.rowCount === 0) return res.status(404).json({ error: 'Scan not found or already processed.' });
 
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id)
        VALUES ($1, $2, 'scan.approved', 'scan', $3)`,
-      [req.user.businessId, req.user.userId, req.params.id]
+      [req.activeBusinessId, req.user.userId, req.params.id]
     );
 
     res.json({ ok: true });
@@ -243,18 +244,18 @@ router.patch('/:id/approve', requireRole('admin', 'processor', 'developer'), asy
   }
 });
 
-router.patch('/:id/reject', requireRole('admin', 'processor', 'developer'), async (req, res) => {
+router.patch('/:id/reject', requireRole('admin', 'processor', 'developer'), requireProcessorPermission('editRejectLineItems'), async (req, res) => {
   try {
     const result = await pool.query(`
       UPDATE scans SET status='rejected', approved_by=$1, approved_at=NOW()
       WHERE id=$2 AND business_id=$3 AND status='pending'
-    `, [req.user.userId, req.params.id, req.user.businessId]);
+    `, [req.user.userId, req.params.id, req.activeBusinessId]);
     if (result.rowCount === 0) return res.status(404).json({ error: 'Scan not found or already processed.' });
 
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id)
        VALUES ($1, $2, 'scan.rejected', 'scan', $3)`,
-      [req.user.businessId, req.user.userId, req.params.id]
+      [req.activeBusinessId, req.user.userId, req.params.id]
     );
 
     res.json({ ok: true });

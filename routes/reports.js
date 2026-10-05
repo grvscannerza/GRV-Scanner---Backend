@@ -1,11 +1,12 @@
 const express = require('express');
-const { requireAuth, requireRole, requireActiveSubscription } = require('../middleware/auth');
+const { requireAuth, requireRole, requireActiveSubscription, resolveActiveBranch, requireProcessorPermission } = require('../middleware/auth');
 const { pool } = require('../db');
 const { getPlanFeatures } = require('./planFeatures');
 
 const router = express.Router();
 router.use(requireAuth);
 router.use(requireActiveSubscription);
+router.use(resolveActiveBranch); // req.activeBusinessId - the branch a group Admin is currently viewing
 
 // Real aggregated report for a date range, built from actual scans - not generated.
 // GET /api/reports/summary?start=2026-07-31&end=2026-07-31  (inclusive, business-local dates)
@@ -15,17 +16,17 @@ router.use(requireActiveSubscription);
 // matter what was actually in the database).
 router.get('/home-summary', requireRole('admin', 'processor', 'developer'), async (req, res) => {
   try {
-    const { features } = await getPlanFeatures(req.user.businessId);
+    const { features } = await getPlanFeatures(req.activeBusinessId);
 
     const pendingResult = await pool.query(
       `SELECT COUNT(*)::int AS n FROM scans WHERE business_id = $1 AND status = 'pending'`,
-      [req.user.businessId]
+      [req.activeBusinessId]
     );
 
     const todayResult = await pool.query(
       `SELECT COUNT(*)::int AS n, COALESCE(SUM(total), 0)::float AS "totalValue", COALESCE(SUM(price_alerts), 0)::int AS "priceAlertCount"
        FROM scans WHERE business_id = $1 AND scanned_at::date = CURRENT_DATE`,
-      [req.user.businessId]
+      [req.activeBusinessId]
     );
 
     res.json({
@@ -45,7 +46,7 @@ router.get('/summary', requireRole('admin', 'processor', 'developer'), async (re
   if (!start || !end) return res.status(400).json({ error: 'start and end query params are required (YYYY-MM-DD).' });
 
   try {
-    const { features } = await getPlanFeatures(req.user.businessId);
+    const { features } = await getPlanFeatures(req.activeBusinessId);
 
     // "Unlimited scan history" is a Professional+ feature - Starter can only
     // pull reports for the last N days. Clamp the effective range rather than
@@ -71,14 +72,14 @@ router.get('/summary', requireRole('admin', 'processor', 'developer'), async (re
       JOIN users u ON u.id = s.scanned_by
       WHERE s.business_id = $1 AND s.scanned_at::date >= $2::date AND s.scanned_at::date <= $3::date
       ORDER BY s.scanned_at ASC
-    `, [req.user.businessId, effectiveStart, end]);
+    `, [req.activeBusinessId, effectiveStart, end]);
     const scans = scansResult.rows;
 
     const itemCountResult = await pool.query(`
       SELECT COUNT(*)::int AS n FROM scan_line_items sli
       JOIN scans s ON s.id = sli.scan_id
       WHERE s.business_id = $1 AND s.scanned_at::date >= $2::date AND s.scanned_at::date <= $3::date
-    `, [req.user.businessId, effectiveStart, end]);
+    `, [req.activeBusinessId, effectiveStart, end]);
     const itemCounts = itemCountResult.rows[0].n;
 
     const staffCount = new Set(scans.map(s => s.scanned_by)).size;
@@ -155,8 +156,8 @@ router.get('/summary', requireRole('admin', 'processor', 'developer'), async (re
 // Real aggregated data for the Insights page - approved scans only, since those
 // are the only financially "real" numbers (pending/rejected scans don't count
 // as actual spend yet).
-router.get('/insights', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const bizId = req.user.businessId;
+router.get('/insights', requireRole('admin', 'processor', 'developer'), requireProcessorPermission('insights'), async (req, res) => {
+  const bizId = req.activeBusinessId;
   const { start, end } = req.query;
   // Every query below optionally respects this same date range, so the whole
   // page consistently reflects whatever period is selected - a scan_id join
@@ -274,7 +275,7 @@ router.get('/insights', requireRole('admin', 'processor', 'developer'), async (r
 // the rest of the Insights page shows. Respects the same date range as the
 // main dashboard for consistency.
 router.get('/lookup', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const bizId = req.user.businessId;
+  const bizId = req.activeBusinessId;
   const { type, id, start, end } = req.query;
 
   if (type !== 'supplier' && type !== 'product' && type !== 'department') {
@@ -404,8 +405,8 @@ router.get('/lookup', requireRole('admin', 'processor', 'developer'), async (req
 // event within the selected range, not just the 2 auto-picked trend charts.
 // An "increase" is a price genuinely higher than the immediately preceding
 // price recorded for that same item.
-router.get('/price-increases', requireRole('admin', 'processor', 'developer'), async (req, res) => {
-  const bizId = req.user.businessId;
+router.get('/price-increases', requireRole('admin', 'processor', 'developer'), requireProcessorPermission('priceAlerts'), async (req, res) => {
+  const bizId = req.activeBusinessId;
   const { start, end } = req.query;
 
   try {

@@ -1,12 +1,34 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { requireAuth, requireUsersAccess, requireActiveSubscription } = require('../middleware/auth');
+const { requireAuth, requireUsersAccess, requireActiveSubscription, resolveActiveBranch } = require('../middleware/auth');
 const { pool } = require('../db');
 const { getPlanFeatures } = require('./planFeatures');
 
 const router = express.Router();
 router.use(requireAuth);
 router.use(requireActiveSubscription);
+router.use(resolveActiveBranch); // sets req.activeBusinessId - the branch this request acts on
+
+// The 7 named Processor rights an Admin can toggle, per branch, per
+// processor. Anything outside this list is ignored, not stored - so the
+// permissions blob can never drift from what the Users page actually shows.
+// "Default profile": everything on except Edit Item Master.
+const PROCESSOR_PERMISSION_KEYS = [
+  'approveGrvs', 'editRejectLineItems', 'exportAccounting', 'editItemMaster',
+  'priceAlerts', 'insights', 'manageDispatchUsers',
+];
+const DEFAULT_PROCESSOR_PERMISSIONS = {
+  approveGrvs: true, editRejectLineItems: true, exportAccounting: true,
+  editItemMaster: false, priceAlerts: true, insights: true, manageDispatchUsers: true,
+};
+function cleanProcessorPermissions(input) {
+  const src = input && typeof input === 'object' ? input : {};
+  const out = {};
+  for (const key of PROCESSOR_PERMISSION_KEYS) {
+    out[key] = key in src ? !!src[key] : DEFAULT_PROCESSOR_PERMISSIONS[key];
+  }
+  return out;
+}
 
 // List staff for the logged-in admin's OWN business only.
 // Notice: business_id comes from the verified token (req.user.businessId), never
@@ -18,7 +40,7 @@ router.get('/', requireUsersAccess, async (req, res) => {
       `SELECT u.id, u.username, u.email, u.first_name, u.last_name, u.role, u.status, u.last_active_at, u.permissions,
               (SELECT COUNT(*)::int FROM scans s WHERE s.scanned_by = u.id) AS scan_count
        FROM users u WHERE u.business_id = $1 AND u.role NOT IN ('admin','developer') ORDER BY u.id`,
-      [req.user.businessId]
+      [req.activeBusinessId]
     );
     const parsed = rows.map(u => ({ ...u, permissions: JSON.parse(u.permissions || '{}') }));
     res.json(parsed);
@@ -37,6 +59,13 @@ router.post('/', requireUsersAccess, async (req, res) => {
   if (!['processor', 'dispatch'].includes(role)) {
     return res.status(400).json({ error: 'Role must be processor or dispatch.' });
   }
+  // A processor who was only granted "Invite/remove Dispatch users at their
+  // branch" can create Dispatch accounts, never another Processor or Admin -
+  // that right was never offered to them, so a modified/hacked frontend
+  // can't grant it to itself by just POSTing role: 'processor'.
+  if (req.user.role === 'processor' && role !== 'dispatch') {
+    return res.status(403).json({ error: 'You can only add Dispatch users.' });
+  }
   // Enforced here, server-side - a modified/hacked frontend cannot bypass this
   // the way it could if the rule only existed in browser JavaScript.
   if (!/^\d{4}$/.test(String(pin))) {
@@ -49,35 +78,74 @@ router.post('/', requireUsersAccess, async (req, res) => {
       return res.status(409).json({ error: 'That username is already taken.' });
     }
 
-    const { features, plan } = await getPlanFeatures(req.user.businessId);
+    // Unlimited users on both plans today, but the limit check stays in
+    // place (a no-op while staffLimit is null) so re-introducing a cap later
+    // doesn't require touching this route again.
+    const { features, plan } = await getPlanFeatures(req.activeBusinessId);
     if (features.staffLimit !== null) {
       const countResult = await pool.query(
         `SELECT COUNT(*) AS n FROM users WHERE business_id = $1 AND role != 'admin' AND role != 'developer'`,
-        [req.user.businessId]
+        [req.activeBusinessId]
       );
       if (parseInt(countResult.rows[0].n, 10) >= features.staffLimit) {
-        const msg = features.staffLimit === 0
-          ? `The Starter plan doesn't include staff accounts - it's admin-only. Upgrade to Professional to add staff.`
-          : `You've reached your ${plan} plan's staff limit (${features.staffLimit}). Upgrade to add more.`;
-        return res.status(403).json({ error: msg });
+        return res.status(403).json({ error: `You've reached your ${plan} plan's staff limit (${features.staffLimit}). Contact support to raise it.` });
       }
     }
+
+    // Only a Processor's permissions are a fixed 7-key toggle set - Dispatch
+    // has no toggles at all (scan-only, per the spec), so their permissions
+    // blob stays empty rather than inheriting Processor's defaults.
+    const cleanedPermissions = role === 'processor' ? cleanProcessorPermissions(permissions) : {};
 
     const insertResult = await pool.query(
       `INSERT INTO users (business_id, username, email, first_name, last_name, role, pin_hash, status, permissions)
        VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', $8) RETURNING id`,
-      [req.user.businessId, username.toLowerCase(), email || null, firstName, lastName, role,
-        bcrypt.hashSync(String(pin), 10), JSON.stringify(permissions || {})]
+      [req.activeBusinessId, username.toLowerCase(), email || null, firstName, lastName, role,
+        bcrypt.hashSync(String(pin), 10), JSON.stringify(cleanedPermissions)]
     );
     const newId = insertResult.rows[0].id;
 
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id)
        VALUES ($1, $2, 'user.created', 'user', $3)`,
-      [req.user.businessId, req.user.userId, newId]
+      [req.activeBusinessId, req.user.userId, newId]
     );
 
     res.status(201).json({ id: newId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+// Admin updates a processor's 7 permission toggles. Dispatch has none to set.
+router.put('/:id/permissions', requireUsersAccess, async (req, res) => {
+  try {
+    const targetResult = await pool.query(
+      'SELECT role FROM users WHERE id = $1 AND business_id = $2',
+      [req.params.id, req.activeBusinessId]
+    );
+    const target = targetResult.rows[0];
+    if (!target) return res.status(404).json({ error: 'User not found.' });
+    if (target.role !== 'processor') {
+      return res.status(400).json({ error: 'Only Processor accounts have permissions to set.' });
+    }
+    // A processor granted manageDispatchUsers can create Dispatch accounts,
+    // but changing another Processor's rights is an Admin-only action.
+    if (req.user.role === 'processor') {
+      return res.status(403).json({ error: 'Only an Admin can change Processor permissions.' });
+    }
+
+    const cleaned = cleanProcessorPermissions(req.body?.permissions);
+    await pool.query('UPDATE users SET permissions = $1 WHERE id = $2', [JSON.stringify(cleaned), req.params.id]);
+
+    await pool.query(
+      `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id, details)
+       VALUES ($1, $2, 'user.permissions_updated', 'user', $3, $4)`,
+      [req.activeBusinessId, req.user.userId, req.params.id, JSON.stringify(cleaned)]
+    );
+
+    res.json({ ok: true, permissions: cleaned });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Something went wrong on our end.' });
@@ -94,7 +162,7 @@ router.post('/:id/reset-pin', requireUsersAccess, async (req, res) => {
   try {
     const result = await pool.query(
       'UPDATE users SET pin_hash = $1 WHERE id = $2 AND business_id = $3',
-      [bcrypt.hashSync(String(pin), 10), req.params.id, req.user.businessId]
+      [bcrypt.hashSync(String(pin), 10), req.params.id, req.activeBusinessId]
     );
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'User not found.' });
@@ -102,7 +170,7 @@ router.post('/:id/reset-pin', requireUsersAccess, async (req, res) => {
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id)
        VALUES ($1, $2, 'user.pin_reset', 'user', $3)`,
-      [req.user.businessId, req.user.userId, req.params.id]
+      [req.activeBusinessId, req.user.userId, req.params.id]
     );
     res.json({ ok: true });
   } catch (err) {
@@ -115,9 +183,16 @@ router.patch('/:id/deactivate', requireUsersAccess, async (req, res) => {
   try {
     const result = await pool.query(
       `UPDATE users SET status = 'inactive' WHERE id = $1 AND business_id = $2`,
-      [req.params.id, req.user.businessId]
+      [req.params.id, req.activeBusinessId]
     );
     if (result.rowCount === 0) return res.status(404).json({ error: 'User not found.' });
+
+    await pool.query(
+      `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id)
+       VALUES ($1, $2, 'user.deactivated', 'user', $3)`,
+      [req.activeBusinessId, req.user.userId, req.params.id]
+    );
+
     res.json({ ok: true });
   } catch (err) {
     console.error(err);

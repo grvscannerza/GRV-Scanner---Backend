@@ -1,10 +1,11 @@
 const express = require('express');
-const { requireAuth, requireRole, requireActiveSubscription } = require('../middleware/auth');
+const { requireAuth, requireRole, requireActiveSubscription, resolveActiveBranch } = require('../middleware/auth');
 const { pool } = require('../db');
 
 const router = express.Router();
 router.use(requireAuth);
 router.use(requireActiveSubscription);
+router.use(resolveActiveBranch); // req.activeBusinessId - the branch a group Admin is currently viewing
 
 // Everyone who can scan (including dispatch) needs to see supplier names for the dropdown.
 // Only admin/processor can create, edit, or delete suppliers.
@@ -15,7 +16,7 @@ router.get('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asyn
         (SELECT COUNT(*)::int FROM scans s WHERE s.supplier_id = sup.id AND s.status = 'approved') AS invoice_count,
         (SELECT COALESCE(SUM(s.total), 0)::float FROM scans s WHERE s.supplier_id = sup.id AND s.status = 'approved') AS total_spend
       FROM suppliers sup WHERE sup.business_id = $1 ORDER BY sup.name
-    `, [req.user.businessId]);
+    `, [req.activeBusinessId]);
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -36,13 +37,13 @@ router.post('/', requireRole('admin', 'processor', 'developer'), async (req, res
     const insertResult = await pool.query(`
       INSERT INTO suppliers (business_id, name, account_no, vat_number, vat_type, vat_rate, department, contact_name, phone, email, terms)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id
-    `, [req.user.businessId, name, accountNo || null, vatNumber || null, legacyVatType, rate, department || null, contactName || null, phone || null, email || null, terms || null]);
+    `, [req.activeBusinessId, name, accountNo || null, vatNumber || null, legacyVatType, rate, department || null, contactName || null, phone || null, email || null, terms || null]);
     const newId = insertResult.rows[0].id;
 
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id)
        VALUES ($1, $2, 'supplier.created', 'supplier', $3)`,
-      [req.user.businessId, req.user.userId, newId]
+      [req.activeBusinessId, req.user.userId, newId]
     );
 
     res.status(201).json({ id: newId });
@@ -65,7 +66,7 @@ router.put('/:id', requireRole('admin', 'processor', 'developer'), async (req, r
     const result = await pool.query(`
       UPDATE suppliers SET name=$1, account_no=$2, vat_number=$3, vat_type=$4, vat_rate=$5, department=$6, contact_name=$7, phone=$8, email=$9, terms=$10
       WHERE id=$11 AND business_id=$12
-    `, [name, accountNo || null, vatNumber || null, legacyVatType, rate, department || null, contactName || null, phone || null, email || null, terms || null, req.params.id, req.user.businessId]);
+    `, [name, accountNo || null, vatNumber || null, legacyVatType, rate, department || null, contactName || null, phone || null, email || null, terms || null, req.params.id, req.activeBusinessId]);
 
     if (result.rowCount === 0) return res.status(404).json({ error: 'Supplier not found.' });
     res.json({ ok: true });
@@ -80,7 +81,7 @@ router.put('/:id', requireRole('admin', 'processor', 'developer'), async (req, r
 // worse, be attempted blindly) - genuinely accurate counts, not estimates.
 router.get('/:id/deletion-impact', requireRole('admin', 'processor', 'developer'), async (req, res) => {
   try {
-    const supResult = await pool.query('SELECT id, name FROM suppliers WHERE id = $1 AND business_id = $2', [req.params.id, req.user.businessId]);
+    const supResult = await pool.query('SELECT id, name FROM suppliers WHERE id = $1 AND business_id = $2', [req.params.id, req.activeBusinessId]);
     if (!supResult.rows[0]) return res.status(404).json({ error: 'Supplier not found.' });
 
     const itemCountResult = await pool.query('SELECT COUNT(*)::int AS n FROM item_master WHERE supplier_id = $1', [req.params.id]);
@@ -108,7 +109,7 @@ router.delete('/:id', requireRole('admin', 'processor', 'developer'), async (req
   const confirmCascade = req.query.confirmCascade === 'true';
 
   try {
-    const supResult = await pool.query('SELECT id, name FROM suppliers WHERE id = $1 AND business_id = $2', [req.params.id, req.user.businessId]);
+    const supResult = await pool.query('SELECT id, name FROM suppliers WHERE id = $1 AND business_id = $2', [req.params.id, req.activeBusinessId]);
     if (!supResult.rows[0]) return res.status(404).json({ error: 'Supplier not found.' });
 
     // Without explicit confirmation, refuse to delete if anything real is
@@ -144,7 +145,7 @@ router.delete('/:id', requireRole('admin', 'processor', 'developer'), async (req
         await client.query('DELETE FROM item_master WHERE supplier_id = $1', [req.params.id]);
         await client.query('DELETE FROM scans WHERE supplier_id = $1', [req.params.id]);
       }
-      const deleteResult = await client.query('DELETE FROM suppliers WHERE id = $1 AND business_id = $2', [req.params.id, req.user.businessId]);
+      const deleteResult = await client.query('DELETE FROM suppliers WHERE id = $1 AND business_id = $2', [req.params.id, req.activeBusinessId]);
       if (deleteResult.rowCount === 0) {
         await client.query('ROLLBACK');
         return res.status(404).json({ error: 'Supplier not found.' });
@@ -152,7 +153,7 @@ router.delete('/:id', requireRole('admin', 'processor', 'developer'), async (req
       await client.query(
         `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id)
          VALUES ($1, $2, 'supplier.deleted', 'supplier', $3)`,
-        [req.user.businessId, req.user.userId, req.params.id]
+        [req.activeBusinessId, req.user.userId, req.params.id]
       );
       await client.query('COMMIT');
       res.json({ ok: true });

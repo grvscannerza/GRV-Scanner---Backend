@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
 
     const bizResult = await client.query(
       `INSERT INTO businesses (name, address, contact_number, contact_email, vat_number, plan, subscription_status)
-       VALUES ($1, $2, $3, $4, $5, 'starter', 'inactive') RETURNING id`,
+       VALUES ($1, $2, $3, $4, $5, 'business', 'inactive') RETURNING id`,
       [name.trim(), address.trim(), contactNumber.trim(), contactEmail.trim(), vatNumber && vatNumber.trim() ? vatNumber.trim() : null]
     );
     const businessId = bizResult.rows[0].id;
