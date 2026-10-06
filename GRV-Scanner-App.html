@@ -3284,10 +3284,10 @@ function pubGoFaq() {
 }
 function initPubNavMenus() {
   const MENUS = {
-    'Home': [['Home', "showPublicPage('landing')"], ['Questions (FAQ)', 'pubGoFaq()']],
+    'Home': [['Home', "showPublicPage('landing')"]],
     'Our story': [['Read our story', "showPublicPage('story')"], ['Questions (FAQ)', 'pubGoFaq()']],
     'Plans': [['See plans', "showPublicPage('plans-public')"], ['Get started', "showPublicPage('login')"]],
-    'Contact us': [['Send a message', "showPublicPage('contact-public')"], ['Log in', "showPublicPage('login')"]],
+    'Contact us': [['Send a message', "showPublicPage('contact-public')"]],
   };
   const caret = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
   document.querySelectorAll('.pub-nav .pub-nav-link').forEach(link => {
