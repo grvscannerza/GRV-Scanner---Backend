@@ -807,6 +807,13 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
 .pub-nav{padding:6px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
 .pub-nav-link{margin-right:0;padding:9px 18px;border-radius:999px;color:#b9c7d8;}
 .pub-nav-link:hover{color:#fff;background:rgba(255,255,255,0.06);}
+/* nav actions like the reference: pill of links + round icon buttons + pill button */
+.pub-actions{display:flex;align-items:center;gap:10px;}
+.pub-icon-btn{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:border-color .15s,background .15s;}
+.pub-icon-btn svg{width:18px;height:18px;}
+.pub-icon-btn:hover,.pub-login-btn:hover{border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.09);}
+.pub-login-btn{height:44px;padding:0 22px;border-radius:999px;display:flex;align-items:center;cursor:pointer;color:#fff;font-size:14px;font-weight:600;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:border-color .15s,background .15s;}
+.pub-nav-link.active{color:var(--accent);}
 .pub-hero-title{letter-spacing:-0.03em;font-weight:800;}
 .pub-hero-sub{color:#c4d3e3;}
 .pub-cta-primary{background:rgba(200,241,53,0.10);color:var(--accent);border:1px solid rgba(200,241,53,0.35);box-shadow:0 10px 36px rgba(200,241,53,0.18);}
@@ -826,6 +833,11 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
 .pub-hero2-title span{display:block;}
 .pub-hero2-sub{margin:0;max-width:620px;font-size:16px;line-height:1.65;color:#d5deea;}
 .pub-hero2 .pub-hero-actions{justify-content:center;margin-top:6px;}
+.pub-hero2 .pub-hero-actions{gap:18px;}
+.pub-hero2 .pub-cta-primary,.pub-hero2 .pub-cta-secondary{position:relative;min-width:148px;height:52px;padding:0 30px;border-radius:18px;font-size:14px;font-weight:600;letter-spacing:.01em;background:linear-gradient(180deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.015) 55%,rgba(0,0,0,0.25) 100%);border:1px solid rgba(255,255,255,0.08);box-shadow:inset 0 -14px 20px -14px rgba(255,255,255,0.30),0 18px 28px -16px rgba(0,0,0,0.9);color:#fff;transition:transform .15s ease,box-shadow .15s ease;}
+.pub-hero2 .pub-cta-primary{color:#34d399;box-shadow:inset 0 -14px 20px -12px rgba(52,211,153,0.45),0 18px 30px -16px rgba(52,211,153,0.35);}
+.pub-hero2 .pub-cta-primary:hover,.pub-hero2 .pub-cta-secondary:hover{opacity:1;transform:translateY(-1px);color:#fff;border-color:rgba(255,255,255,0.18);}
+.pub-hero2 .pub-cta-primary:hover{color:#34d399;}
 .pub-hero2-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:34px;}
 .pub-hero2-stat{min-width:210px;padding:18px 24px;border-radius:16px;display:flex;align-items:center;gap:14px;text-align:left;background:var(--glass);border:1px solid rgba(255,255,255,0.10);box-shadow:inset 0 -10px 18px -12px rgba(255,255,255,0.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
 .pub-hero2-stat-num{font-size:34px;font-weight:700;letter-spacing:-0.02em;color:#fff;}
@@ -873,6 +885,10 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
   .pub-header{padding:12px 16px;gap:8px;}
   .pub-nav{padding:4px;}
   .pub-nav-link{padding:7px 11px;font-size:12.5px;}
+  .pub-actions{gap:6px;}
+  .pub-icon-btn{width:36px;height:36px;}
+  .pub-icon-btn svg{width:15px;height:15px;}
+  .pub-login-btn{height:36px;padding:0 14px;font-size:12.5px;}
   .pub-page-body-spacer{height:112px;}
   .pub-hero2{margin-top:36px;}
   .pub-hero2-strip{padding:20px 18px 22px;}
@@ -1115,7 +1131,11 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
       <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
-      <div class="pub-nav-link" onclick="showPublicPage('login')">Log in</div>
+    </div>
+    <div class="pub-actions">
+      <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
+      <div class="pub-icon-btn" role="button" aria-label="Email us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+      <div class="pub-login-btn" role="button" onclick="showPublicPage('login')">Log in</div>
     </div>
   </div>
   <div class="pub-page-body-spacer"></div>
@@ -1291,10 +1311,14 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     <div class="pub-logo" onclick="showPublicPage('landing')" style="cursor:pointer;"><span>GRV</span><span>SCANNER</span></div>
     <div class="pub-nav">
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
-      <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link active" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
       <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
-      <div class="pub-nav-link" onclick="showPublicPage('login')">Log in</div>
+    </div>
+    <div class="pub-actions">
+      <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
+      <div class="pub-icon-btn" role="button" aria-label="Email us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+      <div class="pub-login-btn" role="button" onclick="showPublicPage('login')">Log in</div>
     </div>
   </div>
   <div class="pub-page-body-spacer"></div>
@@ -1315,9 +1339,13 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     <div class="pub-nav">
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
-      <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
+      <div class="pub-nav-link active" onclick="showPublicPage('plans-public')">Plans</div>
       <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
-      <div class="pub-nav-link" onclick="showPublicPage('login')">Log in</div>
+    </div>
+    <div class="pub-actions">
+      <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
+      <div class="pub-icon-btn" role="button" aria-label="Email us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+      <div class="pub-login-btn" role="button" onclick="showPublicPage('login')">Log in</div>
     </div>
   </div>
   <div class="pub-page-body-spacer"></div>
@@ -1336,8 +1364,12 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
-      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
-      <div class="pub-nav-link" onclick="showPublicPage('login')">Log in</div>
+      <div class="pub-nav-link active" onclick="showPublicPage('contact-public')">Contact us</div>
+    </div>
+    <div class="pub-actions">
+      <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
+      <div class="pub-icon-btn" role="button" aria-label="Email us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+      <div class="pub-login-btn" role="button" onclick="showPublicPage('login')">Log in</div>
     </div>
   </div>
   <div class="pub-page-body-spacer"></div>
@@ -1363,6 +1395,10 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
       <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
+    </div>
+    <div class="pub-actions">
+      <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
+      <div class="pub-icon-btn" role="button" aria-label="Email us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
     </div>
   </div>
   <div class="pub-page-body-spacer"></div>
