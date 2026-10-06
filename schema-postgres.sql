@@ -1,13 +1,13 @@
 -- GRV Scanner backend schema - PostgreSQL version.
 
--- A "group" is the billing/admin umbrella over several branches for a
--- Multi-Branch customer. It has NO data of its own - suppliers, item master,
--- scans and exports always stay on the branch (businesses row), never
--- merged to the group - the group only exists to (a) hold one consolidated
--- Paystack subscription/invoice for all its branches and (b) let a
--- group-level Admin act across every branch in it. A single-branch Business
--- customer has no group at all (businesses.group_id stays NULL) and bills
--- exactly as before, branch by branch.
+-- A "group" only ties several branches together so one group-level Admin can
+-- switch between them. It has NO data and NO billing of its own - suppliers,
+-- item master, scans and exports always stay on the branch (businesses row),
+-- and every branch is its own company that pays its own subscription. A
+-- single-branch customer has no group at all (businesses.group_id stays NULL).
+-- (The paystack_*/subscription_status columns below are unused leftovers from
+-- an earlier consolidated-billing design; harmless, kept so the idempotent
+-- migration never has to drop anything.)
 CREATE TABLE IF NOT EXISTS groups (
   id                         SERIAL PRIMARY KEY,
   name                       TEXT NOT NULL,
@@ -227,3 +227,4 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
   message      TEXT NOT NULL,
   submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS paystack_paid_at TIMESTAMPTZ;

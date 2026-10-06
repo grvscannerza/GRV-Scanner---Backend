@@ -96,31 +96,27 @@ async function resolveActiveBranch(req, res, next) {
 }
 
 // Blocks every real feature (suppliers, item master, scans, reports, staff
-// management) unless the business has an actually-paid, active subscription -
-// or is within a 3-day grace period after a renewal payment failure. For a
-// branch that belongs to a Multi-Branch group, billing is consolidated at
-// the GROUP level (one invoice for every branch), so the group's own
-// subscription_status governs every branch in it, not the branch's own row.
-// A standalone (non-grouped) branch still uses its own row exactly as before.
-// The developer/owner account bypasses this entirely, since it isn't a
-// paying customer.
+// management) unless the branch being acted on has an actually-paid, active
+// subscription - or is within a 3-day grace period after a renewal payment
+// failure. Billing is PER BRANCH: every branch is its own company and pays
+// for its own subscription, even when branches are linked in a group. So this
+// checks the ACTIVE branch (req.activeBusinessId, set by resolveActiveBranch,
+// which therefore must run BEFORE this middleware). The developer/owner
+// account bypasses this entirely, since it isn't a paying customer.
 const GRACE_PERIOD_MS = 3 * 24 * 60 * 60 * 1000;
 
 async function requireActiveSubscription(req, res, next) {
   if (!req.user) return res.status(401).json({ error: 'Not logged in.' });
   if (req.user.role === 'developer') return next();
   try {
+    const branchId = req.activeBusinessId || req.user.businessId;
     const { rows } = await pool.query(
-      `SELECT b.group_id, b.subscription_status AS biz_status, b.past_due_since AS biz_past_due,
-              g.subscription_status AS grp_status, g.past_due_since AS grp_past_due
-       FROM businesses b LEFT JOIN groups g ON g.id = b.group_id
-       WHERE b.id = $1`,
-      [req.user.businessId]
+      'SELECT subscription_status, past_due_since FROM businesses WHERE id = $1',
+      [branchId]
     );
     const row = rows[0];
-    const grouped = !!row?.group_id;
-    const status = grouped ? row.grp_status : row?.biz_status;
-    const pastDueSince = grouped ? row.grp_past_due : row?.biz_past_due;
+    const status = row?.subscription_status;
+    const pastDueSince = row?.past_due_since;
 
     if (status === 'active') return next();
 
@@ -135,10 +131,11 @@ async function requireActiveSubscription(req, res, next) {
 
     return res.status(402).json({
       error: status === 'past_due'
-        ? 'Your last payment failed and the 3-day grace period has ended. Please update your payment method to continue.'
-        : 'Your subscription is not active yet. Complete payment to unlock the app.',
+        ? 'This branch\'s last payment failed and the 3-day grace period has ended. Please update the payment method to continue.'
+        : 'This branch\'s subscription is not active yet. Complete payment to unlock it.',
       subscriptionInactive: true,
       subscriptionStatus: status || 'inactive',
+      branchId,
     });
   } catch (err) {
     console.error(err);

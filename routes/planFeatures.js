@@ -1,11 +1,10 @@
 const { pool } = require('../db');
 
-// Business and Multi-Branch are feature-identical - the only difference
-// between them is how billing is calculated (see routes/billing.js), not
-// what the app lets you do. This replaces the old Starter/Professional/
-// Enterprise tiers, which no longer exist.
-// scanLimit is 2,000 PER BRANCH per month (not per account), so a Multi-
-// Branch group with several branches is unaffected by having more than one.
+// There is one plan, 'business' (R2,999/month excl. VAT per branch). Every
+// branch gets every feature. The old Starter/Professional/Enterprise tiers
+// no longer exist; any leftover plan name falls back to this same set.
+// scanLimit is 2,000 PER BRANCH per month (not per account), so a group
+// with several branches is unaffected by having more than one.
 // staffLimit/historyLimitDays: null means unlimited.
 const PLAN_FEATURES_SHARED = {
   duplicateDetection: true,

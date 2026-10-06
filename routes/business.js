@@ -159,18 +159,9 @@ router.get('/plan', requireRole('admin', 'developer'), async (req, res) => {
     );
     const row = bizResult.rows[0];
 
-    // Billing status is consolidated at the GROUP level for a Multi-Branch
-    // branch (one invoice for the whole group) - mirrors the same grouped/
-    // standalone split used in middleware/auth.js's requireActiveSubscription,
-    // so the Billing page never shows a status the app isn't actually using.
-    let billingRow = row;
-    if (row?.group_id) {
-      const grpResult = await pool.query(
-        'SELECT subscription_status, past_due_since, paystack_subscription_code FROM groups WHERE id = $1',
-        [row.group_id]
-      );
-      billingRow = grpResult.rows[0] || row;
-    }
+    // Billing is per branch: every branch is its own company and pays for
+    // its own subscription, so the branch's own row is always the source.
+    const billingRow = row;
 
     const scansResult = await pool.query(`
       SELECT COUNT(*)::int AS n FROM scans
@@ -217,10 +208,11 @@ router.get('/plan', requireRole('admin', 'developer'), async (req, res) => {
 });
 
 // ── Multi-Branch groups ──
-// A group has no data of its own - it only (a) ties branches together for
-// billing/Admin-access purposes, and (b) tracks one consolidated Paystack
-// subscription. Suppliers, Item Master, scans and exports always stay on
-// the branch (businesses row) that created them.
+// A group has no data of its own and no billing of its own - it only ties
+// branches together so one group Admin can switch between them. Every branch
+// is its own company and pays its own R2,999/month (excl. VAT) subscription.
+// Suppliers, Item Master, scans and exports always stay on the branch
+// (businesses row) that created them.
 
 // The caller's group and every branch in it, for the branch switcher and the
 // group Admin screen. A non-grouped Admin just sees their one branch.
@@ -233,9 +225,9 @@ router.get('/group', requireRole('admin', 'developer'), async (req, res) => {
       return res.json({ grouped: false, group: null, branches: rows });
     }
 
-    const groupResult = await pool.query('SELECT id, name, subscription_status FROM groups WHERE id = $1', [groupId]);
+    const groupResult = await pool.query('SELECT id, name FROM groups WHERE id = $1', [groupId]);
     const branchesResult = await pool.query(
-      `SELECT b.id, b.name,
+      `SELECT b.id, b.name, b.subscription_status,
               (SELECT COUNT(*)::int FROM users u WHERE u.business_id = b.id AND u.role = 'admin') AS admin_count
        FROM businesses b WHERE b.group_id = $1 ORDER BY b.id`,
       [groupId]
@@ -249,8 +241,7 @@ router.get('/group', requireRole('admin', 'developer'), async (req, res) => {
 
 // Converts the caller's standalone branch into the first branch of a new
 // group. Nothing about the branch's own data changes - this only sets
-// group_id and switches its billing plan label to multi_branch (the actual
-// per-branch Paystack pricing/quantity logic lives in routes/billing.js).
+// group_id. Its own subscription and plan are untouched.
 router.post('/group', requireRole('admin'), async (req, res) => {
   const { groupName } = req.body || {};
   if (!groupName || !groupName.trim()) return res.status(400).json({ error: 'A group name is required.' });
@@ -264,7 +255,7 @@ router.post('/group', requireRole('admin'), async (req, res) => {
     const groupResult = await pool.query('INSERT INTO groups (name) VALUES ($1) RETURNING id', [groupName.trim()]);
     const groupId = groupResult.rows[0].id;
 
-    await pool.query(`UPDATE businesses SET group_id = $1, plan = 'multi_branch' WHERE id = $2`, [groupId, req.user.businessId]);
+    await pool.query(`UPDATE businesses SET group_id = $1 WHERE id = $2`, [groupId, req.user.businessId]);
 
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type, target_id, details)
@@ -280,7 +271,8 @@ router.post('/group', requireRole('admin'), async (req, res) => {
 });
 
 // Adds a brand-new branch to the caller's group. The new branch starts
-// empty (its own suppliers/item master/scans from scratch) - "each branch
+// INACTIVE - it must pay its own subscription (Billing page, while switched
+// to that branch) before it unlocks. It starts empty (its own suppliers/item master/scans from scratch) - "each branch
 // stays its own account" - and needs its own Admin added via /api/users
 // once this returns its id (the creating Admin is a group Admin already,
 // so they can act on it immediately via the X-Branch-Id header).
@@ -295,7 +287,7 @@ router.post('/group/branches', requireRole('admin'), async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO businesses (name, group_id, plan, subscription_status)
-       VALUES ($1, $2, 'multi_branch', 'active') RETURNING id`,
+       VALUES ($1, $2, 'business', 'inactive') RETURNING id`,
       [name.trim(), groupId]
     );
     const newBranchId = result.rows[0].id;
@@ -313,13 +305,10 @@ router.post('/group/branches', requireRole('admin'), async (req, res) => {
   }
 });
 
-// Removes a branch from the group (the branch itself and its data are NOT
-// deleted - it just reverts to a standalone Business-plan account, inactive
-// until it's billed on its own). Per the spec, if this drops the group below
-// 3 branches, the remaining branches should revert to R2,999 pricing from
-// the NEXT billing cycle - that recalculation is not yet implemented here
-// (flagged, see summary) since it depends on how the group's Paystack
-// subscription quantity/amount actually gets changed.
+// Removes a branch from the group. The branch and its data are NOT deleted
+// and its own subscription is untouched (each branch pays for itself, so
+// leaving the group changes nothing about billing) - it simply stops being
+// visible to the group Admin.
 router.delete('/group/branches/:id', requireRole('admin'), async (req, res) => {
   try {
     const ownBiz = await pool.query('SELECT group_id FROM businesses WHERE id = $1', [req.user.businessId]);
@@ -327,7 +316,7 @@ router.delete('/group/branches/:id', requireRole('admin'), async (req, res) => {
     if (!groupId) return res.status(400).json({ error: 'Your branch is not part of a group.' });
 
     const result = await pool.query(
-      `UPDATE businesses SET group_id = NULL, plan = 'business', subscription_status = 'inactive'
+      `UPDATE businesses SET group_id = NULL
        WHERE id = $1 AND group_id = $2`,
       [req.params.id, groupId]
     );
@@ -435,7 +424,7 @@ router.delete('/', requireRole('admin'), async (req, res) => {
 // changing plans now goes through POST /api/billing/checkout (real payment).
 router.patch('/plan', requireRole('developer'), async (req, res) => {
   const { plan } = req.body || {};
-  if (!['business', 'multi_branch'].includes(plan)) {
+  if (plan !== 'business') {
     return res.status(400).json({ error: 'Invalid plan.' });
   }
   try {

@@ -5,8 +5,8 @@ const { getPlanFeatures } = require('./planFeatures');
 
 const router = express.Router();
 router.use(requireAuth);
-router.use(requireActiveSubscription);
 router.use(resolveActiveBranch); // req.activeBusinessId - the branch a group Admin is currently viewing
+router.use(requireActiveSubscription);
 
 // Real aggregated report for a date range, built from actual scans - not generated.
 // GET /api/reports/summary?start=2026-07-31&end=2026-07-31  (inclusive, business-local dates)

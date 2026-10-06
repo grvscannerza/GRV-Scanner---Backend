@@ -5,8 +5,8 @@ const { getPlanFeatures } = require('./planFeatures');
 
 const router = express.Router();
 router.use(requireAuth);
-router.use(requireActiveSubscription);
 router.use(resolveActiveBranch); // req.activeBusinessId - the branch a group Admin is currently viewing
+router.use(requireActiveSubscription);
 
 // Returns each item with its real previous price and % change, computed from
 // the actual price_history table - not fabricated. The comparison itself

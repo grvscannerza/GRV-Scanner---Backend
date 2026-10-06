@@ -5,8 +5,8 @@ const { getPlanFeatures } = require('./planFeatures');
 
 const router = express.Router();
 router.use(requireAuth);
-router.use(requireActiveSubscription);
 router.use(resolveActiveBranch); // req.activeBusinessId - the branch a group Admin is currently viewing/scanning for
+router.use(requireActiveSubscription);
 
 // Real duplicate detection: same business + same supplier + same invoice
 // number (trimmed, case-insensitive), matched against any scan that isn't

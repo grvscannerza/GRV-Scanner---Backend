@@ -1283,23 +1283,15 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <!-- STEP 3: Billing -->
       <div id="su-step-3" style="display:none;">
         <div class="login-title">Choose Your Plan</div>
-        <div class="login-sub">Your account is ready - pick a plan to get started. All prices include VAT.</div>
+        <div class="login-sub">Your account is ready - subscribe to get started. Price shown includes VAT.</div>
         <div id="su3-error" style="display:none;background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:14px;"></div>
         <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
-          <div class="su-plan-card" onclick="chooseSignupPlan('starter')">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;"><div style="font-weight:700;color:#fff;">Starter</div><div style="font-family:'DM Mono',monospace;color:var(--accent);">R649<span style="font-size:10px;color:var(--muted);">/mo</span></div></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:3px;">150 scans &middot; 1 Admin user</div>
-          </div>
-          <div class="su-plan-card" onclick="chooseSignupPlan('professional')" style="border-color:var(--accent);">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;"><div style="font-weight:700;color:#fff;">Professional <span style="font-size:9px;color:var(--accent);background:rgba(200,241,53,0.12);padding:2px 6px;border-radius:8px;">POPULAR</span></div><div style="font-family:'DM Mono',monospace;color:var(--accent);">R1,199<span style="font-size:10px;color:var(--muted);">/mo</span></div></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:3px;">600 scans &middot; 1 Admin + 5 Staff</div>
-          </div>
-          <div class="su-plan-card" onclick="chooseSignupPlan('enterprise')">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;"><div style="font-weight:700;color:#fff;">Enterprise</div><div style="font-family:'DM Mono',monospace;color:var(--accent);">R2,999<span style="font-size:10px;color:var(--muted);">/mo</span></div></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:3px;">2,000 scans &middot; 1 Admin + Unlimited Staff</div>
+          <div class="su-plan-card" onclick="chooseSignupPlan('business')" style="border-color:var(--accent);">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;"><div style="font-weight:700;color:#fff;">Business</div><div style="font-family:'DM Mono',monospace;color:var(--accent);">R3,448.85<span style="font-size:10px;color:var(--muted);">/mo</span></div></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:3px;">R2,999 excl. VAT &middot; 2,000 scans per month &middot; unlimited users &amp; history &middot; all features</div>
           </div>
         </div>
-        <div style="font-size:11px;color:var(--muted);text-align:center;">You'll be taken to a secure Paystack checkout. You can also choose a plan later from Billing.</div>
+        <div style="font-size:11px;color:var(--muted);text-align:center;">You'll be taken to a secure Paystack checkout. You can also subscribe later from Billing.</div>
       </div>
 
     </div>
@@ -1438,8 +1430,8 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
     </div>
     <div id="insightsUpgradePrompt" style="display:none;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:48px 32px;text-align:center;">
       <div style="font-size:36px;margin-bottom:16px;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
-      <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;">Insights is a Professional feature</div>
-      <div style="font-size:13px;color:var(--muted);max-width:420px;margin:0 auto 22px;line-height:1.6;">Upgrade to Professional or Enterprise to see your spend trends, top suppliers, and business growth in one place.</div>
+      <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;">Insights isn't available on your account</div>
+      <div style="font-size:13px;color:var(--muted);max-width:420px;margin:0 auto 22px;line-height:1.6;">Ask your Admin to give you access to see spend trends, top suppliers, and business growth in one place.</div>
       <button onclick="showPage('billing', null)" style="padding:11px 24px;background:var(--accent);color:#0a1628;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">View Plans</button>
     </div>
     <div id="insightsContent">
@@ -1574,53 +1566,30 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
       <div><div style="font-size:13px;font-weight:700;color:#fff;" id="activateNoticeTitle">Activate your account to start scanning</div><div style="font-size:12px;color:var(--muted);" id="activateNoticeBody">Choose a plan below to unlock GRV Scanner for your business.</div></div>
     </div>
     <div class="billing-title">Billing & Subscription</div>
-    <div class="billing-sub">Manage your plan and view current usage</div>
+    <div class="billing-sub" id="billingSub">Manage this branch's subscription and view current usage</div>
     <div class="current-plan">
       <div class="cp-badge">CURRENT PLAN</div>
-      <div class="cp-title" id="cp-title">Professional - R1,199/month</div>
+      <div class="cp-title" id="cp-title">Business - R3,448.85/month (inc. VAT)</div>
       <span id="cp-status-badge" style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-bottom:8px;"></span>
-      <div class="cp-meta" id="cp-meta">1 Admin + 5 Staff users &nbsp;&nbsp;&middot;&nbsp;&nbsp; 600 scans/month</div>
+      <div class="cp-meta" id="cp-meta">Unlimited users &nbsp;&nbsp;&middot;&nbsp;&nbsp; 2,000 scans/month</div>
       <div class="usage-label"><span>Scans used this month</span><span id="cp-usage-text">- / -</span></div>
       <div class="usage-bar"><div class="usage-fill" id="cp-usage-fill" style="width:0%;"></div></div>
       <div class="cancel-link" onclick="cancelSubscription()">Cancel subscription</div>
     </div>
     <div class="plans-grid">
-      <div class="plan-card" data-plan="starter">
-        <div class="plan-name">Starter</div>
-        <div class="plan-price">R649<span class="plan-period">/mo</span> <span style="font-size:10px;font-weight:400;color:var(--muted);">inc. VAT</span></div>
-        <div class="plan-scans">150 scans · 1 Admin user</div>
+      <div class="plan-card popular" data-plan="business">
+        <div class="plan-name">Business</div>
+        <div class="plan-price">R3,448.85<span class="plan-period">/mo</span> <span style="font-size:10px;font-weight:400;color:var(--muted);">inc. VAT (R2,999 excl. VAT)</span></div>
+        <div class="plan-scans">2,000 scans per month &middot; per branch</div>
         <div class="plan-feats">
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>AI technology scanning invoices</div>
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>CSV & Excel export</div>
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Supplier management</div>
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Security lock on export</div>
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Email support</div>
-        </div>
-        <button class="plan-btn" id="btn-plan-starter" onclick="changePlan('Starter')">Downgrade to Starter</button>
-      </div>
-      <div class="plan-card popular" data-plan="professional">
-        <div class="pop-badge" id="pop-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" fill="currentColor" stroke="none"/></svg> YOUR CURRENT PLAN</div>
-        <div class="plan-name">Professional</div>
-        <div class="plan-price">R1,199<span class="plan-period">/mo</span> <span style="font-size:10px;font-weight:400;color:var(--muted);">inc. VAT</span></div>
-        <div class="plan-scans">600 scans · 1 Admin + 5 Staff</div>
-        <div class="plan-feats">
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Everything in Starter</div>
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Unlimited scan history</div>
+          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>2,000 scans per month</div>
+          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Unlimited users and scan history</div>
           <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Duplicate invoice detection</div>
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Full insights & charts</div>
+          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Price increase alerts</div>
+          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Full insights &amp; analytics</div>
+          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Sage / Pastel / Xero export</div>
         </div>
-        <button class="plan-btn current" id="btn-plan-professional">Current Plan</button>
-      </div>
-      <div class="plan-card" data-plan="enterprise">
-        <div class="plan-name">Enterprise</div>
-        <div class="plan-price">R2,999<span class="plan-period">/mo</span> <span style="font-size:10px;font-weight:400;color:var(--muted);">inc. VAT</span></div>
-        <div class="plan-scans">2,000 scans · 1 Admin + Unlimited Staff</div>
-        <div class="plan-feats">
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Everything in Professional</div>
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Unlimited staff users</div>
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Price increase detection</div>
-        </div>
-        <button class="plan-btn upgrade" id="btn-plan-enterprise" onclick="changePlan('Enterprise')">Upgrade to Enterprise</button>
+        <button class="plan-btn upgrade" id="btn-plan-business" onclick="changePlan('Business')">Subscribe</button>
       </div>
     </div>
     <div style="margin-top:32px;">
@@ -2372,7 +2341,7 @@ tbody tr:hover .del-btn{opacity:1;}.del-btn:hover{color:var(--danger);}
 
     <!-- Shown when NOT yet grouped: offer to start a Multi-Branch group -->
     <div id="groupModalNotGrouped" style="display:none;">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Your account is on the single-branch Business plan. Starting a group turns this branch into the first branch of a Multi-Branch group - Multi-Branch bills R2,499/branch/month (excl. VAT), minimum 3 branches, one invoice for the whole group.</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Starting a group links this branch with others so one Admin can switch between them. Every branch is its own company and pays its own subscription (R2,999/month excl. VAT per branch) - a new branch stays locked until it is paid for on its Billing page.</div>
       <div class="um-field full"><label>Group Name</label><input id="newGroupName" placeholder="e.g. Christos Restaurants"/></div>
       <div class="um-actions"><button class="m-cancel" onclick="closeModal('groupModal')">Cancel</button><button class="m-save" onclick="createGroup()">Create Group</button></div>
     </div>
@@ -2803,7 +2772,7 @@ async function loadGroupInfoAndRenderSwitcher() {
   const sel = document.getElementById('branchSwitcherSelect');
   if (sel) {
     sel.innerHTML = groupInfo.branches.map(b =>
-      `<option value="${b.id}" ${activeBranchId === b.id ? 'selected' : ''}>${escapeHtml(b.name)}</option>`
+      `<option value="${b.id}" ${activeBranchId === b.id ? 'selected' : ''}>${escapeHtml(b.name)}${b.subscription_status === 'active' ? '' : ' - not paid'}</option>`
     ).join('');
   }
   if (wrap) wrap.style.display = 'flex';
@@ -2815,10 +2784,26 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;'
 // X-Branch-Id header) - the simplest, least error-prone way to make that
 // take effect everywhere is to land back on Home, the same approach already
 // used when the developer's VIEW AS switcher changes role.
-function switchActiveBranch(branchIdStr) {
+async function switchActiveBranch(branchIdStr) {
   activeBranchId = safeNumOrNull(branchIdStr);
   safeStorageSet('grv_active_branch', branchIdStr);
+  // Each branch has its own subscription: an unpaid branch can only show its
+  // Billing page, so go there instead of landing on Home full of 402 errors.
+  if (!(await activeBranchHasAccess())) { showPage('billing', null); return; }
   showPage('home', null);
+}
+
+// True when the branch currently being viewed is paid up (or inside the
+// 3-day grace period). /business/plan is deliberately not subscription-gated,
+// so it can be read for an unpaid branch.
+async function activeBranchHasAccess() {
+  try {
+    const d = await apiFetch('/business/plan');
+    currentSubscriptionStatus = d.subscriptionStatus;
+    return d.subscriptionStatus === 'active' || (d.subscriptionStatus === 'past_due' && d.gracePeriodDaysLeft > 0);
+  } catch (err) {
+    return true; // can't tell - let the normal calls surface the real error
+  }
 }
 
 async function loadGroupModal() {
@@ -2931,6 +2916,12 @@ async function establishSession(u, isRestoring) {
     currentAdminInfo = (u.role === 'admin' || u.role === 'developer') ? { firstName: u.firstName, lastName: u.lastName, email: u.email, username: u.username } : null;
     applyRoleUI('admin', u.role === 'developer' ? u.username : `${u.firstName} ${u.lastName}`, (u.firstName?.[0] || u.username[0]).toUpperCase() + (u.lastName?.[0] || u.username[1] || '').toUpperCase());
     if (u.role === 'admin') await loadGroupInfoAndRenderSwitcher();
+    // A group Admin can be restored onto a branch that has not paid yet.
+    if (u.role === 'admin' && activeBranchId && !(await activeBranchHasAccess())) {
+      showPage('billing', null);
+      if (pendingPaystackReference) await checkPaystackCallback();
+      return;
+    }
     await loadUsersFromServer();
     await loadSuppliersFromServer();
     await loadItemMasterFromServer();
@@ -3089,9 +3080,7 @@ async function loadPublicPlansTable() {
   try {
     const features = await (await fetch(`${API_BASE}/public/plan-features`)).json();
     const plans = [
-      { key: 'starter', name: 'Starter', price: 649 },
-      { key: 'professional', name: 'Professional', price: 1199, popular: true },
-      { key: 'enterprise', name: 'Enterprise', price: 2999 },
+      { key: 'business', name: 'Business', price: 3448.85, exclVat: 2999, popular: false },
     ];
     const checkSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pub-plan-check"><polyline points="20 6 9 17 4 12"/></svg>';
     const crossSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5a7291" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pub-plan-check"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
@@ -3110,7 +3099,7 @@ async function loadPublicPlansTable() {
         const [has, label] = Array.isArray(r) ? r : [true, r];
         return `<div class="pub-plan-row">${has ? checkSvg : crossSvg}<span>${label}</span></div>`;
       }).join('');
-      return `<div class="pub-plan-col ${p.popular ? 'popular' : ''}">${p.popular ? '<div class="pub-plan-badge">Most Popular</div>' : ''}<div class="pub-plan-name">${p.name}</div><div class="pub-plan-price">R${p.price.toLocaleString()}<span>/mo</span></div>${rowsHtml}</div>`;
+      return `<div class="pub-plan-col ${p.popular ? 'popular' : ''}">${p.popular ? '<div class="pub-plan-badge">Most Popular</div>' : ''}<div class="pub-plan-name">${p.name}</div><div class="pub-plan-price">R${p.exclVat.toLocaleString()}<span>/mo excl. VAT</span></div>${rowsHtml}</div>`;
     }).join('') + `</div>`;
   } catch (err) {
     el.innerHTML = '<div style="color:var(--danger);">Could not load plan details right now.</div>';
@@ -3332,7 +3321,7 @@ async function chooseSignupPlan(plan) {
   try {
     const result = await apiFetch('/billing/checkout', {
       method: 'POST',
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ plan: 'business' }),
     });
     window.location.href = result.authorizationUrl;
   } catch (err) {
@@ -4495,7 +4484,7 @@ async function renderUsersTable() {
   }
 
   // Everything below is now built entirely from real data - the plan name,
-  // the real staff cap (Starter=0, Professional=5, Enterprise=unlimited),
+  // the real staff cap (unlimited on the Business plan),
   // and the avatar row itself, which used to be permanently hardcoded to
   // 3 fake staff members regardless of who was actually on the account.
   let planInfo;
@@ -4507,7 +4496,7 @@ async function renderUsersTable() {
   }
 
   const used = staffUsers.length;
-  const cap = planInfo.staffLimit; // null = unlimited (Enterprise)
+  const cap = planInfo.staffLimit; // null = unlimited
   const planLabel = (PLAN_INFO[planInfo.plan]?.label || planInfo.plan);
 
   const planTextEl = document.getElementById('upiPlanText');
@@ -4724,6 +4713,8 @@ async function saveSettingsToast(btn, sectionKey) {
 }
 
 const PLAN_INFO = {
+  business:     { label: 'Business',     price: 3448.85, cap: 2000, seats: 'Unlimited users' },
+  // Old tiers - only so an existing customer still on one renders correctly.
   starter:      { label: 'Starter',      price: 649,  cap: 150,  seats: '1 Admin user' },
   professional: { label: 'Professional', price: 1199, cap: 600,  seats: '1 Admin + 5 Staff users' },
   enterprise:   { label: 'Enterprise',   price: 2999, cap: 2000, seats: '1 Admin + Unlimited Staff' },
@@ -4738,7 +4729,7 @@ async function loadInvoices() {
       list.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:16px;text-align:center;background:var(--surface2);border-radius:var(--radius);">No invoices yet - they appear here automatically after your first successful payment.</div>';
       return;
     }
-    const planLabels = { starter: 'Starter', professional: 'Professional', enterprise: 'Enterprise' };
+    const planLabels = { business: 'Business', starter: 'Starter', professional: 'Professional', enterprise: 'Enterprise' };
     list.innerHTML = invoices.map(inv => `
       <div style="background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
         <div>
@@ -4784,7 +4775,7 @@ async function checkScanLimitBeforeStarting() {
     const banner = document.getElementById('scanLimitBanner');
     if (cap != null && planData.scansThisMonth >= cap) {
       document.getElementById('scanLimitTitle').textContent = `Monthly scan limit reached (${planData.scansThisMonth} / ${cap})`;
-      document.getElementById('scanLimitSub').textContent = `Your ${PLAN_INFO[planData.plan]?.label || planData.plan} plan includes ${cap} scans/month. Upgrade to keep scanning this month.`;
+      document.getElementById('scanLimitSub').textContent = `This branch's ${PLAN_INFO[planData.plan]?.label || planData.plan} plan includes ${cap} scans/month. The limit resets next month.`;
       banner.style.display = 'flex';
       document.getElementById('uploadSec').style.opacity = '0.35';
       document.getElementById('uploadSec').style.pointerEvents = 'none';
@@ -4814,18 +4805,18 @@ async function loadBillingInfo() {
     notice.style.display = 'flex';
     if (data.subscriptionStatus === 'past_due' && data.gracePeriodDaysLeft > 0) {
       document.getElementById('activateNoticeTitle').textContent = `Payment failed - ${data.gracePeriodDaysLeft} day${data.gracePeriodDaysLeft === 1 ? '' : 's'} left to fix it`;
-      document.getElementById('activateNoticeBody').textContent = 'Your last renewal payment didn\'t go through. Update your payment method or choose a plan below before access is suspended.';
+      document.getElementById('activateNoticeBody').textContent = 'Your last renewal payment didn\'t go through. Update your payment method below before access is suspended.';
     } else if (data.subscriptionStatus === 'past_due') {
       document.getElementById('activateNoticeTitle').textContent = 'Payment failed - access suspended';
-      document.getElementById('activateNoticeBody').textContent = 'Your grace period has ended. Choose a plan below to restore access.';
+      document.getElementById('activateNoticeBody').textContent = 'Your grace period has ended. Subscribe below to restore access.';
     } else {
       document.getElementById('activateNoticeTitle').textContent = 'Activate your account to start scanning';
-      document.getElementById('activateNoticeBody').textContent = 'Choose a plan below to unlock GRV Scanner for your business.';
+      document.getElementById('activateNoticeBody').textContent = 'Subscribe below to unlock GRV Scanner for this branch.';
     }
   }
-  const info = PLAN_INFO[data.plan] || PLAN_INFO.professional;
+  const info = PLAN_INFO[data.plan] || PLAN_INFO.business;
 
-  document.getElementById('cp-title').textContent = `${info.label} - R${info.price.toLocaleString()}/month (inc. VAT)`;
+  document.getElementById('cp-title').textContent = `${info.label} - R${info.price.toLocaleString('en-ZA', { minimumFractionDigits: info.price % 1 ? 2 : 0 })}/month (inc. VAT)`;
   const statusBadge = document.getElementById('cp-status-badge');
   const statusStyles = {
     active:    { text: 'Active',       bg: 'rgba(52,211,153,0.12)', color: 'var(--success)' },
@@ -4842,33 +4833,36 @@ async function loadBillingInfo() {
   const pct = Math.min(100, (data.scansThisMonth / info.cap) * 100);
   document.getElementById('cp-usage-fill').style.width = pct + '%';
 
-  // Update each plan card's button and the "current plan" badge to match the real stored plan
-  const popBadge = document.getElementById('pop-badge');
-  ['starter', 'professional', 'enterprise'].forEach(key => {
-    const btn = document.getElementById(`btn-plan-${key}`);
-    if (!btn) return;
-    if (key === data.plan) {
+  // One plan: the button either subscribes this branch or shows it is current.
+  const btn = document.getElementById('btn-plan-business');
+  if (btn) {
+    if (data.subscriptionStatus === 'active') {
       btn.textContent = 'Current Plan';
       btn.className = 'plan-btn current';
       btn.onclick = null;
     } else {
-      const rank = { starter: 0, professional: 1, enterprise: 2 };
-      const isUpgrade = rank[key] > rank[data.plan];
-      btn.textContent = isUpgrade ? `Upgrade to ${PLAN_INFO[key].label}` : `Downgrade to ${PLAN_INFO[key].label}`;
-      btn.className = isUpgrade ? 'plan-btn upgrade' : 'plan-btn';
-      btn.onclick = () => changePlan(PLAN_INFO[key].label);
+      btn.textContent = data.subscriptionStatus === 'past_due' ? 'Update payment' : 'Subscribe';
+      btn.className = 'plan-btn upgrade';
+      btn.onclick = () => changePlan('Business');
     }
-  });
-  if (popBadge) popBadge.style.display = data.plan === 'professional' ? 'flex' : 'none';
+  }
+  const subEl = document.getElementById('billingSub');
+  if (subEl) {
+    const b = groupInfo && groupInfo.grouped && activeBranchId
+      ? groupInfo.branches.find(x => x.id === activeBranchId)
+      : null;
+    subEl.textContent = b
+      ? `Billing for ${b.name} - each branch has its own subscription and invoices`
+      : 'Manage this branch\'s subscription and view current usage';
+  }
 }
 
 async function changePlan(planName) {
-  const planKey = planName.toLowerCase();
-  if (!confirm(`Switch to the ${planName} plan? You'll be taken to a secure Paystack checkout page to complete payment.`)) return;
+  if (!confirm(`Subscribe to the ${planName} plan (R3,448.85/month incl. VAT)? You'll be taken to a secure Paystack checkout page to complete payment.`)) return;
   try {
     const result = await apiFetch('/billing/checkout', {
       method: 'POST',
-      body: JSON.stringify({ plan: planKey }),
+      body: JSON.stringify({ plan: 'business' }),
     });
     // Real redirect to Paystack's hosted checkout page - leaves the app entirely.
     window.location.href = result.authorizationUrl;
@@ -4912,7 +4906,7 @@ async function checkPaystackCallback() {
   try {
     const result = await apiFetch(`/billing/verify/${encodeURIComponent(reference)}`);
     const label = PLAN_INFO[result.plan]?.label || result.plan;
-    alert(`Payment successful! You're now on the ${label} plan.`);
+    alert(`Payment successful! This branch is now on the ${label} plan.`);
     // Re-fetch the real session so the app fully unlocks (was routed to
     // Billing-only while inactive) instead of just refreshing the Billing page.
     const me = await apiFetch('/auth/me');
@@ -5938,7 +5932,7 @@ async function loadDailyPriceAlerts() {
     try {
       data = await apiFetch(`/reports/price-increases?start=${todayStr}&end=${todayStr}`);
     } catch (err) {
-      // Not on Enterprise, or something failed - either way, no fake data,
+      // Not permitted, or something failed - either way, no fake data,
       // just don't show this section at all.
       section.style.display = 'none';
       return;
@@ -6841,7 +6835,7 @@ async function loadMyBusinessInsights() {
       options: base(),
     });
 
-    const planLabels = { starter: 'Starter', professional: 'Professional', enterprise: 'Enterprise' };
+    const planLabels = { business: 'Business', starter: 'Starter (old)', professional: 'Professional (old)', enterprise: 'Enterprise (old)' };
     renderMbChart('mbPlanChart', {
       type: 'doughnut',
       data: {
@@ -7006,7 +7000,7 @@ async function openPriceIncreasesModal() {
     data = await apiFetch(`/reports/price-increases?start=${currentInsightsRange.start}&end=${currentInsightsRange.end}`);
   } catch (err) {
     if (err.data?.gated) {
-      subEl.textContent = 'Price increase detection requires the Enterprise plan.';
+      subEl.textContent = 'Price increase alerts are not available on your account.';
       listEl.innerHTML = `<div style="text-align:center;padding:16px 0;"><button onclick="closeModal('priceIncreasesModal');showPage('billing',null);" style="padding:9px 20px;background:var(--accent);color:#0a1628;border:none;border-radius:var(--radius);font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">View Plans</button></div>`;
       return;
     }
@@ -7137,7 +7131,7 @@ async function prefetchInsightsData() {
     const data = await apiFetch(`/reports/insights?start=${startStr}&end=${endStr}`);
     insightsPrefetch = { start: startStr, end: endStr, data };
   } catch (err) {
-    // Gated (not on Professional+) or a genuine failure - either way, just
+    // Not permitted or a genuine failure - either way, just
     // don't cache anything, loadInsights() will fetch normally when opened.
     insightsPrefetch = null;
   }

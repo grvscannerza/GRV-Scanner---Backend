@@ -6,8 +6,8 @@ const { getPlanFeatures } = require('./planFeatures');
 
 const router = express.Router();
 router.use(requireAuth);
-router.use(requireActiveSubscription);
 router.use(resolveActiveBranch); // sets req.activeBusinessId - the branch this request acts on
+router.use(requireActiveSubscription);
 
 // The 7 named Processor rights an Admin can toggle, per branch, per
 // processor. Anything outside this list is ignored, not stored - so the

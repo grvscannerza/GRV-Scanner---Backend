@@ -152,7 +152,9 @@ router.get('/insights', async (req, res) => {
       SELECT plan, COUNT(*)::int AS count FROM businesses WHERE subscription_status = 'active' GROUP BY plan ORDER BY count DESC
     `);
 
-    const planPrices = { starter: 649, professional: 1199, enterprise: 2999 };
+    // 'business' is the only plan sold now (R2,999 excl. VAT per branch); the old
+    // tiers stay in this map only so any existing customer still counts in MRR.
+    const planPrices = { business: 2999, starter: 649, professional: 1199, enterprise: 2999 };
     const activePlansResult = await pool.query(`SELECT plan FROM businesses WHERE subscription_status = 'active'`);
     const mrr = activePlansResult.rows.reduce((sum, b) => sum + (planPrices[b.plan] || 0), 0);
 
@@ -178,7 +180,7 @@ router.get('/insights', async (req, res) => {
 // this lets support fix a customer's plan by their real business ID.
 router.patch('/businesses/:id/plan', async (req, res) => {
   const { plan } = req.body || {};
-  if (!['starter', 'professional', 'enterprise'].includes(plan)) {
+  if (!['business', 'starter', 'professional', 'enterprise'].includes(plan)) {
     return res.status(400).json({ error: 'Invalid plan.' });
   }
   try {

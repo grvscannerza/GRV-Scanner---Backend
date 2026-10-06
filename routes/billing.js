@@ -1,17 +1,19 @@
 const express = require('express');
 const crypto = require('crypto');
 const PDFDocument = require('pdfkit');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth, requireRole, resolveActiveBranch } = require('../middleware/auth');
 const { pool } = require('../db');
 
 const router = express.Router();
 
 const PAYSTACK_BASE = process.env.PAYSTACK_BASE_URL || 'https://api.paystack.co';
 
+// One plan for every branch: R2,999/month excl. VAT = R3,448.85 incl. VAT.
+// The Paystack plan itself must be created at 344885 (cents, VAT included).
+// Every branch is its own company and pays its own subscription, whether or
+// not it belongs to a group.
 const PLAN_CONFIG = {
-  starter:      { label: 'Starter',      price: 649,  planCodeEnv: 'PAYSTACK_PLAN_STARTER' },
-  professional: { label: 'Professional', price: 1199, planCodeEnv: 'PAYSTACK_PLAN_PROFESSIONAL' },
-  enterprise:   { label: 'Enterprise',   price: 2999, planCodeEnv: 'PAYSTACK_PLAN_ENTERPRISE' },
+  business: { label: 'Business', price: 2999, planCodeEnv: 'PAYSTACK_PLAN_BUSINESS' },
 };
 
 function paystackConfigured() {
@@ -34,14 +36,14 @@ async function paystackFetch(path, options = {}) {
   return data;
 }
 
-router.post('/checkout', requireAuth, requireRole('admin', 'developer'), async (req, res) => {
+router.post('/checkout', requireAuth, resolveActiveBranch, requireRole('admin', 'developer'), async (req, res) => {
   if (!paystackConfigured()) {
     return res.status(503).json({ error: 'Payment provider is not connected yet. Add PAYSTACK_SECRET_KEY to your .env to enable real billing.' });
   }
 
-  const { plan } = req.body || {};
+  // Only one plan exists, so the browser doesn't get to choose a price at all.
+  const plan = 'business';
   const config = PLAN_CONFIG[plan];
-  if (!config) return res.status(400).json({ error: 'Invalid plan.' });
 
   const planCode = process.env[config.planCodeEnv];
   if (!planCode) {
@@ -61,7 +63,7 @@ router.post('/checkout', requireAuth, requireRole('admin', 'developer'), async (
         email: user.email,
         plan: planCode,
         callback_url: process.env.PAYSTACK_CALLBACK_URL || 'http://localhost:3000',
-        metadata: { businessId: req.user.businessId, planTier: plan },
+        metadata: { businessId: req.activeBusinessId, planTier: plan },
       }),
     });
 
@@ -71,7 +73,7 @@ router.post('/checkout', requireAuth, requireRole('admin', 'developer'), async (
   }
 });
 
-router.get('/verify/:reference', requireAuth, requireRole('admin', 'developer'), async (req, res) => {
+router.get('/verify/:reference', requireAuth, resolveActiveBranch, requireRole('admin', 'developer'), async (req, res) => {
   if (!paystackConfigured()) {
     return res.status(503).json({ error: 'Payment provider is not connected.' });
   }
@@ -82,7 +84,7 @@ router.get('/verify/:reference', requireAuth, requireRole('admin', 'developer'),
     if (tx.status !== 'success') {
       return res.status(400).json({ error: `Payment was not successful (status: ${tx.status}).` });
     }
-    if (tx.metadata?.businessId !== req.user.businessId) {
+    if (!req.accessibleBusinessIds.includes(Number(tx.metadata?.businessId))) {
       return res.status(403).json({ error: 'This transaction does not belong to your business.' });
     }
 
@@ -99,13 +101,18 @@ async function generateInvoiceNumber() {
 }
 
 async function applySuccessfulPayment(tx) {
-  const businessId = tx.metadata.businessId;
-  const planTier = tx.metadata.planTier;
+  const businessId = Number(tx.metadata.businessId);
+  const planTier = 'business';
+  // paystack_paid_at lets the webhook tell WHICH branch a brand-new
+  // subscription belongs to when one owner pays for several branches (they
+  // share one Paystack customer, so the customer code alone is ambiguous).
+  // A subscription code is only ever stored by the subscription.create
+  // webhook, never guessed here.
   await pool.query(`
     UPDATE businesses SET plan = $1, subscription_status = 'active', past_due_since = NULL,
-      paystack_customer_code = $2, paystack_subscription_code = COALESCE($3, paystack_subscription_code)
-    WHERE id = $4
-  `, [planTier, tx.customer?.customer_code || null, tx.plan_object?.id ? String(tx.plan_object.id) : null, businessId]);
+      paystack_customer_code = COALESCE($2, paystack_customer_code), paystack_paid_at = NOW()
+    WHERE id = $3
+  `, [planTier, tx.customer?.customer_code || null, businessId]);
 
   await pool.query(
     `INSERT INTO audit_log (business_id, action, target_type, details)
@@ -124,14 +131,14 @@ async function applySuccessfulPayment(tx) {
   `, [businessId, invoiceNumber, planTier, amountInclVat, amountExclVat, vatAmount, tx.reference]);
 }
 
-router.post('/cancel', requireAuth, requireRole('admin', 'developer'), async (req, res) => {
+router.post('/cancel', requireAuth, resolveActiveBranch, requireRole('admin', 'developer'), async (req, res) => {
   if (!paystackConfigured()) {
     return res.status(503).json({ error: 'Payment provider is not connected yet, so there is no live subscription to cancel.' });
   }
   try {
     const bizResult = await pool.query(
       'SELECT paystack_subscription_code, paystack_email_token FROM businesses WHERE id = $1',
-      [req.user.businessId]
+      [req.activeBusinessId]
     );
     const biz = bizResult.rows[0];
     if (!biz?.paystack_subscription_code || !biz?.paystack_email_token) {
@@ -142,11 +149,11 @@ router.post('/cancel', requireAuth, requireRole('admin', 'developer'), async (re
       method: 'POST',
       body: JSON.stringify({ code: biz.paystack_subscription_code, token: biz.paystack_email_token }),
     });
-    await pool.query(`UPDATE businesses SET subscription_status = 'cancelled' WHERE id = $1`, [req.user.businessId]);
+    await pool.query(`UPDATE businesses SET subscription_status = 'cancelled' WHERE id = $1`, [req.activeBusinessId]);
     await pool.query(
       `INSERT INTO audit_log (business_id, actor_user_id, action, target_type)
        VALUES ($1, $2, 'billing.subscription_cancelled', 'business')`,
-      [req.user.businessId, req.user.userId]
+      [req.activeBusinessId, req.user.userId]
     );
     res.json({ ok: true });
   } catch (err) {
@@ -154,11 +161,11 @@ router.post('/cancel', requireAuth, requireRole('admin', 'developer'), async (re
   }
 });
 
-router.get('/invoices', requireAuth, requireRole('admin', 'developer'), async (req, res) => {
+router.get('/invoices', requireAuth, resolveActiveBranch, requireRole('admin', 'developer'), async (req, res) => {
   try {
     const { rows } = await pool.query(
       'SELECT id, invoice_number, plan, amount_incl_vat, amount_excl_vat, vat_amount, issued_at FROM invoices WHERE business_id = $1 ORDER BY issued_at DESC',
-      [req.user.businessId]
+      [req.activeBusinessId]
     );
     res.json(rows);
   } catch (err) {
@@ -168,7 +175,7 @@ router.get('/invoices', requireAuth, requireRole('admin', 'developer'), async (r
 });
 
 function streamInvoicePDF(res, invoice, business) {
-  const planLabels = { starter: 'Starter Plan', professional: 'Professional Plan', enterprise: 'Enterprise Plan' };
+  const planLabels = { business: 'Business Plan', starter: 'Starter Plan', professional: 'Professional Plan', enterprise: 'Enterprise Plan' };
 
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="${invoice.invoice_number}.pdf"`);
@@ -243,14 +250,14 @@ function streamInvoicePDF(res, invoice, business) {
   doc.end();
 }
 
-router.get('/invoices/:id/pdf', requireAuth, requireRole('admin', 'developer'), async (req, res) => {
+router.get('/invoices/:id/pdf', requireAuth, resolveActiveBranch, requireRole('admin', 'developer'), async (req, res) => {
   try {
-    const invoiceResult = await pool.query('SELECT * FROM invoices WHERE id = $1 AND business_id = $2', [req.params.id, req.user.businessId]);
+    const invoiceResult = await pool.query('SELECT * FROM invoices WHERE id = $1 AND business_id = $2', [req.params.id, req.activeBusinessId]);
     const invoice = invoiceResult.rows[0];
     if (!invoice) return res.status(404).json({ error: 'Invoice not found.' });
     const businessResult = await pool.query(
       'SELECT name, address, contact_number, contact_email, vat_number FROM businesses WHERE id = $1',
-      [req.user.businessId]
+      [req.activeBusinessId]
     );
     streamInvoicePDF(res, invoice, businessResult.rows[0]);
   } catch (err) {
@@ -289,32 +296,57 @@ async function webhookHandler(req, res) {
   }
 
   try {
-    if (event.event === 'charge.success' && event.data.metadata?.businessId) {
-      await applySuccessfulPayment(event.data);
+    const d = event.data || {};
+    // Paystack nests the subscription on invoice events and puts it at the top
+    // level on subscription events - accept either shape.
+    const subCode = d.subscription_code || d.subscription?.subscription_code || null;
+    const customerCode = d.customer?.customer_code || null;
+
+    if (event.event === 'charge.success' && d.metadata?.businessId) {
+      await applySuccessfulPayment(d);
     } else if (event.event === 'subscription.create') {
-      const code = event.data.subscription_code;
-      const emailToken = event.data.email_token;
-      const customerCode = event.data.customer?.customer_code;
-      if (customerCode) {
+      // One owner can pay for several branches (one Paystack customer, many
+      // subscriptions), so a customer code alone can match several branches.
+      // Attach the new subscription to exactly ONE branch: the most recently
+      // paid branch of this customer that has no subscription yet. Never
+      // fan out across all of that customer's branches.
+      if (customerCode && subCode) {
         await pool.query(`
           UPDATE businesses SET paystack_subscription_code = $1, paystack_email_token = $2
-          WHERE paystack_customer_code = $3
-        `, [code, emailToken, customerCode]);
+          WHERE id = (
+            SELECT id FROM businesses
+            WHERE paystack_customer_code = $3 AND paystack_subscription_code IS NULL
+            ORDER BY paystack_paid_at DESC NULLS LAST, id DESC LIMIT 1
+          )
+        `, [subCode, d.email_token || null, customerCode]);
       }
-    } else if (event.event === 'subscription.disable') {
-      await pool.query(`
-        UPDATE businesses SET subscription_status = 'cancelled' WHERE paystack_subscription_code = $1
-      `, [event.data.subscription_code]);
+    } else if (event.event === 'subscription.disable' || event.event === 'subscription.not_renew') {
+      if (subCode && event.event === 'subscription.disable') {
+        await pool.query(`UPDATE businesses SET subscription_status = 'cancelled' WHERE paystack_subscription_code = $1`, [subCode]);
+      }
     } else if (event.event === 'invoice.payment_failed') {
-      const customerCode = event.data.customer?.customer_code;
-      if (customerCode) {
-        // COALESCE keeps the original failure timestamp if this fires again
-        // (Paystack retries a few times before giving up) - the 3-day grace
-        // period should count from the FIRST failure, not reset on every retry.
+      // COALESCE keeps the original failure timestamp if this fires again
+      // (Paystack retries a few times before giving up) - the 3-day grace
+      // period should count from the FIRST failure, not reset on every retry.
+      // Matched by SUBSCRIPTION code so only the branch whose payment failed is
+      // affected. If no subscription code is present, fall back to the
+      // customer code ONLY when that customer owns exactly one branch;
+      // otherwise do nothing rather than mark a whole group past due.
+      if (subCode) {
         await pool.query(`
           UPDATE businesses SET subscription_status = 'past_due', past_due_since = COALESCE(past_due_since, NOW())
-          WHERE paystack_customer_code = $1
-        `, [customerCode]);
+          WHERE paystack_subscription_code = $1
+        `, [subCode]);
+      } else if (customerCode) {
+        const owned = await pool.query('SELECT id FROM businesses WHERE paystack_customer_code = $1', [customerCode]);
+        if (owned.rows.length === 1) {
+          await pool.query(`
+            UPDATE businesses SET subscription_status = 'past_due', past_due_since = COALESCE(past_due_since, NOW())
+            WHERE id = $1
+          `, [owned.rows[0].id]);
+        } else {
+          console.error('invoice.payment_failed without a subscription code for a customer with multiple branches - not applied:', customerCode);
+        }
       }
     }
   } catch (err) {
