@@ -881,10 +881,27 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
 
 /* sign-up page: form in a glass card */
 #page-signup .login-right{border:1px solid rgba(255,255,255,0.10);border-radius:24px;margin:40px auto !important;padding:40px 36px;width:calc(100% - 32px);box-shadow:inset 0 -10px 18px -12px rgba(255,255,255,0.14);}
+/* nav options: wider spacing + down-arrow with hover / click dropdown */
+.pub-nav{gap:10px;padding:7px;position:relative;z-index:20;}
+.pub-actions{position:relative;z-index:1;}
+.pub-nav-link{position:relative;display:flex;align-items:center;gap:7px;padding:10px 24px;}
+.pub-nav-caret{display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center;border-radius:999px;transition:transform .2s ease,background .15s;}
+.pub-nav-caret svg{width:11px;height:11px;}
+.pub-nav-link:hover .pub-nav-caret,.pub-nav-link.dd-open .pub-nav-caret{transform:rotate(180deg);background:rgba(200,241,53,0.16);color:var(--accent);}
+.pub-dd{position:absolute;top:100%;left:50%;min-width:190px;padding-top:12px;transform:translate(-50%,6px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s ease,transform .15s ease,visibility .15s;z-index:200;}
+.pub-dd-box{padding:6px;border-radius:18px;background:linear-gradient(180deg,#18243a,#0a101e);border:1px solid rgba(255,255,255,0.14);box-shadow:0 20px 50px rgba(0,0,0,0.55),inset 0 -10px 18px -14px rgba(255,255,255,0.25);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+.pub-dd-item{display:block;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:500;color:#c4d3e3;white-space:nowrap;text-align:left;}
+.pub-dd-item:hover{background:rgba(255,255,255,0.08);color:var(--accent);}
+@media(hover:hover){.pub-nav-link:hover>.pub-dd{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0);}}
+.pub-nav-link.dd-open>.pub-dd{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0);}
 @media(max-width:600px){
   .pub-header{padding:12px 16px;gap:8px;}
   .pub-nav{padding:4px;}
-  .pub-nav-link{padding:7px 11px;font-size:12.5px;}
+  .pub-nav{gap:2px;padding:5px;}
+  .pub-nav-link{padding:7px 9px;font-size:12.5px;gap:4px;}
+  .pub-nav-caret{width:12px;height:12px;}
+  .pub-nav-caret svg{width:9px;height:9px;}
+  .pub-dd{min-width:160px;}
   .pub-actions{gap:6px;}
   .pub-icon-btn{width:36px;height:36px;}
   .pub-icon-btn svg{width:15px;height:15px;}
@@ -3257,6 +3274,49 @@ function toggleFaq(el) {
   document.querySelectorAll('.pub-faq-item.open').forEach(i => i.classList.remove('open'));
   if (!wasOpen) item.classList.add('open');
 }
+
+// Nav options: every option gets a down-arrow. Hover (desktop) or tapping the
+// arrow opens a small menu of real shortcuts; clicking the label itself still
+// goes straight to that page.
+function pubGoFaq() {
+  showPublicPage('landing');
+  setTimeout(() => { const f = document.querySelector('#page-landing .pub-faq'); if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
+}
+function initPubNavMenus() {
+  const MENUS = {
+    'Home': [['Home', "showPublicPage('landing')"], ['Questions (FAQ)', 'pubGoFaq()']],
+    'Our story': [['Read our story', "showPublicPage('story')"], ['Questions (FAQ)', 'pubGoFaq()']],
+    'Plans': [['See plans', "showPublicPage('plans-public')"], ['Get started', "showPublicPage('login')"]],
+    'Contact us': [['Send a message', "showPublicPage('contact-public')"], ['Log in', "showPublicPage('login')"]],
+  };
+  const caret = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  document.querySelectorAll('.pub-nav .pub-nav-link').forEach(link => {
+    if (link.querySelector('.pub-nav-caret')) return;
+    const label = link.textContent.trim();
+    const items = MENUS[label];
+    if (!items) return;
+    link.textContent = '';
+    const t = document.createElement('span'); t.textContent = label; link.appendChild(t);
+    const c = document.createElement('span'); c.className = 'pub-nav-caret'; c.innerHTML = caret;
+    c.addEventListener('click', e => {
+      e.stopPropagation();
+      const wasOpen = link.classList.contains('dd-open');
+      document.querySelectorAll('.pub-nav-link.dd-open').forEach(l => l.classList.remove('dd-open'));
+      if (!wasOpen) link.classList.add('dd-open');
+    });
+    link.appendChild(c);
+    const dd = document.createElement('div'); dd.className = 'pub-dd';
+    const box = document.createElement('div'); box.className = 'pub-dd-box';
+    items.forEach(([text, action]) => {
+      const a = document.createElement('div'); a.className = 'pub-dd-item'; a.textContent = text;
+      a.addEventListener('click', e => { e.stopPropagation(); link.classList.remove('dd-open'); new Function(action)(); });
+      box.appendChild(a);
+    });
+    dd.appendChild(box); link.appendChild(dd);
+  });
+}
+document.addEventListener('click', () => document.querySelectorAll('.pub-nav-link.dd-open').forEach(l => l.classList.remove('dd-open')));
+initPubNavMenus();
 
 function showPublicPage(id) {
   pushPageHistory(id, true);
