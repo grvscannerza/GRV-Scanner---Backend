@@ -817,6 +817,31 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
 .pub-flow-node{background:rgba(255,255,255,0.05);}
 .pub-faq-item{border-bottom:1px solid rgba(255,255,255,0.10);}
 .pub-footer{color:#6f87a3;}
+/* landing hero: centred layout (badge, headline, buttons, stat cards, exports strip) */
+.pub-hero2{max-width:840px;margin:64px auto 0;padding:0 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:24px;}
+.pub-hero2-badge{display:inline-flex;align-items:center;gap:14px;padding:6px 6px 6px 20px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#b9c7d8;font-size:13px;font-weight:500;cursor:pointer;font-family:'Plus Jakarta Sans','Inter',sans-serif;}
+.pub-hero2-badge:hover{border-color:rgba(255,255,255,0.3);}
+.pub-hero2-badge-arrow{width:30px;height:30px;border-radius:999px;background:var(--accent);color:#0a1628;display:flex;align-items:center;justify-content:center;}
+.pub-hero2-title{margin:0;font-size:clamp(38px,7vw,66px);line-height:1.05;font-weight:800;letter-spacing:-0.03em;color:#fff;}
+.pub-hero2-title span{display:block;}
+.pub-hero2-sub{margin:0;max-width:620px;font-size:16px;line-height:1.65;color:#d5deea;}
+.pub-hero2 .pub-hero-actions{justify-content:center;margin-top:6px;}
+.pub-hero2-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:34px;}
+.pub-hero2-stat{min-width:210px;padding:18px 24px;border-radius:16px;display:flex;align-items:center;gap:14px;text-align:left;background:var(--glass);border:1px solid rgba(255,255,255,0.10);box-shadow:inset 0 -10px 18px -12px rgba(255,255,255,0.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+.pub-hero2-stat-num{font-size:34px;font-weight:700;letter-spacing:-0.02em;color:#fff;}
+.pub-hero2-stat-lbl{font-size:12px;line-height:1.35;color:#aebdd0;}
+.pub-hero2-strip{max-width:1080px;margin:72px auto 90px;padding:24px 32px 28px;border-radius:18px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);width:calc(100% - 48px);box-sizing:border-box;}
+.pub-hero2-strip-title{font-size:17px;font-weight:600;color:#fff;margin-bottom:20px;}
+.pub-hero2-strip-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-around;gap:24px;font-size:28px;color:#e6edf5;}
+@media(max-width:600px){
+  .pub-header{padding:12px 16px;gap:8px;}
+  .pub-nav{padding:4px;}
+  .pub-nav-link{padding:7px 11px;font-size:12.5px;}
+  .pub-page-body-spacer{height:112px;}
+  .pub-hero2{margin-top:36px;}
+  .pub-hero2-strip{padding:20px 18px 22px;}
+  .pub-hero2-strip-row{font-size:22px;}
+}
 </style>
 </head>
 <body>
@@ -1058,32 +1083,23 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     </div>
   </div>
   <div class="pub-page-body-spacer"></div>
-  <div class="pub-hero">
-    <div class="pub-hero-left">
-      <div class="pub-hero-title">Turn a stack of<br/>invoices into<br/>clean data.</div>
-      <div class="pub-hero-sub">Point your phone at a supplier invoice. AI reads every line - supplier, items, prices, VAT - and hands you back a record you can trust, in seconds.</div>
-      <div class="pub-hero-actions">
-        <button class="pub-cta-primary" onclick="showPublicPage('login')">Get Started</button>
-        <button class="pub-cta-secondary" onclick="showPublicPage('plans-public')">See Plans</button>
-      </div>
+  <div class="pub-hero2">
+    <button class="pub-hero2-badge" onclick="showPublicPage('plans-public')"><span>Built for South African receiving teams</span><span class="pub-hero2-badge-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></span></button>
+    <h1 class="pub-hero2-title"><span>Turn a stack of invoices</span><span>into clean data.</span></h1>
+    <p class="pub-hero2-sub">Point your phone at a supplier invoice. AI reads every line - supplier, items, prices, VAT - and hands you back a record you can trust, in seconds.</p>
+    <div class="pub-hero-actions">
+      <button class="pub-cta-primary" onclick="showPublicPage('login')">Get Started</button>
+      <button class="pub-cta-secondary" onclick="showPublicPage('plans-public')">See Plans</button>
     </div>
-    <div class="pub-hero-right">
-      <div class="pub-invoice-mock">
-        <div class="pub-invoice-mock-line" style="width:60%;"></div>
-        <div class="pub-invoice-mock-line" style="width:85%;"></div>
-        <div class="pub-invoice-mock-line" style="width:40%;"></div>
-        <div class="pub-invoice-mock-line" style="width:70%;"></div>
-        <div class="pub-invoice-mock-line" style="width:55%;"></div>
-        <div class="pub-invoice-mock-line" style="width:75%;"></div>
-      </div>
-      <div class="pub-arrow"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
-      <div class="pub-data-mock">
-        <div class="pub-data-row"><span>Dishwashing Liquid</span><span class="pub-data-num">R18.50</span></div>
-        <div class="pub-data-row"><span>Cheddar Sliced 1kg</span><span class="pub-data-num">R149.95</span></div>
-        <div class="pub-data-row"><span>Yoghurt 5kg</span><span class="pub-data-num">R269.95</span></div>
-        <div class="pub-data-row total"><span>VAT (15%)</span><span class="pub-data-num">R65.16</span></div>
-      </div>
+    <div class="pub-hero2-stats">
+      <div class="pub-hero2-stat"><span class="pub-hero2-stat-num">2,000</span><span class="pub-hero2-stat-lbl">scans per branch,<br/>every month</span></div>
+      <div class="pub-hero2-stat"><span class="pub-hero2-stat-num">3</span><span class="pub-hero2-stat-lbl">accounting exports:<br/>Sage, Pastel, Xero</span></div>
+      <div class="pub-hero2-stat"><span class="pub-hero2-stat-num">R2,999</span><span class="pub-hero2-stat-lbl">per branch,<br/>excl. VAT</span></div>
     </div>
+  </div>
+  <div class="pub-hero2-strip">
+    <div class="pub-hero2-strip-title">Exports straight to</div>
+    <div class="pub-hero2-strip-row"><span style="font-weight:800;">Sage</span><span style="font-weight:500;letter-spacing:0.02em;">Pastel</span><span style="font-weight:700;">Xero</span></div>
   </div>
   <div class="pub-features">
     <div class="pub-feature-card">
