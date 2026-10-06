@@ -894,6 +894,24 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
 .pub-dd-item:hover{background:rgba(255,255,255,0.08);color:var(--accent);}
 @media(hover:hover){.pub-nav-link:hover>.pub-dd{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0);}}
 .pub-nav-link.dd-open>.pub-dd{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0);}
+/* Who do we serve page */
+#page-whoserve .pub-who{max-width:1080px;margin:40px auto 0;padding:0 24px;box-sizing:border-box;}
+#page-whoserve .pub-who-head{text-align:center;max-width:720px;margin:0 auto 44px;}
+#page-whoserve .pub-who-lead{font-size:16px;line-height:1.7;color:#c4d3e3;margin-top:6px;}
+.pub-who-section{margin-bottom:56px;scroll-margin-top:110px;}
+.pub-who-h{text-align:center;font-size:clamp(22px,3vw,28px);font-weight:800;letter-spacing:-0.02em;color:#fff;margin-bottom:6px;}
+.pub-who-sub{text-align:center;color:#aebdd0;font-size:14px;margin-bottom:26px;}
+.pub-who-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;}
+.pub-who-card{padding:26px 24px;border-radius:22px;text-align:left;background:var(--glass);border:1px solid rgba(255,255,255,0.10);box-shadow:inset 0 -10px 18px -12px rgba(255,255,255,0.16);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+.pub-who-ico{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;background:rgba(200,241,53,0.10);border:1px solid rgba(200,241,53,0.25);}
+.pub-who-ico svg{width:22px;height:22px;}
+.pub-who-card h3{margin:0 0 8px;font-size:17px;font-weight:700;color:#fff;}
+.pub-who-card p{margin:0 0 10px;font-size:14px;line-height:1.65;color:#c4d3e3;}
+.pub-who-card p:last-child{margin-bottom:0;}
+.pub-who-tag{display:inline-block;margin-top:4px;padding:4px 12px;border-radius:999px;font-size:11.5px;font-weight:600;letter-spacing:.03em;color:var(--accent);background:rgba(200,241,53,0.08);border:1px solid rgba(200,241,53,0.22);}
+#who-types .pub-who-grid{grid-template-columns:repeat(2,1fr);}
+@media(max-width:700px){#who-types .pub-who-grid{grid-template-columns:1fr;}}
+.pub-who-cta{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin:8px 0 30px;}
 @media(max-width:600px){
   .pub-header{padding:12px 16px;gap:8px;}
   .pub-nav{padding:4px;}
@@ -926,8 +944,8 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
   <div class="header-right">
     <div id="loginPageNavLinks" style="display:none;align-items:center;gap:28px;">
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
-      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
     </div>
     <!-- Demo role switcher -->
     <div class="role-switcher" style="display:none;">
@@ -1146,8 +1164,8 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     <div class="pub-logo" onclick="showPublicPage('landing')" style="cursor:pointer;"><span>GRV</span><span>SCANNER</span></div>
     <div class="pub-nav">
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
-      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
     </div>
     <div class="pub-actions">
       <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
@@ -1329,8 +1347,8 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     <div class="pub-nav">
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link active" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
-      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
     </div>
     <div class="pub-actions">
       <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
@@ -1356,8 +1374,8 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     <div class="pub-nav">
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
       <div class="pub-nav-link active" onclick="showPublicPage('plans-public')">Plans</div>
-      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
     </div>
     <div class="pub-actions">
       <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
@@ -1374,14 +1392,104 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
   <div class="pub-footer">GRVSCANNER.CO.ZA</div>
 </div>
 
+<div class="page" id="page-whoserve">
+  <div class="pub-header">
+    <div class="pub-logo" onclick="showPublicPage('landing')" style="cursor:pointer;"><span>GRV</span><span>SCANNER</span></div>
+    <div class="pub-nav">
+      <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
+      <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link active" onclick="showPublicPage('whoserve')">Who do we serve</div>
+      <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
+    </div>
+    <div class="pub-actions">
+      <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
+      <div class="pub-icon-btn" role="button" aria-label="Email us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+      <div class="pub-login-btn" role="button" onclick="showPublicPage('login')">Log in</div>
+    </div>
+  </div>
+  <div class="pub-page-body-spacer"></div>
+  <div class="pub-who">
+    <div class="pub-who-head">
+      <div class="pub-page-title">Who do we serve</div>
+      <p class="pub-who-lead">GRV Scanner is built for South African businesses that receive stock and get supplier invoices with it. If goods arrive and an invoice has to be captured, checked and filed, this is made for you - whether that is one shop or a group of branches.</p>
+    </div>
+
+    <div class="pub-who-section" id="who-types">
+      <div class="pub-who-h">The kinds of business we work with</div>
+      <div class="pub-who-sub">Different businesses, the same everyday problem: invoices to capture.</div>
+      <div class="pub-who-grid">
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2l1.5 1.5L6 2l1.5 1.5L9 2l1.5 1.5L12 2l1.5 1.5L15 2l1.5 1.5L18 2l1.5 1.5L21 2v18a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/></svg></div>
+        <h3>Restaurants and retail</h3>
+        <p>Deliveries arrive every day from many different suppliers, each with their own invoice. GRV Scanner turns every one of those invoices into a clean record the moment the stock lands.</p>
+        <p>You see what you are really paying, catch a price that crept up since the last delivery, and stop the same invoice being captured twice.</p>
+        <span class="pub-who-tag">Daily deliveries, many suppliers</span>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v4H3zM5 7v13h14V7M9 21V11h6v10"/></svg></div>
+        <h3>Wholesale and supermarkets</h3>
+        <p>High invoice volume is where manual capturing hurts most. Each branch includes 2,000 scans every month, with no limit on how many staff you add.</p>
+        <p>Every product keeps a full price history, so you can see exactly when a supplier changed a price and what it has done to your costs.</p>
+        <span class="pub-who-tag">High volume, item-level detail</span>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg></div>
+        <h3>Multi-branch groups</h3>
+        <p>Every branch is its own company and has its own subscription, so each one is billed separately, exactly as a separate business would be.</p>
+        <p>A group Admin can still switch between all branches in the group from one login, and sees each branch on its own records.</p>
+        <span class="pub-who-tag">One login, separate branch billing</span>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <h3>One-person businesses</h3>
+        <p>You do not need a separate team. One person can scan the invoice, review what the AI read, and approve it.</p>
+        <p>Nothing is locked in until you approve it, so you stay in control even when you are doing everything yourself.</p>
+        <span class="pub-who-tag">Scan, review, approve - all you</span>
+      </div>
+      </div>
+    </div>
+
+    <div class="pub-who-section" id="who-roles">
+      <div class="pub-who-h">Who does what in your team</div>
+      <div class="pub-who-sub">Three roles, so the right people see and do the right things.</div>
+      <div class="pub-who-grid">
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+        <h3>Dispatch</h3>
+        <p>The person who receives the delivery. They photograph the supplier invoice on their phone and it uploads straight away.</p>
+        <p>They do not need any accounting knowledge - their job is simply to scan.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+        <h3>Processor</h3>
+        <p>Reviews what the AI read, corrects anything that needs it, then approves the invoice so it becomes a clean, locked record.</p>
+        <p>Admin decides exactly which rights each processor has, such as approving, exporting to your accounting system, editing the item list or managing Dispatch staff.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Admin</h3>
+        <p>The owner or manager. Sets up staff and their rights, manages suppliers and VAT rates, and sees spending and price insights.</p>
+        <p>In a multi-branch group, the Admin can switch between all branches in the group.</p>
+      </div>
+      </div>
+    </div>
+
+    <div class="pub-who-cta">
+      <button class="pub-cta-primary" onclick="showPublicPage('login')">Get Started</button>
+      <button class="pub-cta-secondary" onclick="showPublicPage('plans-public')">See Plans</button>
+    </div>
+  </div>
+  <div class="pub-footer">GRVSCANNER.CO.ZA</div>
+</div>
+
 <div class="page" id="page-contact-public">
   <div class="pub-header">
     <div class="pub-logo" onclick="showPublicPage('landing')" style="cursor:pointer;"><span>GRV</span><span>SCANNER</span></div>
     <div class="pub-nav">
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
-      <div class="pub-nav-link active" onclick="showPublicPage('contact-public')">Contact us</div>
     </div>
     <div class="pub-actions">
       <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
@@ -1410,8 +1518,8 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     <div class="pub-nav">
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
-      <div class="pub-nav-link" onclick="showPublicPage('contact-public')">Contact us</div>
     </div>
     <div class="pub-actions">
       <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
@@ -3278,6 +3386,10 @@ function toggleFaq(el) {
 // Nav options: every option gets a down-arrow. Hover (desktop) or tapping the
 // arrow opens a small menu of real shortcuts; clicking the label itself still
 // goes straight to that page.
+function pubGoWho(anchorId) {
+  showPublicPage('whoserve');
+  setTimeout(() => { const el = document.getElementById(anchorId); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
+}
 function pubGoFaq() {
   showPublicPage('landing');
   setTimeout(() => { const f = document.querySelector('#page-landing .pub-faq'); if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
@@ -3286,7 +3398,7 @@ function initPubNavMenus() {
   const MENUS = {
     'Our story': [['Read our story', "showPublicPage('story')"], ['Questions (FAQ)', 'pubGoFaq()']],
     'Plans': [['See plans', "showPublicPage('plans-public')"], ['Get started', "showPublicPage('login')"]],
-    'Contact us': [['Send a message', "showPublicPage('contact-public')"]],
+    'Who do we serve': [['Types of business', "pubGoWho('who-types')"], ['Who does what', "pubGoWho('who-roles')"]],
   };
   const caret = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
   document.querySelectorAll('.pub-nav .pub-nav-link').forEach(link => {
@@ -7505,7 +7617,7 @@ applyRealDates();
   const activePage = document.querySelector('.page.active');
   if (!activePage) return;
   const pageId = activePage.id.replace(/^page-/, '');
-  const isPublic = ['landing', 'story', 'plans-public', 'contact-public', 'login'].includes(pageId);
+  const isPublic = ['landing', 'story', 'whoserve', 'plans-public', 'contact-public', 'login'].includes(pageId);
   lastPushedPageId = pageId;
   try {
     history.replaceState({ pageId, isPublic }, '', '#' + pageId);
