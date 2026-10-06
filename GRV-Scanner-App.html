@@ -912,6 +912,39 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
 #who-types .pub-who-grid{grid-template-columns:repeat(2,1fr);}
 @media(max-width:700px){#who-types .pub-who-grid{grid-template-columns:1fr;}}
 .pub-who-cta{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin:8px 0 30px;}
+/* How does it work page */
+#page-howitworks .pub-how{max-width:1080px;margin:40px auto 0;padding:0 24px;box-sizing:border-box;}
+.pub-how-head{text-align:center;max-width:740px;margin:0 auto 52px;}
+.pub-how-lead{font-size:16px;line-height:1.7;color:#c4d3e3;margin-top:6px;}
+.pub-how-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:22px;}
+.pub-how-pill{padding:8px 16px;border-radius:999px;font-size:12.5px;font-weight:600;color:#d5deea;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);}
+.pub-how-section{margin-bottom:64px;scroll-margin-top:110px;}
+.pub-tl{position:relative;display:grid;grid-template-columns:1fr 64px 1fr;row-gap:26px;}
+.pub-tl::before{content:'';position:absolute;top:10px;bottom:10px;left:50%;width:2px;transform:translateX(-50%);background:linear-gradient(180deg,rgba(200,241,53,0),rgba(200,241,53,0.55) 12%,rgba(125,211,252,0.45) 88%,rgba(125,211,252,0));}
+.pub-tl-node{grid-column:2;display:flex;justify-content:center;align-items:flex-start;position:relative;z-index:1;}
+.pub-tl-node span{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#0a1628;background:var(--accent);box-shadow:0 0 0 6px rgba(200,241,53,0.12),0 0 28px rgba(200,241,53,0.45);}
+.pub-tl-card{padding:24px 24px 22px;border-radius:22px;text-align:left;background:var(--glass);border:1px solid rgba(255,255,255,0.10);box-shadow:inset 0 -10px 18px -12px rgba(255,255,255,0.16);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+.pub-tl-card.l{grid-column:1;}
+.pub-tl-card.r{grid-column:3;}
+.pub-tl-who{display:inline-block;margin-bottom:10px;padding:3px 11px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);background:rgba(200,241,53,0.08);border:1px solid rgba(200,241,53,0.22);}
+.pub-tl-card h3{margin:0 0 8px;font-size:18px;font-weight:700;color:#fff;}
+.pub-tl-card p{margin:0;font-size:14px;line-height:1.65;color:#c4d3e3;}
+.pub-tl-card ul{margin:10px 0 0;padding:0;list-style:none;}
+.pub-tl-card li{position:relative;padding-left:20px;margin-top:6px;font-size:13.5px;line-height:1.55;color:#aebdd0;}
+.pub-tl-card li::before{content:'';position:absolute;left:2px;top:7px;width:8px;height:8px;border-radius:999px;background:#34d399;}
+.pub-how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;}
+.pub-incl{margin-top:34px;padding:34px 30px;border-radius:26px;text-align:center;background:linear-gradient(180deg,rgba(200,241,53,0.07),rgba(255,255,255,0.03));border:1px solid rgba(200,241,53,0.22);box-shadow:inset 0 -12px 22px -14px rgba(200,241,53,0.3);}
+.pub-incl-price{font-size:clamp(34px,5vw,48px);font-weight:800;letter-spacing:-0.03em;color:#fff;}
+.pub-incl-price small{font-size:14px;font-weight:500;color:#aebdd0;letter-spacing:0;}
+.pub-incl-list{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;margin:20px auto 6px;max-width:820px;}
+.pub-incl-list span{display:flex;align-items:center;gap:8px;font-size:14px;color:#d5deea;}
+.pub-incl-list span::before{content:'';width:8px;height:8px;border-radius:999px;background:#34d399;flex-shrink:0;}
+@media(max-width:760px){
+  .pub-tl{grid-template-columns:44px 1fr;column-gap:14px;}
+  .pub-tl::before{left:21px;transform:none;}
+  .pub-tl-node{grid-column:1;grid-row:auto;}
+  .pub-tl-card.l,.pub-tl-card.r{grid-column:2;}
+}
 @media(max-width:600px){
   .pub-header{padding:12px 16px;gap:8px;}
   .pub-nav{padding:4px;}
@@ -924,7 +957,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
   .pub-icon-btn{width:36px;height:36px;}
   .pub-icon-btn svg{width:15px;height:15px;}
   .pub-login-btn{height:36px;padding:0 14px;font-size:12.5px;}
-  .pub-page-body-spacer{height:112px;}
+  .pub-page-body-spacer{height:172px;}
   .pub-hero2{margin-top:36px;}
   .pub-hero2-strip{padding:20px 18px 22px;}
   .pub-hero2-strip-row{font-size:22px;}
@@ -945,6 +978,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     <div id="loginPageNavLinks" style="display:none;align-items:center;gap:28px;">
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
+      <div class="pub-nav-link" onclick="showPublicPage('howitworks')">How does it work?</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
     </div>
     <!-- Demo role switcher -->
@@ -1165,6 +1199,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     <div class="pub-nav">
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
+      <div class="pub-nav-link" onclick="showPublicPage('howitworks')">How does it work?</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
     </div>
     <div class="pub-actions">
@@ -1348,6 +1383,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link active" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
+      <div class="pub-nav-link" onclick="showPublicPage('howitworks')">How does it work?</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
     </div>
     <div class="pub-actions">
@@ -1375,6 +1411,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
+      <div class="pub-nav-link" onclick="showPublicPage('howitworks')">How does it work?</div>
       <div class="pub-nav-link active" onclick="showPublicPage('plans-public')">Plans</div>
     </div>
     <div class="pub-actions">
@@ -1399,6 +1436,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link active" onclick="showPublicPage('whoserve')">Who do we serve</div>
+      <div class="pub-nav-link" onclick="showPublicPage('howitworks')">How does it work?</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
     </div>
     <div class="pub-actions">
@@ -1482,6 +1520,128 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
   <div class="pub-footer">GRVSCANNER.CO.ZA</div>
 </div>
 
+<div class="page" id="page-howitworks">
+  <div class="pub-header">
+    <div class="pub-logo" onclick="showPublicPage('landing')" style="cursor:pointer;"><span>GRV</span><span>SCANNER</span></div>
+    <div class="pub-nav">
+      <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
+      <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
+      <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
+      <div class="pub-nav-link active" onclick="showPublicPage('howitworks')">How does it work?</div>
+      <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
+    </div>
+    <div class="pub-actions">
+      <div class="pub-icon-btn" role="button" aria-label="Contact us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg></div>
+      <div class="pub-icon-btn" role="button" aria-label="Email us" onclick="showPublicPage('contact-public')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+      <div class="pub-login-btn" role="button" onclick="showPublicPage('login')">Log in</div>
+    </div>
+  </div>
+  <div class="pub-page-body-spacer"></div>
+  <div class="pub-how">
+    <div class="pub-how-head">
+      <div class="pub-page-title">How does it work?</div>
+      <p class="pub-how-lead">GRV Scanner turns the supplier invoices that arrive with your stock into clean, approved records. Your team photographs the invoice, AI reads it, a person checks it, and the data is ready for your reports and your accounting system.</p>
+      <div class="pub-how-pills"><span class="pub-how-pill">Scan on a phone</span><span class="pub-how-pill">AI reads it</span><span class="pub-how-pill">You approve it</span><span class="pub-how-pill">Export anywhere</span></div>
+    </div>
+
+    <div class="pub-how-section" id="how-steps">
+      <div class="pub-who-h">From delivery to approved record</div>
+      <div class="pub-who-sub">Six steps, and only one of them needs a person with any accounting knowledge.</div>
+      <div class="pub-tl">
+      <div class="pub-tl-node" style="grid-row:1;"><span>1</span></div>
+      <div style="grid-row:1;" class="pub-tl-card l"><span class="pub-tl-who">Admin</span><h3>Set up your branch</h3><p>Sign up, add your supplier list and invite your team. This is done once.</p><ul><li>Add suppliers and mark each as VAT registered or exempt</li><li>Invite Dispatch and Processor staff, and choose exactly what each processor may do</li><li>Add more branches later - each is its own company with its own subscription</li></ul></div>
+      <div class="pub-tl-node" style="grid-row:2;"><span>2</span></div>
+      <div style="grid-row:2;" class="pub-tl-card r"><span class="pub-tl-who">Dispatch</span><h3>Scan the invoice when stock arrives</h3><p>The person receiving the delivery photographs the supplier invoice on their phone. No typing and no paper to file.</p><ul><li>Works straight from a phone camera</li><li>Uploads the moment the photo is taken</li></ul></div>
+      <div class="pub-tl-node" style="grid-row:3;"><span>3</span></div>
+      <div style="grid-row:3;" class="pub-tl-card l"><span class="pub-tl-who">AI</span><h3>AI reads every line</h3><p>AI reads the invoice - printed, handwritten, stamped or creased - and turns it into clean data in seconds.</p><ul><li>Supplier, every item and its price</li><li>VAT worked out from your own supplier and product VAT settings</li></ul></div>
+      <div class="pub-tl-node" style="grid-row:4;"><span>4</span></div>
+      <div style="grid-row:4;" class="pub-tl-card r"><span class="pub-tl-who">Automatic</span><h3>Mistakes and surprises are flagged</h3><p>Before anything is approved, the system checks the invoice against your history.</p><ul><li>Duplicate invoice detection, so the same invoice is not captured twice</li><li>Price increase alerts when a product costs more than last time</li></ul></div>
+      <div class="pub-tl-node" style="grid-row:5;"><span>5</span></div>
+      <div style="grid-row:5;" class="pub-tl-card l"><span class="pub-tl-who">Processor</span><h3>Review, correct, approve</h3><p>A processor checks what the AI read, fixes anything that needs it, and approves. Nothing becomes a real record until then.</p><ul><li>Edit or reject individual line items</li><li>Approved invoices are locked in as clean records</li></ul></div>
+      <div class="pub-tl-node" style="grid-row:6;"><span>6</span></div>
+      <div style="grid-row:6;" class="pub-tl-card r"><span class="pub-tl-who">Admin</span><h3>See it, export it, use it</h3><p>Approved data feeds your reports straight away, and goes to your accounting system when you want it.</p><ul><li>Spend by supplier or department, with trends and charts</li><li>Daily Summary you can save as a PDF</li><li>Export to CSV, TSV or Excel, with columns tailored for Sage, Pastel or Xero</li></ul></div>
+</div>
+    </div>
+
+    <div class="pub-how-section" id="how-features">
+      <div class="pub-who-h">Everything that is included</div>
+      <div class="pub-who-sub">One plan. Every feature, for every branch.</div>
+      <div class="pub-how-grid">
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+        <h3>Scan with a phone</h3>
+        <p>Dispatch photographs the invoice and it uploads straight away. Nothing to install on a desk or scanner.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5 5.4.8-3.9 3.8.9 5.4L12 14.5 7.2 17l.9-5.4L4.2 7.8 9.6 7z"/></svg></div>
+        <h3>AI invoice reading</h3>
+        <p>Reads handwriting, stamps and messy paper, and returns the supplier, every item, the price and VAT.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></div>
+        <h3>Duplicate detection</h3>
+        <p>Warns you when an invoice looks like one already captured, before it can be paid twice.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <h3>Price increase alerts</h3>
+        <p>Compares each item with its last price and flags quiet increases the moment they appear.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+        <h3>Approval before anything is final</h3>
+        <p>A processor reviews, corrects and approves. Unapproved scans never reach your records.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+        <h3>Insights and charts</h3>
+        <p>Spend trends, charts and price alerts, broken down by supplier or department.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
+        <h3>Daily Summary</h3>
+        <p>An end-of-day report of what was received, ready to save as a PDF.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v4H3zM5 7v13h14V7M9 21V11h6v10"/></svg></div>
+        <h3>Suppliers and VAT</h3>
+        <p>Keep your supplier list, mark suppliers VAT registered or exempt, and set VAT per supplier or product.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.7l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.7l7 4a2 2 0 002 0l7-4a2 2 0 001-1.7z"/></svg></div>
+        <h3>Item Master</h3>
+        <p>Product codes and a full price history for every product you buy.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.9"/><path d="M16 3.1a4 4 0 010 7.8"/></svg></div>
+        <h3>Staff and permissions</h3>
+        <p>Unlimited staff. Choose who can scan, who can approve, and what each processor can do.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg></div>
+        <h3>Multiple branches</h3>
+        <p>Each branch is its own company with its own subscription. A group Admin can switch between them.</p>
+      </div>
+      <div class="pub-who-card">
+        <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+        <h3>Exports</h3>
+        <p>CSV, TSV or Excel any time, with column order tailored for Sage, Pastel or Xero. Your data is always yours.</p>
+      </div>
+      </div>
+      <div class="pub-incl">
+        <div class="pub-incl-price">R2,999 <small>per branch, per month, excl. VAT</small></div>
+        <div class="pub-incl-list"><span>2,000 scans per branch every month</span><span>Unlimited staff accounts</span><span>Unlimited scan history</span><span>Duplicate detection</span><span>Price increase alerts</span><span>Full insights</span></div>
+      </div>
+    </div>
+
+    <div class="pub-who-cta">
+      <button class="pub-cta-primary" onclick="showPublicPage('login')">Get Started</button>
+      <button class="pub-cta-secondary" onclick="showPublicPage('plans-public')">See Plans</button>
+    </div>
+  </div>
+  <div class="pub-footer">GRVSCANNER.CO.ZA</div>
+</div>
+
 <div class="page" id="page-contact-public">
   <div class="pub-header">
     <div class="pub-logo" onclick="showPublicPage('landing')" style="cursor:pointer;"><span>GRV</span><span>SCANNER</span></div>
@@ -1489,6 +1649,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
+      <div class="pub-nav-link" onclick="showPublicPage('howitworks')">How does it work?</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
     </div>
     <div class="pub-actions">
@@ -1519,6 +1680,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="pub-nav-link" onclick="showPublicPage('landing')">Home</div>
       <div class="pub-nav-link" onclick="showPublicPage('story')">Our story</div>
       <div class="pub-nav-link" onclick="showPublicPage('whoserve')">Who do we serve</div>
+      <div class="pub-nav-link" onclick="showPublicPage('howitworks')">How does it work?</div>
       <div class="pub-nav-link" onclick="showPublicPage('plans-public')">Plans</div>
     </div>
     <div class="pub-actions">
@@ -3386,6 +3548,10 @@ function toggleFaq(el) {
 // Nav options: every option gets a down-arrow. Hover (desktop) or tapping the
 // arrow opens a small menu of real shortcuts; clicking the label itself still
 // goes straight to that page.
+function pubGoHow(anchorId) {
+  showPublicPage('howitworks');
+  setTimeout(() => { const el = document.getElementById(anchorId); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
+}
 function pubGoWho(anchorId) {
   showPublicPage('whoserve');
   setTimeout(() => { const el = document.getElementById(anchorId); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
@@ -3398,6 +3564,7 @@ function initPubNavMenus() {
   const MENUS = {
     'Our story': [['Read our story', "showPublicPage('story')"], ['Questions (FAQ)', 'pubGoFaq()']],
     'Plans': [['See plans', "showPublicPage('plans-public')"], ['Get started', "showPublicPage('login')"]],
+    'How does it work?': [['The steps', "pubGoHow('how-steps')"], ["What's included", "pubGoHow('how-features')"]],
     'Who do we serve': [['Types of business', "pubGoWho('who-types')"], ['Who does what', "pubGoWho('who-roles')"]],
   };
   const caret = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
@@ -7617,7 +7784,7 @@ applyRealDates();
   const activePage = document.querySelector('.page.active');
   if (!activePage) return;
   const pageId = activePage.id.replace(/^page-/, '');
-  const isPublic = ['landing', 'story', 'whoserve', 'plans-public', 'contact-public', 'login'].includes(pageId);
+  const isPublic = ['landing', 'story', 'whoserve', 'howitworks', 'plans-public', 'contact-public', 'login'].includes(pageId);
   lastPushedPageId = pageId;
   try {
     history.replaceState({ pageId, isPublic }, '', '#' + pageId);
