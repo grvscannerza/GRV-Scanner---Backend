@@ -833,6 +833,42 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
 .pub-hero2-strip{max-width:1080px;margin:72px auto 90px;padding:24px 32px 28px;border-radius:18px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);width:calc(100% - 48px);box-sizing:border-box;}
 .pub-hero2-strip-title{font-size:17px;font-weight:600;color:#fff;margin-bottom:20px;}
 .pub-hero2-strip-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-around;gap:24px;font-size:28px;color:#e6edf5;}
+/* ── public site: same look as the landing top (centred headings, glass cards, pills) ── */
+.pub-page-title{font-size:clamp(30px,4.5vw,46px);font-weight:800;letter-spacing:-0.03em;text-align:center;margin-bottom:10px;}
+.pub-page-sub{text-align:center;color:#c4d3e3;font-size:15px;}
+.pub-content{text-align:center;}
+#page-story .pub-content,#page-contact-public .pub-content{margin:48px auto 24px;padding:40px 36px;border-radius:24px;background:var(--glass);border:1px solid rgba(255,255,255,0.10);box-shadow:inset 0 -10px 18px -12px rgba(255,255,255,0.16);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);width:calc(100% - 32px);box-sizing:border-box;}
+#page-story .pub-content{max-width:780px;}
+.pub-story-text{text-align:left;}
+.pub-story-text p{max-width:none;color:#d5deea;}
+.pub-story-text p:last-child{margin-bottom:0;}
+#page-contact-public .tb-field,#page-contact-public .pub-cta-primary{text-align:left;}
+#page-contact-public .pub-page-sub{margin-bottom:24px;}
+.pub-plans-grid{grid-template-columns:repeat(auto-fit,minmax(260px,340px));justify-content:center;margin-top:28px;}
+.pub-plan-col{text-align:left;}
+.pub-plan-name{font-size:15px;letter-spacing:0.04em;text-transform:uppercase;color:#c4d3e3;}
+.pub-plan-price{font-family:'Plus Jakarta Sans','Inter',sans-serif;font-size:40px;font-weight:800;letter-spacing:-0.02em;color:#fff;}
+.pub-plan-row{border-top:1px solid rgba(255,255,255,0.08);}
+
+/* landing sections below the hero */
+.pub-flow-step,.pub-visibility-col,.pub-compare-col,.pub-faq-item{background:var(--glass);border:1px solid rgba(255,255,255,0.10);box-shadow:inset 0 -10px 18px -12px rgba(255,255,255,0.14);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+.pub-flow-step{border-radius:20px;}
+.pub-visibility-col:first-child{border-color:rgba(52,211,153,0.28);}
+.pub-visibility-col:last-child{border-color:rgba(125,211,252,0.28);}
+.pub-visibility-col:first-child,.pub-visibility-col:last-child{background:var(--glass);}
+.pub-compare-col.old{border-color:rgba(255,107,107,0.28);background:var(--glass);}
+.pub-compare-col.new{border-color:rgba(52,211,153,0.28);background:var(--glass);}
+.pub-flow-desc,.pub-feature-desc,.pub-faq-a{color:#aebdd0;}
+.pub-faq-item{border-radius:18px;margin-bottom:12px;padding:0 20px;}
+.pub-faq-q{padding:18px 0;}
+.pub-faq-a{padding:0 0 18px;}
+.pub-faq-arrow{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(200,241,53,0.10);font-size:18px;line-height:1;}
+.pub-whofor-item{border-radius:18px;}
+.pub-feature-card{border-radius:20px;}
+.pub-closing-sub{color:#c4d3e3;}
+
+/* sign-up page: form in a glass card */
+#page-signup .login-right{border:1px solid rgba(255,255,255,0.10);border-radius:24px;margin:40px auto !important;padding:40px 36px;width:calc(100% - 32px);box-shadow:inset 0 -10px 18px -12px rgba(255,255,255,0.14);}
 @media(max-width:600px){
   .pub-header{padding:12px 16px;gap:8px;}
   .pub-nav{padding:4px;}
@@ -1287,6 +1323,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
   <div class="pub-page-body-spacer"></div>
   <div class="pub-content">
     <div class="pub-page-title">Plans</div>
+    <div class="pub-page-sub">One simple price per branch. Every branch is its own subscription.</div>
     <div id="pubPlansTable">Loading...</div>
   </div>
   <div class="pub-footer">GRVSCANNER.CO.ZA</div>
@@ -3227,7 +3264,7 @@ async function loadPublicPlansTable() {
         const [has, label] = Array.isArray(r) ? r : [true, r];
         return `<div class="pub-plan-row">${has ? checkSvg : crossSvg}<span>${label}</span></div>`;
       }).join('');
-      return `<div class="pub-plan-col ${p.popular ? 'popular' : ''}">${p.popular ? '<div class="pub-plan-badge">Most Popular</div>' : ''}<div class="pub-plan-name">${p.name}</div><div class="pub-plan-price">R${p.exclVat.toLocaleString()}<span>/mo excl. VAT</span></div>${rowsHtml}</div>`;
+      return `<div class="pub-plan-col ${p.popular ? 'popular' : ''}">${p.popular ? '<div class="pub-plan-badge">Most Popular</div>' : ''}<div class="pub-plan-name">${p.name}</div><div class="pub-plan-price">R${p.exclVat.toLocaleString()}<span>/mo excl. VAT</span></div>${rowsHtml}<button class="pub-cta-primary" style="width:100%;margin-top:18px;" onclick="showPublicPage('login')">Get Started</button></div>`;
     }).join('') + `</div>`;
   } catch (err) {
     el.innerHTML = '<div style="color:var(--danger);">Could not load plan details right now.</div>';
