@@ -440,4 +440,159 @@ router.get('/price-increases', requireRole('admin', 'processor', 'developer'), r
   }
 });
 
+// ---------------------------------------------------------------------------
+// Accounting export (Xero / Sage). Builds import-ready CSV files from APPROVED
+// invoices only, server-side, so what gets exported is exactly what is locked
+// in the records - never a half-edited screen. One file is returned per
+// import-size limit (Xero allows at most 500 invoice lines per file).
+//
+// Verification status (be honest in the UI too):
+//  - Xero: columns follow Xero's bill import template (documented by Xero).
+//  - Sage: columns follow the best available description of Sage Accounting's
+//    purchase "quick entry" import (Contact Name, Date, Reference, Description,
+//    Net Amount, Tax Rate, Total Amount). Sage lets you re-map columns during
+//    import, so a mismatch is fixable in one step - but it needs one real test.
+// ---------------------------------------------------------------------------
+const XERO_HEADER = ['*ContactName', 'EmailAddress', 'POAddressLine1', 'POAddressLine2', 'POAddressLine3', 'POAddressLine4',
+  'POCity', 'PORegion', 'POPostalCode', 'POCountry', '*InvoiceNumber', 'Reference', '*InvoiceDate', '*DueDate',
+  'InventoryItemCode', '*Description', '*Quantity', '*UnitAmount', 'Discount', '*AccountCode', '*TaxType',
+  'TrackingName1', 'TrackingOption1', 'TrackingName2', 'TrackingOption2', 'Currency'];
+const SAGE_HEADER = ['Contact Name', 'Date', 'Reference', 'Description', 'Net Amount', 'Tax Rate', 'Total Amount'];
+const XERO_MAX_LINES = 500;
+const SAGE_MAX_LINES = 250;
+
+function csvCell(v) {
+  const t = v == null ? '' : String(v);
+  return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+function csvText(header, rows) {
+  return [header, ...rows].map(r => r.map(csvCell).join(',')).join('\r\n') + '\r\n';
+}
+function fmtDMY(d) { // d is a UTC-midnight Date
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${d.getUTCFullYear()}`;
+}
+const money = (n) => (Math.round((Number(n) + Number.EPSILON) * 100) / 100).toFixed(2);
+const price = (n) => String(Math.round(Number(n) * 10000) / 10000);
+
+router.get('/accounting-export', requireRole('admin', 'processor', 'developer'), requireProcessorPermission('exportAccounting'), async (req, res) => {
+  const { system, start, end } = req.query;
+  if (!['xero', 'sage'].includes(system)) return res.status(400).json({ error: 'Choose Xero or Sage.' });
+  const isDate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || ''));
+  if (!isDate(start) || !isDate(end)) return res.status(400).json({ error: 'Choose a start and end date.' });
+  if (start > end) return res.status(400).json({ error: 'The start date must be before the end date.' });
+
+  try {
+    const settingsRes = await pool.query('SELECT settings_json FROM business_settings WHERE business_id = $1', [req.activeBusinessId]);
+    const all = settingsRes.rows[0] ? JSON.parse(settingsRes.rows[0].settings_json || '{}') : {};
+    const cfg = { accountCode: '', taxStandard: '', taxZero: '', dueDays: 30, ...(all.accounting || {}) };
+
+    const scansRes = await pool.query(`
+      SELECT s.id, s.invoice_number, s.is_duplicate, sup.name AS supplier_name,
+             COALESCE(s.invoice_date, (s.scanned_at AT TIME ZONE 'Africa/Johannesburg')::date) AS inv_date,
+             (s.invoice_date IS NULL) AS date_was_scan_date
+      FROM scans s JOIN suppliers sup ON sup.id = s.supplier_id
+      WHERE s.business_id = $1 AND s.status = 'approved'
+        AND COALESCE(s.invoice_date, (s.scanned_at AT TIME ZONE 'Africa/Johannesburg')::date) BETWEEN $2::date AND $3::date
+      ORDER BY COALESCE(s.invoice_date, (s.scanned_at AT TIME ZONE 'Africa/Johannesburg')::date), s.id
+    `, [req.activeBusinessId, start, end]);
+
+    const notes = [];
+    const scans = scansRes.rows.filter(r => !r.is_duplicate);
+    const skippedDup = scansRes.rows.length - scans.length;
+    if (skippedDup) notes.push(`${skippedDup} approved invoice(s) flagged as duplicates were left out, because ${system === 'xero' ? 'Xero' : 'Sage'} rejects repeated invoice numbers.`);
+    if (!scans.length) return res.status(400).json({ error: 'There are no approved invoices in that date range to export.' });
+
+    const ids = scans.map(r => r.id);
+    const linesRes = await pool.query(
+      'SELECT scan_id, description, qty, unit_price, vat_rate FROM scan_line_items WHERE scan_id = ANY($1::int[]) ORDER BY scan_id, id', [ids]);
+    const linesByScan = {};
+    for (const l of linesRes.rows) (linesByScan[l.scan_id] = linesByScan[l.scan_id] || []).push(l);
+
+    // Refuse to export (rather than export something the accounting system will
+    // reject) when a needed setting is blank.
+    const sysName = system === 'xero' ? 'Xero' : 'Sage';
+    const allLines = linesRes.rows;
+    const needStd = allLines.some(l => Number(l.vat_rate) > 0);
+    const needZero = allLines.some(l => Number(l.vat_rate) === 0);
+    const missing = [];
+    if (system === 'xero' && !cfg.accountCode) missing.push('the purchases account code');
+    if (needStd && !cfg.taxStandard) missing.push(`the ${sysName} name for your standard VAT rate`);
+    if (needZero && !cfg.taxZero) missing.push(`the ${sysName} name for zero-rated purchases`);
+    if (missing.length) {
+      return res.status(400).json({
+        error: `Before exporting to ${sysName}, set ${missing.join(' and ')} in Settings > Accounting export.`,
+        needsSettings: true,
+      });
+    }
+
+    let usedScanDate = 0, usedFallbackNumber = 0, noLines = 0;
+    const invoiceBlocks = []; // each: array of rows for ONE invoice, so a split never cuts an invoice in half
+    for (const sc of scans) {
+      const lines = linesByScan[sc.id] || [];
+      if (!lines.length) { noLines++; continue; }
+      const invDate = new Date(sc.inv_date); // pg returns a Date at local midnight for DATE columns
+      const invUtc = new Date(Date.UTC(invDate.getFullYear(), invDate.getMonth(), invDate.getDate()));
+      const dueUtc = new Date(invUtc.getTime() + Number(cfg.dueDays || 0) * 86400000);
+      if (sc.date_was_scan_date) usedScanDate++;
+      let invNo = (sc.invoice_number || '').trim();
+      if (!invNo) { invNo = `GRV-${sc.id}`; usedFallbackNumber++; }
+      const rows = lines.map(l => {
+        const qty = Number(l.qty) || 0, up = Number(l.unit_price) || 0, rate = Number(l.vat_rate) || 0;
+        const taxName = rate > 0 ? cfg.taxStandard : cfg.taxZero;
+        if (system === 'xero') {
+          return [sc.supplier_name, '', '', '', '', '', '', '', '', '', invNo, '', fmtDMY(invUtc), fmtDMY(dueUtc),
+            '', l.description, price(qty), price(up), '', cfg.accountCode, taxName, '', '', '', '', ''];
+        }
+        const net = qty * up;
+        return [sc.supplier_name, fmtDMY(invUtc), invNo, l.description, money(net), taxName, money(net + net * rate / 100)];
+      });
+      invoiceBlocks.push(rows);
+    }
+    if (usedScanDate) notes.push(`${usedScanDate} invoice(s) had no invoice date on record, so the day they were scanned was used. Check these before importing.`);
+    if (usedFallbackNumber) notes.push(`${usedFallbackNumber} invoice(s) had no invoice number, so a reference like GRV-123 was used. ${sysName} needs one on every invoice.`);
+    if (noLines) notes.push(`${noLines} approved invoice(s) had no line items and were left out.`);
+    if (!invoiceBlocks.length) return res.status(400).json({ error: 'There are no approved invoices with line items in that date range.' });
+
+    const maxLines = system === 'xero' ? XERO_MAX_LINES : SAGE_MAX_LINES;
+    const header = system === 'xero' ? XERO_HEADER : SAGE_HEADER;
+    const parts = [];
+    let cur = [], curInv = 0;
+    for (const block of invoiceBlocks) {
+      if (cur.length && cur.length + block.length > maxLines) { parts.push({ rows: cur, inv: curInv }); cur = []; curInv = 0; }
+      cur = cur.concat(block); curInv++;
+    }
+    if (cur.length) parts.push({ rows: cur, inv: curInv });
+    if (parts.length > 1) notes.push(`That is more than ${sysName} accepts in one file, so it was split into ${parts.length} files. Import them one after another.`);
+    if (parts.some(p => p.rows.length > maxLines)) notes.push(`One invoice has more than ${maxLines} lines and is in a file of its own that is over ${sysName}'s limit.`);
+    if (system === 'xero') notes.push('Xero: set Settings > General Settings > Date format to DD/MM/YYYY before importing. Imported bills arrive as Drafts for you to approve.');
+    else notes.push('Sage: if Sage does not recognise the column names, choose "map columns" during the import. Suppliers must already exist in Sage with exactly the same name.');
+
+    const files = parts.map((p, i) => ({
+      filename: `GRV-${system}-${start}-to-${end}${parts.length > 1 ? `-part${i + 1}` : ''}.csv`,
+      csv: csvText(header, p.rows),
+      invoiceCount: p.inv,
+      lineCount: p.rows.length,
+    }));
+
+    await pool.query(
+      `INSERT INTO audit_log (business_id, actor_user_id, action, target_type)
+       VALUES ($1, $2, $3, 'export')`,
+      [req.activeBusinessId, req.user.userId, `export.accounting.${system}`]
+    );
+
+    res.json({
+      system,
+      invoiceCount: parts.reduce((n, p) => n + p.inv, 0),
+      lineCount: parts.reduce((n, p) => n + p.rows.length, 0),
+      files,
+      notes,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 module.exports = router;

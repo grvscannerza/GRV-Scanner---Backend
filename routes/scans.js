@@ -48,9 +48,20 @@ router.get('/check-duplicate', requireRole('admin', 'processor', 'dispatch', 'de
 
 // Everyone who can log in can create a scan (dispatch's whole job is scanning).
 router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), async (req, res) => {
-  const { supplierId, invoiceNumber, note, exclVat, vat, total, priceAlerts, lineItems, imageMediaType, imageBase64 } = req.body || {};
+  const { supplierId, invoiceNumber, invoiceDate, note, exclVat, vat, total, priceAlerts, lineItems, imageMediaType, imageBase64 } = req.body || {};
   if (!supplierId || total == null) {
     return res.status(400).json({ error: 'supplierId and total are required.' });
+  }
+  // The invoice date is optional (older clients, or nothing legible on the
+  // invoice), but if one is sent it must be a real calendar date.
+  let cleanInvoiceDate = null;
+  if (invoiceDate) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(invoiceDate));
+    const d = m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : null;
+    if (!d || d.getUTCFullYear() !== +m[1] || d.getUTCMonth() !== +m[2] - 1 || d.getUTCDate() !== +m[3]) {
+      return res.status(400).json({ error: 'Invoice date must be a real date (YYYY-MM-DD).' });
+    }
+    cleanInvoiceDate = String(invoiceDate);
   }
   // The image is optional - an older client, or a scan where the upload
   // somehow didn't carry through, shouldn't fail the whole scan over it.
@@ -85,11 +96,11 @@ router.post('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asy
       : null;
 
     const scanResult = await pool.query(`
-      INSERT INTO scans (business_id, supplier_id, scanned_by, invoice_number, note, excl_vat, vat, total, price_alerts, status, is_duplicate, duplicate_of_scan_id, image_media_type, image_data)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', $10, $11, $12, $13) RETURNING id
+      INSERT INTO scans (business_id, supplier_id, scanned_by, invoice_number, invoice_date, note, excl_vat, vat, total, price_alerts, status, is_duplicate, duplicate_of_scan_id, image_media_type, image_data)
+      VALUES ($1, $2, $3, $4, $14, $5, $6, $7, $8, $9, 'pending', $10, $11, $12, $13) RETURNING id
     `, [req.activeBusinessId, supplierId, req.user.userId, invoiceNumber || null, note || null,
         exclVat || 0, vat || 0, total, priceAlerts || 0, !!duplicateMatch, duplicateMatch ? duplicateMatch.id : null,
-        hasImage ? (imageMediaType || 'image/jpeg') : null, hasImage ? imageBase64 : null]);
+        hasImage ? (imageMediaType || 'image/jpeg') : null, hasImage ? imageBase64 : null, cleanInvoiceDate]);
     const scanId = scanResult.rows[0].id;
 
     if (Array.isArray(lineItems) && lineItems.length) {
@@ -165,7 +176,7 @@ router.get('/', requireRole('admin', 'processor', 'dispatch', 'developer'), asyn
     // "View Invoice Image" button; the real bytes are fetched on demand via
     // GET /:id/image only when someone actually opens that scan.
     const listColumns = `s.id, s.business_id, s.supplier_id, s.scanned_by, s.invoice_number, s.note,
-        s.scanned_at, s.excl_vat, s.vat, s.total, s.price_alerts, s.status, s.approved_by, s.approved_at,
+        s.invoice_date, s.scanned_at, s.excl_vat, s.vat, s.total, s.price_alerts, s.status, s.approved_by, s.approved_at,
         s.is_duplicate, s.duplicate_of_scan_id, (s.image_data IS NOT NULL) AS has_image,
         sup.name AS supplier_name, u.first_name, u.last_name`;
     let result;
@@ -298,7 +309,7 @@ router.post('/extract', requireRole('admin', 'processor', 'dispatch', 'developer
           role: 'user',
           content: [
             fileContentBlock,
-            { type: 'text', text: 'This is a photo or PDF of a supplier invoice or delivery note (GRV). Extract the invoice/document number and every line item. Respond with ONLY a raw JSON object, no markdown code fences, no prose before or after. The object must have exactly two fields: "invoiceNumber" (string, the invoice/GRV/document number as printed - if none is visible, use an empty string) and "items" (array). Each element of "items" must have exactly these fields: "desc" (string, product description), "code" (string, product code/SKU as printed on the invoice, or a short uppercase code you invent from the description if none is printed), "qty" (number), "unit" (string, e.g. "each", "box", "kg"), "up" (number, unit price in Rand, no currency symbol). If a field is not visible on the invoice, make a reasonable estimate rather than omitting it. Do not include VAT, totals, or header/footer rows in items - only product line items.' }
+            { type: 'text', text: 'This is a photo or PDF of a supplier invoice or delivery note (GRV). Extract the invoice/document number and every line item. Respond with ONLY a raw JSON object, no markdown code fences, no prose before or after. The object must have exactly three fields: "invoiceNumber" (string, the invoice/GRV/document number as printed - if none is visible, use an empty string), "invoiceDate" (string, the invoice or document date as printed, converted to YYYY-MM-DD - South African invoices write day before month, so 03/04/2026 is 3 April 2026; if no date is visible, use an empty string, and never guess one) and "items" (array). Each element of "items" must have exactly these fields: "desc" (string, product description), "code" (string, product code/SKU as printed on the invoice, or a short uppercase code you invent from the description if none is printed), "qty" (number), "unit" (string, e.g. "each", "box", "kg"), "up" (number, unit price in Rand, no currency symbol). If a field is not visible on the invoice, make a reasonable estimate rather than omitting it. Do not include VAT, totals, or header/footer rows in items - only product line items.' }
           ]
         }]
       }),

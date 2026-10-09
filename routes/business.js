@@ -119,6 +119,54 @@ router.put('/profile', requireRole('admin', 'developer'), async (req, res) => {
   }
 });
 
+// Accounting-export settings (Xero / Sage). Stored inside the branch's
+// existing business_settings JSON under the "accounting" key, so no new table
+// is needed and saving this never overwrites the other settings sections.
+// GET is open to processors too, since the export window needs to show which
+// system is selected; only Admin can change it.
+const ACCOUNTING_DEFAULTS = { system: 'xero', accountCode: '', taxStandard: '', taxZero: '', dueDays: 30 };
+
+router.get('/accounting', requireRole('admin', 'processor', 'developer'), async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT settings_json FROM business_settings WHERE business_id = $1', [req.activeBusinessId]);
+    const all = rows[0] ? JSON.parse(rows[0].settings_json || '{}') : {};
+    res.json({ ...ACCOUNTING_DEFAULTS, ...(all.accounting || {}) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
+router.put('/accounting', requireRole('admin', 'developer'), async (req, res) => {
+  const { system, accountCode, taxStandard, taxZero, dueDays } = req.body || {};
+  if (!['xero', 'sage'].includes(system)) return res.status(400).json({ error: 'Choose Xero or Sage.' });
+  const clean = (v) => String(v == null ? '' : v).trim().slice(0, 60);
+  const days = Number(dueDays);
+  if (!Number.isInteger(days) || days < 0 || days > 365) {
+    return res.status(400).json({ error: 'Payment terms must be a whole number of days between 0 and 365.' });
+  }
+  const accounting = { system, accountCode: clean(accountCode), taxStandard: clean(taxStandard), taxZero: clean(taxZero), dueDays: days };
+  try {
+    const { rows } = await pool.query('SELECT settings_json FROM business_settings WHERE business_id = $1', [req.activeBusinessId]);
+    const all = rows[0] ? JSON.parse(rows[0].settings_json || '{}') : {};
+    all.accounting = accounting;
+    await pool.query(`
+      INSERT INTO business_settings (business_id, settings_json, updated_at)
+      VALUES ($1, $2, NOW())
+      ON CONFLICT (business_id) DO UPDATE SET settings_json = EXCLUDED.settings_json, updated_at = EXCLUDED.updated_at
+    `, [req.activeBusinessId, JSON.stringify(all)]);
+    await pool.query(
+      `INSERT INTO audit_log (business_id, actor_user_id, action, target_type)
+       VALUES ($1, $2, 'business.accounting_settings_updated', 'business')`,
+      [req.activeBusinessId, req.user.userId]
+    );
+    res.json({ ok: true, ...accounting });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong on our end.' });
+  }
+});
+
 router.get('/settings', requireRole('admin', 'developer'), async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT settings_json FROM business_settings WHERE business_id = $1', [req.activeBusinessId]);
