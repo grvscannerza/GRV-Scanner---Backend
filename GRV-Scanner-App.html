@@ -3681,21 +3681,7 @@ function initPubNavMenus() {
     link.textContent = '';
     const t = document.createElement('span'); t.textContent = label; link.appendChild(t);
     const c = document.createElement('span'); c.className = 'pub-nav-caret'; c.innerHTML = caret;
-    c.addEventListener('click', e => {
-      e.stopPropagation();
-      const wasOpen = link.classList.contains('dd-open');
-      document.querySelectorAll('.pub-nav-link.dd-open').forEach(l => l.classList.remove('dd-open'));
-      if (!wasOpen) link.classList.add('dd-open');
-    });
     link.appendChild(c);
-    const dd = document.createElement('div'); dd.className = 'pub-dd';
-    const box = document.createElement('div'); box.className = 'pub-dd-box';
-    items.forEach(([text, action]) => {
-      const a = document.createElement('div'); a.className = 'pub-dd-item'; a.textContent = text;
-      a.addEventListener('click', e => { e.stopPropagation(); link.classList.remove('dd-open'); new Function(action)(); });
-      box.appendChild(a);
-    });
-    dd.appendChild(box); link.appendChild(dd);
   });
 }
 document.addEventListener('click', () => document.querySelectorAll('.pub-nav-link.dd-open').forEach(l => l.classList.remove('dd-open')));
