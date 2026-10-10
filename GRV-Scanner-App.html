@@ -1019,7 +1019,6 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <button class="rs-btn inactive" id="rsProcessor" onclick="switchRole('processor')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg> PROCESSOR</button>
       <button class="rs-btn inactive" id="rsStaff" onclick="switchRole('staff')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> DISPATCH</button>
     </div>
-    <button id="recoveryBtn" onclick="openRecoveryPanel()" style="display:none;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:var(--warn);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans','Inter',sans-serif;align-items:center;gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="8" cy="15" r="4"/><path d="M10.85 12.15L19 4M16 7l3 3M13 10l3 3"/></svg> Recovery</button>
     <button id="gracePeriodPill" onclick="showPage('billing', null)" style="display:none;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans','Inter',sans-serif;align-items:center;gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span id="gracePeriodPillText">Payment failed</span></button>
     <!-- Multi-Branch switcher - only ever shown to an Admin whose branch
          belongs to a group. Everyone else never sees this at all. -->
@@ -1073,7 +1072,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
   <div class="home-wrap">
 
     <div class="home-greeting">
-      <div class="home-greeting-title" id="homeGreetingTitle">Good morning, John <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M8 13V6a1.5 1.5 0 013 0v5M11 6a1.5 1.5 0 013 0v5M14 7a1.5 1.5 0 013 0v6M17 12a1.5 1.5 0 013 0v3a6 6 0 01-6 6h-2a6 6 0 01-5-2.7L4 14"/></svg></div>
+      <div class="home-greeting-title" id="homeGreetingTitle">Good morning, John</div>
       <div class="home-greeting-sub"><span id="homeGreetingBizPlan">Loading...</span> &nbsp;·&nbsp; <span id="homeGreetingDate">Monday, 21 July 2025</span></div>
     </div>
 
@@ -1221,6 +1220,17 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
           <div class="dash-btn-text">
             <div class="dash-btn-title">My Business <span style="font-size:10px;font-weight:700;color:var(--warn);background:rgba(245,158,11,0.12);padding:2px 7px;border-radius:10px;margin-left:6px;">OWNER ONLY</span></div>
             <div class="dash-btn-sub">All clients, monthly revenue invoices, and growth insights across GRV Scanner</div>
+          </div>
+        </div>
+        <div class="dash-btn-arrow">›</div>
+      </div>
+
+      <div class="dash-btn" id="db-recovery" data-roles="none" onclick="openRecoveryPanel()" style="display:none;grid-column:1/-1;border-color:rgba(245,158,11,0.3);">
+        <div class="dash-btn-inner">
+          <div class="dash-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="8" cy="15" r="4"/><path d="M10.85 12.15L19 4M16 7l3 3M13 10l3 3"/></svg></div>
+          <div class="dash-btn-text">
+            <div class="dash-btn-title">Admin PIN Recovery <span style="font-size:10px;font-weight:700;color:var(--warn);background:rgba(245,158,11,0.12);padding:2px 7px;border-radius:10px;margin-left:6px;">OWNER ONLY</span></div>
+            <div class="dash-btn-sub">Reset a customer admin's PIN</div>
           </div>
         </div>
         <div class="dash-btn-arrow">›</div>
@@ -3290,7 +3300,7 @@ async function loadHomeBillingSummary() {
       : (planInfo.subscriptionStatus === 'active' || planInfo.subscriptionStatus === 'past_due')
         ? 'Renewal date unavailable'
         : 'No active subscription';
-    el.textContent = `${planLabel} Plan \u00b7 ${scansText} \u00b7 ${renewsText}`;
+    el.textContent = `${scansText} \u00b7 ${renewsText}`;
   } catch (err) {
     el.textContent = 'Could not load billing info';
     console.error('Failed to load home billing summary:', err.message);
@@ -3317,6 +3327,9 @@ function updateHomeTiles() {
   // though they share the same currentRole value as a developer session).
   const myBusinessTile = document.getElementById('db-mybusiness');
   if (myBusinessTile) myBusinessTile.style.display = (isDeveloperSession && currentRole === 'admin') ? '' : 'none';
+  // Admin PIN Recovery tile: developer/owner session only, same rule.
+  const recoveryTile = document.getElementById('db-recovery');
+  if (recoveryTile) recoveryTile.style.display = (isDeveloperSession && currentRole === 'admin') ? '' : 'none';
 }
 
 function applyRoleUI(role, displayName, initials) {
@@ -4187,8 +4200,14 @@ function showPage(id, tabEl) {
 
   // Home tab - visible on every page except login, hidden entirely for dispatch (no home page)
   const homeTab = document.getElementById('tab-home');
-  homeTab.style.display = (isLogin || currentRole === 'staff') ? 'none' : '';
+  homeTab.style.display = (isLogin || isHome || currentRole === 'staff') ? 'none' : '';
   homeTab.classList.toggle('active', isHome);
+
+  // On the home page the Home tab is hidden (we are already there), which
+  // would leave an empty bar, so the whole bar is hidden on home.
+  const mainNavEl = document.getElementById('mainNav');
+  if (isHome && !isLogin) { mainNavEl.style.display = 'none'; mainNavEl.dataset.hiddenForHome = '1'; }
+  else if (mainNavEl.dataset.hiddenForHome) { mainNavEl.style.display = ''; delete mainNavEl.dataset.hiddenForHome; }
 
   // Breadcrumb - show on right side on inner pages, hide on login/home
   const breadcrumb = document.getElementById('nav-breadcrumb');
@@ -6345,7 +6364,7 @@ async function loadHomeSummary() {
     const bizPlanEl = document.getElementById('homeGreetingBizPlan');
     if (bizPlanEl) {
       const planLabel = PLAN_INFO[planInfo.plan]?.label || planInfo.plan;
-      bizPlanEl.textContent = `${profile.name} \u00b7 ${planLabel} Plan`;
+      bizPlanEl.textContent = profile.name;
     }
   } catch (err) {
     console.error('Failed to load home summary:', err.message);
@@ -6789,7 +6808,12 @@ function applyRealDates() {
   const timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
   const greetingTitleEl = document.getElementById('homeGreetingTitle');
   if (greetingTitleEl) {
-    const realFirstName = (document.getElementById('userName')?.textContent || '').trim().split(' ')[0] || 'there';
+    // First name only. The developer/owner session has no real first name on
+    // its account (it signs in with a username), so it greets the owner by name.
+    const realFirstName = isDeveloperSession
+      ? 'Christos'
+      : ((currentUser && currentUser.fname) || (currentAdminInfo && currentAdminInfo.firstName)
+         || (document.getElementById('userName')?.textContent || '').trim().split(' ')[0] || 'there');
     greetingTitleEl.childNodes[0].textContent = `Good ${timeOfDay}, ${realFirstName} `;
   }
 }
