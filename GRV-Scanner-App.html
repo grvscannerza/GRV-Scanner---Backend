@@ -2430,9 +2430,33 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     <div style="font-size:13px;color:var(--muted-light);line-height:1.6;margin-bottom:16px;">Download your approved invoices as a file you can import into your accounting system. Only approved invoices are included.</div>
     <div id="accExpError" style="display:none;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:12px;line-height:1.5;"></div>
     <div class="tb-field"><label>Accounting system</label><select id="accExpSystem" class="styled-select" onchange="updateAccExpNote()"><option value="xero">Xero</option><option value="sage">Sage Accounting</option></select></div>
-    <div style="display:flex;gap:12px;">
-      <div class="tb-field" style="flex:1;"><label>From</label><input type="date" id="accExpStart"/></div>
-      <div class="tb-field" style="flex:1;"><label>To</label><input type="date" id="accExpEnd"/></div>
+    <div class="tb-field"><label>Dates</label>
+      <div style="position:relative;">
+        <select class="styled-select" id="accExpRange" onchange="handleAccRangeChange(this.value)"></select>
+        <div id="accCustomDatePopover" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,0.4);padding:14px;z-index:60;width:260px;user-select:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <button type="button" onclick="accCalendarChangeMonth(-1)" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:3px 8px;color:var(--muted);cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <div id="accCalendarMonthLabel" style="font-size:12px;font-weight:700;color:#fff;"></div>
+              <button type="button" onclick="accCalendarChangeMonth(1)" style="background:none;border:1px solid var(--border-light);border-radius:6px;padding:3px 8px;color:var(--muted);cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;">
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">S</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">M</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">T</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">W</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">T</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">F</div>
+              <div style="font-size:9px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;">S</div>
+            </div>
+            <div id="accCalendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px;"></div>
+            <div id="accCustomRangeLabel" style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:10px;min-height:14px;">Click a day, or drag to select a range</div>
+            <div style="display:flex;gap:8px;">
+              <button type="button" onclick="accCloseCustomDatePopover()" style="flex:1;padding:7px;background:transparent;border:1px solid var(--border-light);color:var(--text-body);border-radius:6px;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans','Inter',sans-serif;">Cancel</button>
+              <button type="button" onclick="accApplyCustomDateRange()" style="flex:1;padding:7px;background:var(--accent);border:none;color:#0a1628;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans','Inter',sans-serif;">Apply</button>
+            </div>
+          </div>
+      </div>
+      <input type="hidden" id="accExpStart"/><input type="hidden" id="accExpEnd"/>
     </div>
     <div id="accExpSageNote" style="display:none;font-size:12px;color:var(--warn);background:var(--warn-dim);border:1px solid rgba(245,158,11,0.35);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;line-height:1.5;">Sage's import layout can vary. If Sage does not recognise the columns, choose "map columns" during the import. Please test with one small date range first.</div>
     <div id="accExpResult" style="display:none;margin-bottom:12px;"></div>
@@ -7376,9 +7400,8 @@ function updateAccExpNote() {
   document.getElementById('accExpSageNote').style.display = sys === 'sage' ? 'block' : 'none';
 }
 async function openAccountingExport() {
-  const now = new Date();
-  document.getElementById('accExpStart').value = localISODate(new Date(now.getFullYear(), now.getMonth(), 1));
-  document.getElementById('accExpEnd').value = localISODate(now);
+  populateAccRangePicker();
+  setAccRange('thisMonth');
   document.getElementById('accExpError').style.display = 'none';
   document.getElementById('accExpResult').style.display = 'none';
   document.getElementById('accExpResult').innerHTML = '';
@@ -7390,6 +7413,125 @@ async function openAccountingExport() {
   updateAccExpNote();
   document.getElementById('accExportModal').classList.add('open');
 }
+// ── Accounting export date picker: the same dropdown + drag-select calendar and
+// dd/mm/yy format as the Daily Summary, with its own state so the two never mix.
+let accCalViewDate = new Date(APP_TODAY);
+let accRangeStart = null;
+let accRangeEnd = null;
+let accDraggingRange = false;
+
+function accRangeText(lo, hi) {
+  return sameDay(lo, hi) ? fmtDDMMYY(lo) : `${fmtDDMMYY(lo)} - ${fmtDDMMYY(hi)}`;
+}
+function accPresetRange(val) {
+  const t = new Date(APP_TODAY.getFullYear(), APP_TODAY.getMonth(), APP_TODAY.getDate());
+  if (val === 'today') return [t, t];
+  if (val === 'yesterday') { const y = new Date(t); y.setDate(y.getDate() - 1); return [y, y]; }
+  if (val === 'lastMonth') return [new Date(t.getFullYear(), t.getMonth() - 1, 1), new Date(t.getFullYear(), t.getMonth(), 0)];
+  return [new Date(t.getFullYear(), t.getMonth(), 1), t]; // thisMonth
+}
+function populateAccRangePicker() {
+  const sel = document.getElementById('accExpRange');
+  if (!sel) return;
+  const opt = (v, label) => { const [a, b] = accPresetRange(v); return `<option value="${v}">${label} - ${accRangeText(a, b)}</option>`; };
+  sel.innerHTML = opt('today', 'Today') + opt('yesterday', 'Yesterday') + opt('thisMonth', 'This month') + opt('lastMonth', 'Last month') + '<option value="custom">Custom...</option>';
+}
+function setAccRange(val) {
+  const [a, b] = accPresetRange(val);
+  document.getElementById('accExpRange').value = val;
+  document.getElementById('accExpStart').value = localISODate(a);
+  document.getElementById('accExpEnd').value = localISODate(b);
+  accClearResults();
+}
+function accClearResults() {
+  // A different date range makes any file already created out of date.
+  lastAccExportFiles = [];
+  const resEl = document.getElementById('accExpResult');
+  if (resEl) { resEl.style.display = 'none'; resEl.innerHTML = ''; }
+}
+function handleAccRangeChange(val) {
+  if (val === 'custom') {
+    accCalViewDate = new Date(APP_TODAY);
+    accRangeStart = null;
+    accRangeEnd = null;
+    renderAccCalendar();
+    document.getElementById('accCustomDatePopover').style.display = 'block';
+  } else {
+    document.getElementById('accCustomDatePopover').style.display = 'none';
+    setAccRange(val);
+  }
+}
+function accCloseCustomDatePopover() {
+  document.getElementById('accCustomDatePopover').style.display = 'none';
+  const sel = document.getElementById('accExpRange');
+  if (sel.value === 'custom') sel.value = sel.querySelector('option[value="customApplied"]') ? 'customApplied' : 'thisMonth';
+}
+function accCalendarChangeMonth(delta) {
+  accCalViewDate.setMonth(accCalViewDate.getMonth() + delta);
+  renderAccCalendar();
+}
+function renderAccCalendar() {
+  const grid = document.getElementById('accCalendarGrid');
+  const year = accCalViewDate.getFullYear();
+  const month = accCalViewDate.getMonth();
+  document.getElementById('accCalendarMonthLabel').textContent = accCalViewDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  const startOffset = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let html = '';
+  for (let i = 0; i < startOffset; i++) html += '<div></div>';
+  for (let day = 1; day <= daysInMonth; day++) {
+    const cellDate = new Date(year, month, day);
+    const isFuture = cellDate > APP_TODAY;
+    const lo = accRangeStart && accRangeEnd ? (accRangeStart < accRangeEnd ? accRangeStart : accRangeEnd) : null;
+    const hi = accRangeStart && accRangeEnd ? (accRangeStart < accRangeEnd ? accRangeEnd : accRangeStart) : null;
+    const isSelected = lo && cellDate >= lo && cellDate <= hi;
+    const isEndpoint = sameDay(cellDate, accRangeStart) || sameDay(cellDate, accRangeEnd);
+    let bg = 'transparent', color = isFuture ? 'var(--border-light)' : 'var(--text-body)';
+    if (isSelected) bg = 'var(--accent-dim)';
+    if (isEndpoint) { bg = 'var(--accent)'; color = '#0a1628'; }
+    const handlers = isFuture ? '' : `onmousedown="accCalDayMouseDown(${year},${month},${day})" onmouseover="accCalDayMouseOver(${year},${month},${day})"`;
+    html += `<div ${handlers} style="text-align:center;padding:5px 0;font-size:11px;border-radius:4px;background:${bg};color:${color};cursor:${isFuture ? 'default' : 'pointer'};font-family:'DM Mono',monospace;">${day}</div>`;
+  }
+  grid.innerHTML = html;
+  const label = document.getElementById('accCustomRangeLabel');
+  if (!accRangeStart) { label.textContent = 'Click a day, or drag to select a range'; return; }
+  const a = accRangeEnd && accRangeEnd < accRangeStart ? accRangeEnd : accRangeStart;
+  const b = accRangeEnd && accRangeEnd > accRangeStart ? accRangeEnd : (accRangeEnd || accRangeStart);
+  label.textContent = accRangeText(a, b);
+}
+function accCalDayMouseDown(y, m, d) {
+  accDraggingRange = true;
+  accRangeStart = new Date(y, m, d);
+  accRangeEnd = new Date(y, m, d);
+  renderAccCalendar();
+}
+function accCalDayMouseOver(y, m, d) {
+  if (!accDraggingRange) return;
+  accRangeEnd = new Date(y, m, d);
+  renderAccCalendar();
+}
+document.addEventListener('mouseup', () => { accDraggingRange = false; });
+function accApplyCustomDateRange() {
+  if (!accRangeStart) { alert('Please choose a date first.'); return; }
+  const lo = accRangeEnd && accRangeEnd < accRangeStart ? accRangeEnd : accRangeStart;
+  const hi = accRangeEnd && accRangeEnd > accRangeStart ? accRangeEnd : (accRangeEnd || accRangeStart);
+  const sel = document.getElementById('accExpRange');
+  let o = sel.querySelector('option[value="customApplied"]');
+  if (!o) { o = document.createElement('option'); o.value = 'customApplied'; sel.appendChild(o); }
+  o.textContent = accRangeText(lo, hi);
+  sel.value = 'customApplied';
+  document.getElementById('accExpStart').value = localISODate(lo);
+  document.getElementById('accExpEnd').value = localISODate(hi);
+  document.getElementById('accCustomDatePopover').style.display = 'none';
+  accClearResults();
+}
+document.addEventListener('click', (e) => {
+  const popover = document.getElementById('accCustomDatePopover');
+  const picker = document.getElementById('accExpRange');
+  if (!popover || popover.style.display === 'none') return;
+  if (!popover.contains(e.target) && e.target !== picker) accCloseCustomDatePopover();
+});
+
 async function runAccountingExport(btn) {
   const errEl = document.getElementById('accExpError');
   const resEl = document.getElementById('accExpResult');
