@@ -772,6 +772,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
 .dash-btn.db-itemmaster{--tint:34,200,225;}
 .dash-btn.db-users{--tint:255,107,107;}
 .dash-btn.db-daily{--tint:52,211,153;}
+.dash-btn.db-acc{--tint:34,200,225;}
 .dash-btn.db-billing{--tint:200,241,53;}
 .dash-btn.db-settings{--tint:160,180,205;}
 .home-greeting-title{font-size:30px;letter-spacing:-0.02em;}
@@ -1148,6 +1149,17 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
         <div class="dash-btn-arrow">›</div>
       </div>
 
+      <div class="dash-btn db-acc" data-roles="admin,processor" data-perm="exportAccounting" onclick="openAccountingExport()">
+        <div class="dash-btn-inner">
+          <div class="dash-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <div class="dash-btn-text">
+            <div class="dash-btn-title">Accounting Export</div>
+            <div class="dash-btn-sub">Xero and Sage import files</div>
+          </div>
+        </div>
+        <div class="dash-btn-arrow">›</div>
+      </div>
+
       <div class="dash-btn db-suppliers" data-roles="admin,processor" onclick="showPage('suppliers', null)">
         <div class="dash-btn-inner">
           <div class="dash-btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M3 21V10l6 4V10l6 4V6l6 4v11z"/></svg></div>
@@ -1249,13 +1261,13 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     </div>
     <div class="pub-hero2-stats">
       <div class="pub-hero2-stat"><span class="pub-hero2-stat-num">2,000</span><span class="pub-hero2-stat-lbl">scans per branch,<br/>every month</span></div>
-      <div class="pub-hero2-stat"><span class="pub-hero2-stat-num">3</span><span class="pub-hero2-stat-lbl">accounting exports:<br/>Sage, Pastel, Xero</span></div>
+      <div class="pub-hero2-stat"><span class="pub-hero2-stat-num">2</span><span class="pub-hero2-stat-lbl">accounting import files:<br/>Xero, Sage</span></div>
       <div class="pub-hero2-stat"><span class="pub-hero2-stat-num">R2,999</span><span class="pub-hero2-stat-lbl">per branch,<br/>excl. VAT</span></div>
     </div>
   </div>
   <div class="pub-hero2-strip">
-    <div class="pub-hero2-strip-title">Exports straight to</div>
-    <div class="pub-hero2-strip-row"><span style="font-weight:800;">Sage</span><span style="font-weight:500;letter-spacing:0.02em;">Pastel</span><span style="font-weight:700;">Xero</span></div>
+    <div class="pub-hero2-strip-title">Import files for</div>
+    <div class="pub-hero2-strip-row"><span style="font-weight:800;">Sage</span><span style="font-weight:700;">Xero</span></div>
   </div>
   <div class="pub-features">
     <div class="pub-feature-card">
@@ -1519,7 +1531,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="pub-who-card">
         <div class="pub-who-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
         <h3>Exports</h3>
-        <p>CSV, TSV or Excel any time, with column order tailored for Sage, Pastel or Xero. Your data is always yours.</p>
+        <p>CSV, TSV or Excel any time, plus ready-made import files for Xero and Sage Accounting. Your data is always yours.</p>
       </div>
       </div>
       <div class="pub-incl">
@@ -1671,7 +1683,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="pub-tl-node" style="grid-row:5;"><span>5</span></div>
       <div style="grid-row:5;" class="pub-tl-card l"><span class="pub-tl-who">Processor</span><h3>Review, correct, approve</h3><p>A processor checks what the AI read, fixes anything that needs it, and approves. Nothing becomes a real record until then.</p><ul><li>Edit or reject individual line items</li><li>Approved invoices are locked in as clean records</li></ul></div>
       <div class="pub-tl-node" style="grid-row:6;"><span>6</span></div>
-      <div style="grid-row:6;" class="pub-tl-card r"><span class="pub-tl-who">Admin</span><h3>See it, export it, use it</h3><p>Approved data feeds your reports straight away, and goes to your accounting system when you want it.</p><ul><li>Spend by supplier or department, with trends and charts</li><li>Daily Summary you can save as a PDF</li><li>Export to CSV, TSV or Excel, with columns tailored for Sage, Pastel or Xero</li></ul></div>
+      <div style="grid-row:6;" class="pub-tl-card r"><span class="pub-tl-who">Admin</span><h3>See it, export it, use it</h3><p>Approved data feeds your reports straight away, and is ready to import into Xero or Sage Accounting when you want it.</p><ul><li>Spend by supplier or department, with trends and charts</li><li>Daily Summary you can save as a PDF</li><li>Export to CSV, TSV or Excel, or download an import file for Xero or Sage Accounting</li></ul></div>
 </div>
     </div>
 
@@ -1803,7 +1815,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
         <div class="login-feats">
           <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Scan any supplier invoice in seconds</div>
           <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>AI extracts every line item automatically</div>
-          <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Export to CSV, Excel, Sage, Pastel, Xero</div>
+          <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Export to CSV, Excel, Xero, Sage</div>
           <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>VAT registered and exempt suppliers</div>
           <div class="login-feat"><div class="fcheck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Price increase alerts and duplicate detection</div>
         </div>
@@ -1940,6 +1952,10 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
             <input id="scanInvoiceNumberInput" placeholder="Invoice Number" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);color:var(--text-body);font-family:'DM Mono',monospace;font-size:13px;padding:8px 10px;" oninput="onInvoiceNumberInput()"/>
           </div>
           <div style="padding:0 0 10px;">
+            <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Invoice date</label>
+            <input id="scanInvoiceDateInput" type="date" style="width:100%;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);color:var(--text-body);font-family:'DM Mono',monospace;font-size:13px;padding:8px 10px;"/>
+          </div>
+          <div style="padding:0 0 10px;">
             <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Note (optional)</label>
             <textarea id="scanNoteInput" placeholder="e.g. 2 boxes short, driver said rest coming tomorrow" style="width:100%;min-height:50px;background:var(--surface2);border:1px solid var(--border-light);border-radius:var(--radius);color:var(--text-body);font-family:'Plus Jakarta Sans','Inter',sans-serif;font-size:12px;padding:8px 10px;resize:vertical;"></textarea>
           </div>
@@ -2072,6 +2088,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
       <div class="snav-item" onclick="showSetting(this,'s-vat')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>  VAT Rates</div>
       <div class="snav-item" onclick="showSetting(this,'s-dept')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>  Departments</div>
       <div class="snav-item" onclick="showSetting(this,'s-exp')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>  Export Defaults</div>
+      <div class="snav-item" onclick="showSetting(this,'s-acc')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>  Accounting Export</div>
       <div class="snav-item" onclick="showSetting(this,'s-not')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>  Notifications</div>
       <div class="snav-grp" style="margin-top:8px;">Subscription</div>
       <div class="snav-item" onclick="showPage('billing', null)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>  Billing & Plan <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="8 6 18 6 18 16"/></svg></div>
@@ -2086,7 +2103,6 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
         <div class="tb-field narrow"><label>Contact Number</label><input id="biz-phone"/></div>
         <div class="tb-field narrow"><label>Email Address</label><input id="biz-email" type="email"/></div>
         <div class="tb-field narrow"><label>VAT Number</label><input id="biz-vat"/></div>
-        <div class="setting-row"><label class="setting-label">Accounting System</label><select class="styled-select" style="max-width:400px;"><option>Sage</option><option>Pastel</option><option selected>Xero</option><option>QuickBooks</option><option>Other</option></select><div class="setting-hint">Tailors export column order for your system.</div></div>
         <button class="save-btn" onclick="saveBusinessProfile(this)">Save Changes</button>
       </div>
       <div id="s-sec" style="display:none;">
@@ -2130,6 +2146,17 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
         <div class="setting-row"><label class="setting-label">VAT Rate</label><select class="styled-select" style="max-width:400px;"><option selected>15% (Standard SA VAT)</option><option>0% (Zero Rated)</option></select></div>
         <button class="save-btn" onclick="saveSettingsToast(this,'exportDefaults')">Save Defaults</button>
       </div>
+      <div id="s-acc" style="display:none;">
+        <div class="settings-title">Accounting Export</div>
+        <div class="settings-sub">Tell GRV Scanner how your accounting system names things, so the exported file imports cleanly. Type each name exactly as it appears in your accounting system.</div>
+        <div id="acc-error" style="display:none;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:12px;max-width:420px;"></div>
+        <div class="setting-row"><label class="setting-label">Accounting System</label><select class="styled-select" id="acc-system" style="max-width:400px;" onchange="updateAccSettingsUI()"><option value="xero">Xero</option><option value="sage">Sage Accounting</option></select></div>
+        <div class="tb-field narrow" id="acc-code-row"><label>Purchases account code <span class="req">*</span></label><input id="acc-code" placeholder="e.g. the code of your Purchases account in Xero"/><div class="setting-hint" style="font-size:11px;color:var(--muted);margin-top:4px;">Xero needs an expense account code on every line. Find it in Xero under Accounting > Chart of accounts.</div></div>
+        <div class="tb-field narrow"><label>Name of your standard VAT rate <span class="req">*</span></label><input id="acc-tax-std" placeholder="exactly as it appears in your accounting system"/><div style="font-size:11px;color:var(--muted);margin-top:4px;">Used for every invoice line with a VAT rate above 0%.</div></div>
+        <div class="tb-field narrow"><label>Name of your zero-rated purchases tax rate</label><input id="acc-tax-zero" placeholder="exactly as it appears in your accounting system"/><div style="font-size:11px;color:var(--muted);margin-top:4px;">Used for lines at 0%. Only needed if you buy zero-rated items.</div></div>
+        <div class="tb-field narrow"><label>Payment terms (days)</label><input id="acc-due-days" type="number" min="0" max="365" value="30"/><div style="font-size:11px;color:var(--muted);margin-top:4px;">Due date = invoice date plus this many days. Xero requires a due date.</div></div>
+        <button class="save-btn" onclick="saveAccountingSettings(this)">Save Accounting Settings</button>
+      </div>
       <div id="s-not" style="display:none;">
         <div class="settings-title">Notifications</div>
         <div class="settings-sub">Choose when GRV Scanner sends you email alerts.</div>
@@ -2171,7 +2198,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
           <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Duplicate invoice detection</div>
           <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Price increase alerts</div>
           <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Full insights &amp; analytics</div>
-          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Sage / Pastel / Xero export</div>
+          <div class="pf-item"><div class="pf-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg></div>Xero / Sage import files</div>
         </div>
         <button class="plan-btn upgrade" id="btn-plan-business" onclick="changePlan('Business')">Subscribe</button>
       </div>
@@ -2387,6 +2414,25 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
 </div>
 
 <!-- Approved confirmation -->
+<div class="modal-overlay" id="accExportModal">
+  <div class="modal-box user-box" style="max-width:520px;">
+    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;">Accounting export</div>
+    <div style="font-size:13px;color:var(--muted-light);line-height:1.6;margin-bottom:16px;">Download your approved invoices as a file you can import into your accounting system. Only approved invoices are included.</div>
+    <div id="accExpError" style="display:none;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--danger);border-radius:var(--radius);padding:10px 12px;font-size:12px;margin-bottom:12px;line-height:1.5;"></div>
+    <div class="tb-field"><label>Accounting system</label><select id="accExpSystem" class="styled-select" onchange="updateAccExpNote()"><option value="xero">Xero</option><option value="sage">Sage Accounting</option></select></div>
+    <div style="display:flex;gap:12px;">
+      <div class="tb-field" style="flex:1;"><label>From</label><input type="date" id="accExpStart"/></div>
+      <div class="tb-field" style="flex:1;"><label>To</label><input type="date" id="accExpEnd"/></div>
+    </div>
+    <div id="accExpSageNote" style="display:none;font-size:12px;color:var(--warn);background:var(--warn-dim);border:1px solid rgba(245,158,11,0.35);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;line-height:1.5;">Sage's import layout can vary. If Sage does not recognise the columns, choose "map columns" during the import. Please test with one small date range first.</div>
+    <div id="accExpResult" style="display:none;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button id="accExpGo" onclick="runAccountingExport(this)" style="flex:1;padding:12px;background:var(--accent);color:#0a1628;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans','Inter',sans-serif;">Create export</button>
+      <button onclick="closeModal('accExportModal')" style="padding:12px 18px;background:none;color:var(--muted-light);border:1px solid var(--border-light);border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans','Inter',sans-serif;">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="approvedModal">
   <div class="modal-box user-box" style="max-width:400px;text-align:center;">
     <div style="font-size:48px;margin-bottom:14px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg></div>
@@ -2861,7 +2907,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
           <label class="toggle-switch"><input type="checkbox" id="perm-editRejectLineItems" checked/><span class="toggle-slider"></span></label>
         </div>
         <div class="perm-toggle-row">
-          <div class="ptr-left"><div class="ptr-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div><div class="ptr-label">Export to Sage/Pastel/Xero</div><div class="ptr-sub">Download approved GRVs for the accounting system</div></div></div>
+          <div class="ptr-left"><div class="ptr-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div><div class="ptr-label">Accounting export (Xero/Sage)</div><div class="ptr-sub">Download approved GRVs for the accounting system</div></div></div>
           <label class="toggle-switch"><input type="checkbox" id="perm-exportAccounting" checked/><span class="toggle-slider"></span></label>
         </div>
         <div class="perm-toggle-row">
@@ -2950,7 +2996,7 @@ thead th.cc{background:none;border:none;border-radius:0;padding:0 6px 9px;}
     <div class="perm-toggles" style="margin-top:14px;">
       <div class="perm-toggle-row"><div class="ptr-left"><div class="ptr-label">Approve GRVs</div></div><label class="toggle-switch"><input type="checkbox" id="ep-approveGrvs"/><span class="toggle-slider"></span></label></div>
       <div class="perm-toggle-row"><div class="ptr-left"><div class="ptr-label">Edit or Reject Line Items</div></div><label class="toggle-switch"><input type="checkbox" id="ep-editRejectLineItems"/><span class="toggle-slider"></span></label></div>
-      <div class="perm-toggle-row"><div class="ptr-left"><div class="ptr-label">Export to Sage/Pastel/Xero</div></div><label class="toggle-switch"><input type="checkbox" id="ep-exportAccounting"/><span class="toggle-slider"></span></label></div>
+      <div class="perm-toggle-row"><div class="ptr-left"><div class="ptr-label">Accounting export (Xero/Sage)</div></div><label class="toggle-switch"><input type="checkbox" id="ep-exportAccounting"/><span class="toggle-slider"></span></label></div>
       <div class="perm-toggle-row"><div class="ptr-left"><div class="ptr-label">Edit Item Master</div></div><label class="toggle-switch"><input type="checkbox" id="ep-editItemMaster"/><span class="toggle-slider"></span></label></div>
       <div class="perm-toggle-row"><div class="ptr-left"><div class="ptr-label">Price Increase Alerts</div></div><label class="toggle-switch"><input type="checkbox" id="ep-priceAlerts"/><span class="toggle-slider"></span></label></div>
       <div class="perm-toggle-row"><div class="ptr-left"><div class="ptr-label">Insights & Analytics</div></div><label class="toggle-switch"><input type="checkbox" id="ep-insights"/><span class="toggle-slider"></span></label></div>
@@ -3320,9 +3366,16 @@ function applyRoleUI(role, displayName, initials) {
 // sandboxed contexts (e.g. an embedded preview), so every call is guarded.
 // If it's unavailable, the app still works fine - sessions just won't survive
 // a refresh in that specific context, same as before this feature existed.
-function safeStorageGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
-function safeStorageSet(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* ignore */ } }
-function safeStorageRemove(key) { try { localStorage.removeItem(key); } catch (e) { /* ignore */ } }
+// The login token and last page are per-session: sessionStorage survives a
+// refresh but is wiped when the tab is closed, so reopening the app asks for a
+// fresh login. Everything else (e.g. chosen branch) stays in localStorage.
+const SESSION_ONLY_KEYS = ['grv_auth_token', 'grv_last_page'];
+function storeFor(key) { return SESSION_ONLY_KEYS.indexOf(key) !== -1 ? sessionStorage : localStorage; }
+// One-time clean-up: remove any login left in localStorage by earlier versions.
+try { SESSION_ONLY_KEYS.forEach(k => localStorage.removeItem(k)); } catch (e) { /* ignore */ }
+function safeStorageGet(key) { try { return storeFor(key).getItem(key); } catch (e) { return null; } }
+function safeStorageSet(key, val) { try { storeFor(key).setItem(key, val); } catch (e) { /* ignore */ } }
+function safeStorageRemove(key) { try { storeFor(key).removeItem(key); } catch (e) { /* ignore */ } }
 
 // ══════════════════════════════════════
 // MULTI-BRANCH: branch switcher + group management
@@ -4167,7 +4220,7 @@ function showPage(id, tabEl) {
 function showSetting(el, secId) {
   document.querySelectorAll('.snav-item').forEach(s => s.classList.remove('active'));
   el.classList.add('active');
-  ['s-biz','s-sec','s-vat','s-dept','s-exp','s-not'].forEach(id => {
+  ['s-biz','s-sec','s-vat','s-dept','s-exp','s-acc','s-not'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = id === secId ? 'block' : 'none';
   });
@@ -4182,6 +4235,7 @@ function showSetting(el, secId) {
   }
   if (secId === 's-vat') loadVatRates();
   if (secId === 's-dept') loadDepartments();
+  if (secId === 's-acc') loadAccountingSettings();
 }
 
 let currentVatRates = [];
@@ -4490,6 +4544,9 @@ async function doScan() {
     // items with no invoice number found rather than failing outright.
     const items = Array.isArray(parsed) ? parsed : parsed.items;
     const extractedInvoiceNumber = Array.isArray(parsed) ? '' : String(parsed.invoiceNumber || '').trim();
+    const rawInvoiceDate = Array.isArray(parsed) ? '' : String(parsed.invoiceDate || '').trim();
+    // Only accept a real calendar date; anything else is left blank for the user to fill in.
+    const extractedInvoiceDate = (/^\d{4}-\d{2}-\d{2}$/.test(rawInvoiceDate) && !isNaN(new Date(rawInvoiceDate + 'T00:00:00Z'))) ? rawInvoiceDate : '';
     if (!Array.isArray(items) || items.length === 0) {
       throw new Error('No line items could be found on this invoice. Try a clearer photo.');
     }
@@ -4547,6 +4604,7 @@ async function doScan() {
     if (actionsPanel) { actionsPanel.style.opacity = '1'; actionsPanel.style.pointerEvents = 'auto'; }
 
     document.getElementById('scanInvoiceNumberInput').value = extractedInvoiceNumber;
+    const invDateEl = document.getElementById('scanInvoiceDateInput'); if (invDateEl) invDateEl.value = extractedInvoiceDate;
     await checkForDuplicate();
 
   } catch (err) {
@@ -4659,6 +4717,7 @@ async function submitScanToServer() {
   const priceAlerts = rows.filter(r => r.querySelector('.flag-up, .flag-down')).length;
   const note = document.getElementById('scanNoteInput')?.value.trim() || null;
   const invoiceNumber = document.getElementById('scanInvoiceNumberInput')?.value.trim() || null;
+  const invoiceDate = document.getElementById('scanInvoiceDateInput')?.value || null;
 
   const lineItems = rows.map(r => {
     const inputs = r.querySelectorAll('input');
@@ -4683,7 +4742,7 @@ async function submitScanToServer() {
     await apiFetch('/scans', {
       method: 'POST',
       body: JSON.stringify({
-        supplierId, invoiceNumber, note, exclVat, vat, total, priceAlerts, lineItems,
+        supplierId, invoiceNumber, invoiceDate, note, exclVat, vat, total, priceAlerts, lineItems,
         // The already-compressed image from the upload step, saved so the
         // original invoice can be pulled up later - not just the AI's
         // reading of it. Omitted (undefined -> not sent) if somehow there's
@@ -4748,6 +4807,7 @@ function onInvoiceNumberInput() {
 function clearScan() {
   document.getElementById('scanBody').innerHTML = '';
   document.getElementById('scanInvoiceNumberInput').value = '';
+  { const d = document.getElementById('scanInvoiceDateInput'); if (d) d.value = ''; }
   document.getElementById('scanNoteInput').value = '';
   document.getElementById('resMeta').textContent = 'Select a supplier and upload an invoice to begin';
   document.getElementById('fSup').textContent = '-';
@@ -4778,6 +4838,7 @@ function discardDuplicateScan() {
   document.getElementById('dupBar').style.display = 'none';
   document.getElementById('scanBody').innerHTML = '';
   document.getElementById('scanInvoiceNumberInput').value = '';
+  { const d = document.getElementById('scanInvoiceDateInput'); if (d) d.value = ''; }
   document.getElementById('resMeta').textContent = 'Select a supplier and upload an invoice to begin';
   document.getElementById('fAlerts').innerHTML = '0 items';
   document.getElementById('palBar').style.display = 'none';
@@ -7235,6 +7296,104 @@ function showDeleteConfirm() {
 // ══════════════════════════════════════
 // MODALS
 // ══════════════════════════════════════
+// ══════════════════════════════════════
+// ACCOUNTING EXPORT (Xero / Sage)
+// ══════════════════════════════════════
+function updateAccSettingsUI() {
+  const sys = document.getElementById('acc-system')?.value;
+  const row = document.getElementById('acc-code-row');
+  if (row) row.style.display = sys === 'xero' ? '' : 'none';
+}
+async function loadAccountingSettings() {
+  try {
+    const cfg = await apiFetch('/business/accounting');
+    document.getElementById('acc-system').value = cfg.system || 'xero';
+    document.getElementById('acc-code').value = cfg.accountCode || '';
+    document.getElementById('acc-tax-std').value = cfg.taxStandard || '';
+    document.getElementById('acc-tax-zero').value = cfg.taxZero || '';
+    document.getElementById('acc-due-days').value = cfg.dueDays != null ? cfg.dueDays : 30;
+    updateAccSettingsUI();
+  } catch (err) {
+    console.error('Failed to load accounting settings:', err.message);
+  }
+}
+async function saveAccountingSettings(btn) {
+  const errEl = document.getElementById('acc-error');
+  errEl.style.display = 'none';
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    await apiFetch('/business/accounting', {
+      method: 'PUT',
+      body: JSON.stringify({
+        system: document.getElementById('acc-system').value,
+        accountCode: document.getElementById('acc-code').value,
+        taxStandard: document.getElementById('acc-tax-std').value,
+        taxZero: document.getElementById('acc-tax-zero').value,
+        dueDays: parseInt(document.getElementById('acc-due-days').value, 10),
+      }),
+    });
+    btn.textContent = 'Saved';
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+    btn.textContent = original;
+  }
+  setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1400);
+}
+
+let lastAccExportFiles = [];
+function localISODate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function updateAccExpNote() {
+  const sys = document.getElementById('accExpSystem').value;
+  document.getElementById('accExpSageNote').style.display = sys === 'sage' ? 'block' : 'none';
+}
+async function openAccountingExport() {
+  const now = new Date();
+  document.getElementById('accExpStart').value = localISODate(new Date(now.getFullYear(), now.getMonth(), 1));
+  document.getElementById('accExpEnd').value = localISODate(now);
+  document.getElementById('accExpError').style.display = 'none';
+  document.getElementById('accExpResult').style.display = 'none';
+  document.getElementById('accExpResult').innerHTML = '';
+  lastAccExportFiles = [];
+  try {
+    const cfg = await apiFetch('/business/accounting');
+    document.getElementById('accExpSystem').value = cfg.system || 'xero';
+  } catch (err) { /* keep the default selection */ }
+  updateAccExpNote();
+  document.getElementById('accExportModal').classList.add('open');
+}
+async function runAccountingExport(btn) {
+  const errEl = document.getElementById('accExpError');
+  const resEl = document.getElementById('accExpResult');
+  errEl.style.display = 'none'; resEl.style.display = 'none'; resEl.innerHTML = '';
+  const system = document.getElementById('accExpSystem').value;
+  const start = document.getElementById('accExpStart').value;
+  const end = document.getElementById('accExpEnd').value;
+  if (!start || !end) { errEl.textContent = 'Choose a start and end date.'; errEl.style.display = 'block'; return; }
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Building...';
+  try {
+    const r = await apiFetch(`/reports/accounting-export?system=${encodeURIComponent(system)}&start=${start}&end=${end}`);
+    lastAccExportFiles = r.files;
+    const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const files = r.files.map((f, i) => `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border:1px solid var(--border-light);border-radius:var(--radius);margin-top:8px;"><div style="font-size:12px;color:var(--text-body);word-break:break-all;">${esc(f.filename)}<div style="font-size:11px;color:var(--muted);">${f.invoiceCount} invoice(s), ${f.lineCount} line(s)</div></div><button onclick="downloadAccExportFile(${i})" style="padding:8px 14px;background:var(--accent);color:#0a1628;border:none;border-radius:var(--radius);font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans','Inter',sans-serif;white-space:nowrap;">Download</button></div>`).join('');
+    const notes = (r.notes || []).map(n => `<li style="margin-top:4px;">${esc(n)}</li>`).join('');
+    resEl.innerHTML = `<div style="font-size:13px;color:#fff;font-weight:600;">${r.invoiceCount} approved invoice(s), ${r.lineCount} line(s) ready</div>${files}<ul style="margin:12px 0 0;padding-left:18px;font-size:12px;color:var(--muted-light);line-height:1.5;">${notes}</ul>`;
+    resEl.style.display = 'block';
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  }
+  btn.textContent = original; btn.disabled = false;
+}
+async function downloadAccExportFile(i) {
+  const f = lastAccExportFiles[i];
+  if (!f) return;
+  const blob = new Blob([f.csv], { type: 'text/csv' });
+  await saveFileToDisk(blob, f.filename, 'CSV File', 'text/csv', ['.csv']);
+}
+
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 // Fetches and displays the original scanned invoice image/PDF for a scan -
